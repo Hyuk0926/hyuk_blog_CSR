@@ -21,9 +21,10 @@ REST API에 맞게 DTO 구조를 개선했습니다. 요청(Request)과 응답(R
 - **UserDto** - 기존 사용자 DTO (내부 처리용)
 
 ### 4. 관리자 관련 DTO
-- **AdminRequestDto** - 관리자 생성/수정 요청
+- **AdminCreateRequestDto** - 관리자 생성 요청
+- **AdminUpdateRequestDto** - 관리자 수정 요청
 - **AdminResponseDto** - 관리자 응답 (비밀번호 제외)
-- **AdminDto** - 기존 관리자 DTO (내부 처리용)
+- **AdminDto** - 기존 관리자 DTO (세션 및 내부 처리용)
 
 ### 5. 댓글 관련 DTO
 - **CommentRequestDto** - 댓글 생성/수정 요청

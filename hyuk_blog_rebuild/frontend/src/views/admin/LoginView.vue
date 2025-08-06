@@ -105,8 +105,10 @@ export default {
         // 새로운 통합 로그인 API 호출
         const response = await apiService.login(this.formData);
         
+        console.log('로그인 응답:', response); // 디버깅 로그 추가
+        
         // 관리자 권한 확인
-        if (response.role === 'ADMIN') {
+        if (response.role === 'ROLE_ADMIN') {
           // JWT 토큰을 로컬 스토리지에 저장
           localStorage.setItem('jwtToken', response.token);
           localStorage.setItem('userRole', response.role);
@@ -114,6 +116,7 @@ export default {
           localStorage.setItem('adminToken', response.token); // 기존 호환성 유지
           
           // 관리자 대시보드로 리다이렉트
+          console.log('대시보드로 리다이렉트 시도...'); // 디버깅 로그 추가
           this.$router.push('/admin/dashboard');
         } else {
           this.errorMessage = '관리자 권한이 필요합니다.';

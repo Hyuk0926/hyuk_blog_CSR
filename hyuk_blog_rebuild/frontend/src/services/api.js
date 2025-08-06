@@ -269,7 +269,7 @@ class ApiService {
    * 관리자 권한 확인
    */
   isAdmin() {
-    return localStorage.getItem('userRole') === 'ADMIN';
+    return localStorage.getItem('userRole') === 'ROLE_ADMIN';
   }
 
   /**
@@ -277,6 +277,11 @@ class ApiService {
    */
   async getCurrentUser() {
     try {
+      // 관리자인 경우 관리자 정보 API 호출
+      if (this.isAdmin()) {
+        return await this.request('/api/admin/auth/profile');
+      }
+      // 일반 사용자인 경우 사용자 정보 API 호출
       return await this.request('/api/user/info');
     } catch (error) {
       console.error('Failed to get current user:', error);

@@ -3,9 +3,9 @@
     <div class="admin-header">
       <h1 class="admin-title">관리자 대시보드</h1>
       <div class="admin-info">
-        <div class="admin-welcome">
-          안녕하세요, <span class="admin-name">관리자</span>님
-        </div>
+                 <div class="admin-welcome">
+           안녕하세요, <span class="admin-name">{{ adminInfo.name || adminInfo.username || '관리자' }}</span>님
+         </div>
         <button @click="goToNewPost" class="admin-btn btn-primary">새 게시글</button>
         <button @click="goToResumeManagement" class="admin-btn btn-secondary">이력서 관리</button>
         <button @click="goToInquiryManagement" class="admin-btn btn-secondary">문의 관리</button>
@@ -76,6 +76,11 @@ export default {
   data() {
     return {
       lang: 'ko',
+      adminInfo: {
+        username: '',
+        name: '',
+        email: ''
+      },
       stats: {
         totalPosts: 0,
         publishedPosts: 0,
@@ -85,20 +90,30 @@ export default {
     }
   },
   mounted() {
+    this.checkAuth();
+    this.loadAdminInfo();
     this.loadDashboardData();
     this.loadPosts();
-    this.checkAuth();
   },
   methods: {
     checkAuth() {
-      const token = localStorage.getItem('adminToken');
-      if (!token) {
+      const token = localStorage.getItem('jwtToken');
+      const userRole = localStorage.getItem('userRole');
+      
+      if (!token || userRole !== 'ROLE_ADMIN') {
+        localStorage.removeItem('jwtToken');
+        localStorage.removeItem('userRole');
+        localStorage.removeItem('username');
+        localStorage.removeItem('adminToken');
         this.$router.push('/admin/login');
         return;
       }
       
-      // 임시 토큰 검증 (실제로는 백엔드에서 검증)
-      if (!token.startsWith('temp_admin_token_')) {
+      // JWT 토큰 형식 검증 (eyJ로 시작하는지 확인)
+      if (!token.startsWith('eyJ')) {
+        localStorage.removeItem('jwtToken');
+        localStorage.removeItem('userRole');
+        localStorage.removeItem('username');
         localStorage.removeItem('adminToken');
         this.$router.push('/admin/login');
         return;
@@ -107,24 +122,61 @@ export default {
       // 실제 백엔드 토큰 검증 (추후 활성화)
       /*
       try {
-        const response = await fetch('/api/admin/verify-token', {
+        const response = await fetch('/api/auth/validate', {
+          method: 'POST',
           headers: {
             'Authorization': `Bearer ${token}`
           }
         });
         
         if (!response.ok) {
+          localStorage.removeItem('jwtToken');
+          localStorage.removeItem('userRole');
+          localStorage.removeItem('username');
           localStorage.removeItem('adminToken');
           this.$router.push('/admin/login');
         }
       } catch (error) {
         console.error('토큰 검증 실패:', error);
+        localStorage.removeItem('jwtToken');
+        localStorage.removeItem('userRole');
+        localStorage.removeItem('username');
         localStorage.removeItem('adminToken');
         this.$router.push('/admin/login');
       }
-      */
-    },
-    async loadDashboardData() {
+             */
+     },
+     async loadAdminInfo() {
+       try {
+         // 로컬 스토리지에서 기본 정보 가져오기
+         const username = localStorage.getItem('username');
+         this.adminInfo.username = username || '';
+         
+         // 백엔드에서 상세 정보 가져오기
+         const response = await fetch('/api/admin/auth/profile', {
+           headers: {
+             'Authorization': `Bearer ${localStorage.getItem('jwtToken')}`
+           }
+         });
+         
+         if (response.ok) {
+           const data = await response.json();
+           if (data.success && data.data) {
+             this.adminInfo = {
+               username: data.data.username,
+               name: data.data.name,
+               email: data.data.email
+             };
+           }
+         }
+       } catch (error) {
+         console.error('관리자 정보 로드 실패:', error);
+         // 로컬 스토리지 정보만 사용
+         const username = localStorage.getItem('username');
+         this.adminInfo.username = username || '';
+       }
+     },
+     async loadDashboardData() {
       try {
         // 실제 백엔드 API 호출
         // const response = await fetch('/api/admin/dashboard', {
@@ -146,6 +198,9 @@ export default {
       }
     },
     logout() {
+      localStorage.removeItem('jwtToken');
+      localStorage.removeItem('userRole');
+      localStorage.removeItem('username');
       localStorage.removeItem('adminToken');
       this.$router.push('/admin/login');
     },

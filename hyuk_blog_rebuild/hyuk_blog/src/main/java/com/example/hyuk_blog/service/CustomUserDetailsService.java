@@ -32,7 +32,11 @@ public class CustomUserDetailsService implements UserDetailsService {
         User user = userRepository.findByUsername(username).orElse(null);
         if (user != null) {
             log.debug("사용자 테이블에서 사용자 발견: 사용자명={}, 활성상태={}", username, user.isActive());
-            return user;
+            return new org.springframework.security.core.userdetails.User(
+                    user.getUsername(),
+                    user.getPassword(),
+                    Collections.singletonList(new SimpleGrantedAuthority("ROLE_USER"))
+            );
         }
         
         // 2. User 테이블에 없으면 Admin 테이블에서 확인
@@ -45,15 +49,10 @@ public class CustomUserDetailsService implements UserDetailsService {
         
         log.debug("관리자 테이블에서 사용자 발견: 사용자명={}, 활성상태={}", username, admin.isActive());
         
-        // Admin 계정에 ADMIN 역할 부여
-        return org.springframework.security.core.userdetails.User.builder()
-                .username(admin.getUsername())
-                .password(admin.getPassword())
-                .authorities(Collections.singletonList(new SimpleGrantedAuthority("ROLE_ADMIN")))
-                .accountExpired(false)
-                .accountLocked(false)
-                .credentialsExpired(false)
-                .disabled(!admin.isActive())
-                .build();
+        return new org.springframework.security.core.userdetails.User(
+                admin.getUsername(),
+                admin.getPassword(),
+                Collections.singletonList(new SimpleGrantedAuthority("ROLE_ADMIN"))
+        );
     }
 } 

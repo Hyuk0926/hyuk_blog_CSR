@@ -23,6 +23,14 @@
 - `GET /api/admin/auth/profile` - 관리자 정보 조회
 - `PUT /api/admin/auth/profile` - 관리자 정보 수정
 
+### 관리자 관리 API
+- `GET /api/admin` - 모든 관리자 조회
+- `GET /api/admin/{id}` - 특정 관리자 조회
+- `POST /api/admin` - 새 관리자 생성
+- `PUT /api/admin/{id}` - 관리자 정보 업데이트
+- `DELETE /api/admin/{id}` - 관리자 삭제 (비활성화)
+- `GET /api/admin/check-username` - 사용자명 중복 확인
+
 ### JWT 토큰
 - `POST /api/auth/validate` - JWT 토큰 검증
 - `GET /api/auth/info` - JWT 토큰 정보 조회
@@ -146,6 +154,56 @@ POST /api/comments/kr/1
     "id": 1,
     "content": "좋은 게시글이네요!",
     "nickname": "사용자",
+    "createdAt": "2024-01-01T00:00:00"
+  }
+}
+```
+
+### 관리자 생성
+```json
+// 요청
+POST /api/admin
+{
+  "username": "newadmin",
+  "password": "password123",
+  "name": "새 관리자",
+  "email": "newadmin@example.com"
+}
+
+// 응답
+{
+  "success": true,
+  "message": "관리자가 성공적으로 생성되었습니다.",
+  "data": {
+    "id": 2,
+    "username": "newadmin",
+    "name": "새 관리자",
+    "email": "newadmin@example.com",
+    "active": true,
+    "createdAt": "2024-01-01T00:00:00"
+  }
+}
+```
+
+### 관리자 정보 업데이트
+```json
+// 요청
+PUT /api/admin/2
+{
+  "name": "수정된 관리자",
+  "email": "updated@example.com"
+}
+
+// 응답
+{
+  "success": true,
+  "message": "관리자 정보가 성공적으로 업데이트되었습니다.",
+  "data": {
+    "id": 2,
+    "username": "newadmin",
+    "name": "수정된 관리자",
+    "email": "updated@example.com",
+    "active": true,
     "createdAt": "2024-01-01T00:00:00"
   }
 }
