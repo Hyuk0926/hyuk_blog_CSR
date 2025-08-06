@@ -74,6 +74,8 @@
 </template>
 
 <script>
+import apiService from '@/services/api.js';
+
 export default {
   name: 'UserLoginView',
   data() {
@@ -101,35 +103,39 @@ export default {
       this.error = '';
       
       try {
-        // 실제 로그인 API 호출
-        const response = await fetch('/api/user/login', {
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/json',
-          },
-          body: JSON.stringify(this.formData)
+        // 새로운 통합 로그인 API 호출
+        const response = await apiService.login(this.formData);
+        
+        // JWT 토큰을 로컬 스토리지에 저장
+        localStorage.setItem('jwtToken', response.token);
+        localStorage.setItem('userRole', response.role);
+        localStorage.setItem('username', response.username);
+        
+        this.message = '로그인 성공!';
+        
+        // 부모 컴포넌트의 사용자 정보 업데이트
+        this.$emit('user-logged-in', {
+          username: response.username,
+          role: response.role,
+          token: response.token
         });
         
-        const data = await response.json();
+        // 로그인 성공 후 리다이렉트
+        setTimeout(() => {
+          if (this.redirectUrl) {
+            this.$router.push(this.redirectUrl);
+          } else {
+            this.$router.push('/');
+          }
+        }, 1000);
         
-        if (response.ok) {
-          this.message = '로그인 성공!';
-          // 부모 컴포넌트의 사용자 정보 업데이트
-          this.$emit('user-logged-in', data.user);
-          // 로그인 성공 후 리다이렉트
-          setTimeout(() => {
-            if (this.redirectUrl) {
-              this.$router.push(this.redirectUrl);
-            } else {
-              this.$router.push('/');
-            }
-          }, 1000);
-        } else {
-          this.error = data.message || '로그인에 실패했습니다.';
-        }
       } catch (error) {
-        this.error = '서버 오류가 발생했습니다.';
         console.error('Login error:', error);
+        if (error.message && error.message.includes('Invalid username or password')) {
+          this.error = '아이디 또는 비밀번호가 올바르지 않습니다.';
+        } else {
+          this.error = '로그인 처리 중 오류가 발생했습니다.';
+        }
       } finally {
         this.loading = false;
       }

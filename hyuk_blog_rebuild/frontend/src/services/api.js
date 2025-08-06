@@ -4,7 +4,7 @@
  */
 class ApiService {
   constructor() {
-    this.baseURL = process.env.VUE_APP_API_URL || 'http://localhost:8082';
+    this.baseURL = process.env.VUE_APP_API_URL || 'http://localhost:9090';
   }
 
   /**
@@ -20,6 +20,12 @@ class ApiService {
       credentials: 'include', // 쿠키 포함
     };
 
+    // JWT 토큰이 있으면 Authorization 헤더에 추가
+    const token = localStorage.getItem('jwtToken');
+    if (token) {
+      defaultOptions.headers['Authorization'] = `Bearer ${token}`;
+    }
+
     const config = {
       ...defaultOptions,
       ...options,
@@ -33,6 +39,13 @@ class ApiService {
       const response = await fetch(url, config);
       
       if (!response.ok) {
+        // 401 Unauthorized 에러 시 토큰 제거
+        if (response.status === 401) {
+          localStorage.removeItem('jwtToken');
+          localStorage.removeItem('userRole');
+          localStorage.removeItem('username');
+          localStorage.removeItem('adminToken');
+        }
         throw new Error(`HTTP error! status: ${response.status}`);
       }
       
@@ -189,43 +202,89 @@ class ApiService {
     });
   }
 
-  // ==================== 사용자 관련 API ====================
+  // ==================== 인증 관련 API ====================
 
   /**
-   * 사용자 로그인
+   * 통합 로그인 (사용자/관리자)
    */
   async login(credentials) {
-    return this.request('/api/user/login', {
+    return this.request('/api/auth/login', {
       method: 'POST',
       body: JSON.stringify(credentials),
     });
   }
 
   /**
-   * 사용자 로그아웃
-   */
-  async logout() {
-    return this.request('/api/user/logout', {
-      method: 'POST',
-    });
-  }
-
-  /**
-   * 사용자 정보 조회
-   */
-  async getUserInfo() {
-    return this.request('/api/user/info');
-  }
-
-  /**
-   * 사용자 등록
+   * 회원가입
    */
   async register(userData) {
-    return this.request('/api/user/register', {
+    return this.request('/api/auth/register', {
       method: 'POST',
       body: JSON.stringify(userData),
     });
   }
+
+  /**
+   * JWT 토큰 검증
+   */
+  async validateToken(token) {
+    return this.request('/api/auth/validate', {
+      method: 'POST',
+      headers: {
+        'Authorization': `Bearer ${token}`,
+      },
+    });
+  }
+
+  /**
+   * JWT 토큰 정보 조회
+   */
+  async getTokenInfo(token) {
+    return this.request('/api/auth/info', {
+      method: 'GET',
+      headers: {
+        'Authorization': `Bearer ${token}`,
+      },
+    });
+  }
+
+  /**
+   * 로그아웃 (클라이언트 측 토큰 제거)
+   */
+  logout() {
+    localStorage.removeItem('jwtToken');
+    localStorage.removeItem('userRole');
+    localStorage.removeItem('username');
+    localStorage.removeItem('adminToken');
+  }
+
+  /**
+   * 현재 로그인 상태 확인
+   */
+  isLoggedIn() {
+    return !!localStorage.getItem('jwtToken');
+  }
+
+  /**
+   * 관리자 권한 확인
+   */
+  isAdmin() {
+    return localStorage.getItem('userRole') === 'ADMIN';
+  }
+
+  /**
+   * 현재 사용자 정보 가져오기
+   */
+  async getCurrentUser() {
+    try {
+      return await this.request('/api/user/info');
+    } catch (error) {
+      console.error('Failed to get current user:', error);
+      return null;
+    }
+  }
+
+  // ==================== 사용자 관련 API ====================
 
   /**
    * 사용자명 중복 확인
@@ -246,25 +305,6 @@ class ApiService {
    */
   async checkEmail(email) {
     return this.request(`/api/user/check-email?email=${encodeURIComponent(email)}`);
-  }
-
-  // ==================== 관리자 관련 API ====================
-
-  /**
-   * 관리자 로그인
-   */
-  async adminLogin(credentials) {
-    return this.request('/api/admin/login', {
-      method: 'POST',
-      body: JSON.stringify(credentials),
-    });
-  }
-
-  /**
-   * 관리자 토큰 검증
-   */
-  async verifyAdminToken() {
-    return this.request('/api/admin/verify-token');
   }
 
   // ==================== 문의 관련 API ====================

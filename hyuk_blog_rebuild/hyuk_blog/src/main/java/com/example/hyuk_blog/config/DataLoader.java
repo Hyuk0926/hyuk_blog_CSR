@@ -113,9 +113,20 @@ public class DataLoader implements CommandLineRunner {
     }
 
     private void createInitialUser() {
-        // 테스트용 사용자 계정 생성은 비활성화
-        // 실제 운영 환경에서는 사용자가 직접 회원가입을 통해 계정을 생성해야 함
-        System.out.println("테스트용 사용자 계정 생성을 건너뜁니다.");
+        // 테스트용 사용자 계정 생성
+        User testUser = new User();
+        testUser.setUsername("test0000");
+        testUser.setPassword(passwordEncoder.encode("test00001"));
+        testUser.setNickname("테스트사용자");
+        testUser.setEmail("test@example.com");
+        testUser.setActive(true);
+        testUser.setCreatedAt(LocalDateTime.now());
+        testUser.setUpdatedAt(LocalDateTime.now());
+        userRepository.save(testUser);
+        
+        System.out.println("테스트용 사용자 계정이 생성되었습니다.");
+        System.out.println("아이디: test0000");
+        System.out.println("비밀번호: test00001");
     }
 
     private void updateExistingAdminPasswords() {

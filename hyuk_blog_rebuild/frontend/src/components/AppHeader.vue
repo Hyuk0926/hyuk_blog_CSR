@@ -40,6 +40,8 @@
   </template>
   
   <script>
+  import ApiService from '@/services/api.js';
+
   export default {
     name: 'AppHeader',
     data() {
@@ -71,32 +73,26 @@
         this.$i18n.locale = language;
         localStorage.setItem('language', language);
         console.log(`Language set to: ${language}`);
+        
+        // 언어 변경 이벤트 발생
+        this.$emit('language-changed', language);
       },
       getLink(path) {
         return `${path}?lang=${this.$i18n.locale}`;
       },
       async handleLogout() {
         try {
-          const response = await fetch('/api/user/logout', {
-            method: 'POST',
-            headers: {
-              'Content-Type': 'application/json',
-            }
-          });
-          
-          if (response.ok) {
-            this.user = null;
-            this.$router.push('/');
-          }
+          ApiService.logout();
+          this.user = null;
+          this.$router.push('/');
         } catch (error) {
           console.error('Logout error:', error);
         }
       },
       async fetchUserInfo() {
         try {
-          const response = await fetch('/api/user/info');
-          if (response.ok) {
-            const userData = await response.json();
+          if (ApiService.isLoggedIn()) {
+            const userData = await ApiService.getCurrentUser();
             this.user = userData;
           }
         } catch (error) {

@@ -1,10 +1,10 @@
 package com.example.hyuk_blog.config;
 
-import com.example.hyuk_blog.service.CustomUserDetailsService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
-import org.springframework.http.HttpMethod;
+import org.springframework.security.authentication.AuthenticationManager;
+import org.springframework.security.config.annotation.authentication.configuration.AuthenticationConfiguration;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
 import org.springframework.security.config.annotation.web.configurers.AbstractHttpConfigurer;
@@ -13,6 +13,12 @@ import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
+import org.springframework.http.HttpMethod;
+import org.springframework.web.cors.CorsConfiguration;
+import org.springframework.web.cors.CorsConfigurationSource;
+import org.springframework.web.cors.UrlBasedCorsConfigurationSource;
+
+import java.util.Arrays;
 
 @Configuration
 @EnableWebSecurity
@@ -20,51 +26,77 @@ import org.springframework.security.web.authentication.UsernamePasswordAuthentic
 public class SecurityConfig {
 
     private final JwtAuthenticationFilter jwtAuthenticationFilter;
-    private final CustomUserDetailsService customUserDetailsService;
 
     @Bean
     public SecurityFilterChain filterChain(HttpSecurity http) throws Exception {
         http
-            .csrf(AbstractHttpConfigurer::disable) // CSRF 비활성화
+            // 1. CORS 설정 추가
+            .cors(cors -> cors.configurationSource(corsConfigurationSource()))
+            
+            // 2. CSRF 보호 비활성화 (Stateless 서버에서는 불필요)
+            .csrf(AbstractHttpConfigurer::disable)
+            
+            // 3. 세션 관리 정책을 STATELESS로 설정 (가장 중요!)
             .sessionManagement(session -> session
-                .sessionCreationPolicy(SessionCreationPolicy.IF_REQUIRED) // 세션 활성화
+                .sessionCreationPolicy(SessionCreationPolicy.STATELESS)
             )
-            .securityContext(securityContext -> securityContext
-                .requireExplicitSave(false) // 세션 자동 저장
-            )
+            
+            // 4. HTTP 요청에 대한 인가 규칙 설정
             .authorizeHttpRequests(authorize -> authorize
-                // 정적 리소스 허용 (모든 정적 파일)
-                .requestMatchers("/css/**", "/js/**", "/img/**", "/svg/**", "/cursor/**", "/favicon.ico").permitAll()
-                // 메인 페이지 허용
-                .requestMatchers("/", "/index", "/jp", "/home", "/about", "/contact", "/projects", "/search").permitAll()
-                // 게시글 조회 허용
-                .requestMatchers("/post/**", "/posts/**").permitAll()
-                // 사용자 인증 관련 페이지 허용 (로그인, 회원가입, 로그아웃)
-                .requestMatchers("/user/login", "/user/register", "/user/logout", "/user/check-username", "/user/check-nickname", "/user/check-email").permitAll()
-                // 관리자 로그인 페이지는 모든 사용자 접근 가능
-                .requestMatchers("/admin/login", "/admin").permitAll()
-                // 관리자 관련 모든 페이지는 인증된 사용자만 접근 (admin 계정 포함)
-                .requestMatchers("/admin/**", "/admin_jp/**", "/admin_kr/**").permitAll()
-                // API 엔드포인트 설정
+                // ⭐ 핵심: 모든 OPTIONS 사전 요청은 인증 없이 허용
+                .requestMatchers(HttpMethod.OPTIONS, "/**").permitAll()
+                
+                // 정적 리소스 및 기본 페이지는 모두 허용
+                .requestMatchers("/css/**", "/js/**", "/img/**", "/svg/**", "/cursor/**", "/favicon.ico", "/").permitAll()
+                
+                // 로그인, 회원가입 API는 모두 허용
                 .requestMatchers("/api/auth/**").permitAll()
-                .requestMatchers("/api/comments/**").permitAll()
-                .requestMatchers("/api/like/**").permitAll()
-                .requestMatchers("/api/posts/**").permitAll()
-                .requestMatchers("/api/search/**").permitAll()
-                .requestMatchers("/visitor/**").permitAll()
-                // 나머지는 인증 필요
+                
+                // 게시글 조회 API는 모두 허용
+                .requestMatchers(HttpMethod.GET, "/api/posts/**").permitAll()
+                .requestMatchers(HttpMethod.GET, "/api/comments/**").permitAll()
+                
+                // 사용자 정보 조회는 인증된 사용자만 접근 가능
+                .requestMatchers("/api/user/**").authenticated()
+                
+                // 그 외 모든 API 요청은 인증된 사용자만 접근 가능
                 .anyRequest().authenticated()
             )
-            .userDetailsService(customUserDetailsService) // UserDetailsService 등록
-            .formLogin(AbstractHttpConfigurer::disable) // 기본 로그인 폼 비활성화
-            .logout(AbstractHttpConfigurer::disable) // 기본 로그아웃 비활성화
-            .addFilterBefore(jwtAuthenticationFilter, UsernamePasswordAuthenticationFilter.class); // JWT 필터 추가
+            
+            // 5. 기본 폼 로그인 및 로그아웃 비활성화
+            .formLogin(AbstractHttpConfigurer::disable)
+            .logout(AbstractHttpConfigurer::disable)
+            
+            // 6. 우리가 만든 JWT 필터를 Spring Security 필터 체인에 추가
+            .addFilterBefore(jwtAuthenticationFilter, UsernamePasswordAuthenticationFilter.class);
 
         return http.build();
     }
 
     @Bean
+    public CorsConfigurationSource corsConfigurationSource() {
+        CorsConfiguration configuration = new CorsConfiguration();
+        // 프론트엔드 포트들을 모두 허용
+        configuration.setAllowedOriginPatterns(Arrays.asList("http://localhost:8080", "http://localhost:8082", "http://localhost:8083", "http://localhost:3000"));
+        configuration.setAllowedMethods(Arrays.asList("GET", "POST", "PUT", "DELETE", "OPTIONS"));
+        configuration.setAllowedHeaders(Arrays.asList("*"));
+        configuration.setAllowCredentials(true);
+        configuration.setMaxAge(3600L);
+        
+        UrlBasedCorsConfigurationSource source = new UrlBasedCorsConfigurationSource();
+        source.registerCorsConfiguration("/**", configuration);
+        return source;
+    }
+
+    // PasswordEncoder를 Bean으로 등록
+    @Bean
     public PasswordEncoder passwordEncoder() {
         return new BCryptPasswordEncoder();
+    }
+
+    // AuthenticationManager를 Bean으로 등록하여 다른 곳에서 주입받을 수 있도록 함
+    @Bean
+    public AuthenticationManager authenticationManager(AuthenticationConfiguration authenticationConfiguration) throws Exception {
+        return authenticationConfiguration.getAuthenticationManager();
     }
 } 

@@ -185,6 +185,8 @@
 </template>
 
 <script>
+import apiService from '@/services/api.js';
+
 export default {
   name: 'UserRegisterView',
   data() {
@@ -240,24 +242,26 @@ export default {
       this.error = '';
       
       try {
-        const response = await fetch('/api/user/register', {
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/json',
-          },
-          body: JSON.stringify(this.formData)
-        });
+        // 새로운 회원가입 API 호출
+        const registerData = {
+          username: this.formData.username,
+          password: this.formData.password,
+          nickname: this.formData.nickname,
+          email: this.formData.email || null
+        };
         
-        const data = await response.json();
+        await apiService.register(registerData);
         
-        if (response.ok) {
-          this.$router.push(`/user/login?message=${this.$t('register.success')}`);
-        } else {
-          this.error = data.message || this.$t('register.formError');
-        }
+        // 회원가입 성공 시 로그인 페이지로 이동
+        this.$router.push(`/user/login?message=${this.$t('register.success')}`);
+        
       } catch (error) {
-        this.error = this.$t('register.serverError');
         console.error('Register error:', error);
+        if (error.message && error.message.includes('이미 존재하는')) {
+          this.error = error.message;
+        } else {
+          this.error = this.$t('register.serverError');
+        }
       } finally {
         this.loading = false;
       }

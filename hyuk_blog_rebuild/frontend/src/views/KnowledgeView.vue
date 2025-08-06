@@ -122,6 +122,14 @@ export default {
       attributes: true,
       attributeFilter: ['class']
     });
+    
+    // 언어 변경 감지
+    this.$watch('$i18n.locale', async (newLang, oldLang) => {
+      if (newLang !== oldLang) {
+        console.log(`Language changed from ${oldLang} to ${newLang}`);
+        await this.loadPosts();
+      }
+    });
   },
   beforeUnmount() {
     if (this.observer) {

@@ -58,6 +58,8 @@
 </template>
 
 <script>
+import apiService from '@/services/api.js';
+
 export default {
   name: 'LoginView',
   data() {
@@ -99,60 +101,34 @@ export default {
       this.isSubmitting = true;
       this.errorMessage = '';
       
-      // 임시 관리자 계정 (추후 백엔드 연동 시 제거)
-      const adminCredentials = {
-        username: 'admin',
-        password: 'admin123'
-      };
-      
-      // 간단한 로컬 인증 (실제로는 백엔드에서 처리)
-      if (this.formData.username === adminCredentials.username && 
-          this.formData.password === adminCredentials.password) {
-        
-        // 로그인 성공 시 임시 토큰 저장
-        const tempToken = 'temp_admin_token_' + Date.now();
-        localStorage.setItem('adminToken', tempToken);
-        
-        // 관리자 대시보드로 리다이렉트
-        this.$router.push('/admin/dashboard');
-      } else {
-        this.errorMessage = '아이디 또는 비밀번호가 올바르지 않습니다.';
-      }
-      
-      this.isSubmitting = false;
-      
-      // 실제 백엔드 API 호출 (추후 활성화)
-      /*
       try {
-        const response = await fetch('/api/admin/login', {
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/json',
-          },
-          body: JSON.stringify(this.formData)
-        });
+        // 새로운 통합 로그인 API 호출
+        const response = await apiService.login(this.formData);
         
-        if (response.ok) {
-          const data = await response.json();
-          
-          // 로그인 성공 시 토큰 저장
-          if (data.token) {
-            localStorage.setItem('adminToken', data.token);
-          }
+        // 관리자 권한 확인
+        if (response.role === 'ADMIN') {
+          // JWT 토큰을 로컬 스토리지에 저장
+          localStorage.setItem('jwtToken', response.token);
+          localStorage.setItem('userRole', response.role);
+          localStorage.setItem('username', response.username);
+          localStorage.setItem('adminToken', response.token); // 기존 호환성 유지
           
           // 관리자 대시보드로 리다이렉트
           this.$router.push('/admin/dashboard');
         } else {
-          const errorData = await response.json();
-          this.errorMessage = errorData.message || '로그인에 실패했습니다.';
+          this.errorMessage = '관리자 권한이 필요합니다.';
         }
+        
       } catch (error) {
         console.error('로그인 오류:', error);
-        this.errorMessage = '네트워크 오류가 발생했습니다. 다시 시도해주세요.';
+        if (error.message && error.message.includes('Invalid username or password')) {
+          this.errorMessage = '아이디 또는 비밀번호가 올바르지 않습니다.';
+        } else {
+          this.errorMessage = '로그인 처리 중 오류가 발생했습니다.';
+        }
       } finally {
         this.isSubmitting = false;
       }
-      */
     }
   }
 }
