@@ -74,10 +74,16 @@
 </template>
 
 <script>
-import apiService from '@/services/api.js';
+import { inject } from 'vue'
 
 export default {
   name: 'UserLoginView',
+  setup() {
+    const auth = inject('auth')
+    return {
+      login: auth.login
+    }
+  },
   data() {
     return {
       formData: {
@@ -103,22 +109,10 @@ export default {
       this.error = '';
       
       try {
-        // 새로운 통합 로그인 API 호출
-        const response = await apiService.login(this.formData);
-        
-        // JWT 토큰을 로컬 스토리지에 저장
-        localStorage.setItem('jwtToken', response.token);
-        localStorage.setItem('userRole', response.role);
-        localStorage.setItem('username', response.username);
+        // 새로운 인증 시스템 사용
+        await this.login(this.formData);
         
         this.message = '로그인 성공!';
-        
-        // 부모 컴포넌트의 사용자 정보 업데이트
-        this.$emit('user-logged-in', {
-          username: response.username,
-          role: response.role,
-          token: response.token
-        });
         
         // 로그인 성공 후 리다이렉트
         setTimeout(() => {

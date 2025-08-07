@@ -17,6 +17,7 @@ public interface PostKrRepository extends JpaRepository<PostKr, Long> {
     @Query("SELECT p FROM PostKr p ORDER BY p.createdAt DESC")
     List<PostKr> findAllOrderByCreatedAtDesc();
     List<PostKr> findByCategoryAndPublishedOrderByCreatedAtDesc(Category category, boolean published);
+    long countByPublished(boolean published);
     
 
 } 

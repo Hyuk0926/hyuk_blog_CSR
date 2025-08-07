@@ -65,6 +65,11 @@ const routes = [
       component: () => import('../views/admin/PostFormView.vue')
     },
     {
+      path: '/admin/posts/preview/:id',
+      name: 'admin-post-preview',
+      component: () => import('../views/PostDetailView.vue')
+    },
+    {
       path: '/admin/resume',
       name: 'admin-resume',
       component: () => import('../views/admin/ResumeView.vue')

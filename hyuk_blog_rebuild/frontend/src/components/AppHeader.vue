@@ -40,16 +40,21 @@
   </template>
   
   <script>
-  import ApiService from '@/services/api.js';
+import { inject, ref } from 'vue'
 
-  export default {
-    name: 'AppHeader',
-    data() {
-      return {
-        user: null,
-        isDarkMode: false,
-      };
-    },
+export default {
+  name: 'AppHeader',
+  setup() {
+    const auth = inject('auth')
+    const isDarkMode = ref(false)
+    
+    return {
+      user: auth.user,
+      isAuthenticated: auth.isAuthenticated,
+      isDarkMode,
+      logout: auth.logout
+    }
+  },
     computed: {
       homeLink() {
         return `/?lang=${this.$i18n.locale}`;
@@ -82,29 +87,21 @@
       },
       async handleLogout() {
         try {
-          ApiService.logout();
-          this.user = null;
+          this.logout();
           this.$router.push('/');
         } catch (error) {
           console.error('Logout error:', error);
         }
       },
-      async fetchUserInfo() {
-        try {
-          if (ApiService.isLoggedIn()) {
-            const userData = await ApiService.getCurrentUser();
-            this.user = userData;
-          }
-        } catch (error) {
-          console.error('Failed to fetch user info:', error);
-        }
-      }
+      // 사용자 정보는 전역 상태에서 관리되므로 별도 메서드 불필요
+      // 사용자 정보는 전역 상태에서 관리되므로 별도 메서드 불필요
     },
     mounted() {
       const darkModeSaved = localStorage.getItem('darkMode');
       this.setDarkMode(darkModeSaved === 'true');
-      this.fetchUserInfo();
-    }
+    },
+    // 인터벌이 없으므로 정리 불필요
+    // 전역 상태에서 관리되므로 라우터 변경 시 별도 처리 불필요
   }
   </script>
   

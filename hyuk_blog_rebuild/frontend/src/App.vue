@@ -9,16 +9,36 @@
 </template>
 
 <script>
-// 1. AppHeader.vue를 가져옵니다.
+import { provide, onMounted } from 'vue'
 import AppHeader from './components/AppHeader.vue';
 import AppFooter from './components/AppFooter.vue';
+import { useAuth } from './composables/useAuth.js';
 
 export default {
   name: 'App',
   components: {
-    // 2. AppHeader로 등록합니다.
     AppHeader,
     AppFooter
+  },
+  setup() {
+    const { user, isAuthenticated, initializeAuth } = useAuth()
+    
+    // 전역 상태 제공
+    provide('auth', {
+      user,
+      isAuthenticated,
+      ...useAuth()
+    })
+    
+    // 앱 시작 시 인증 상태 초기화
+    onMounted(async () => {
+      await initializeAuth()
+    })
+    
+    return {
+      user,
+      isAuthenticated
+    }
   },
   computed: {
     isHomePage() {
@@ -29,8 +49,7 @@ export default {
       const authPaths = ['/user/login', '/user/register', '/admin/login', '/admin/dashboard', '/admin/posts/new', '/admin/posts/edit', '/admin/resume', '/admin/inquiries'];
       return authPaths.some(path => this.$route.path.startsWith(path));
     }
-  },
-
+  }
 }
 </script>
 

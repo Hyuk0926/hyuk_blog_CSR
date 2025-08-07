@@ -17,6 +17,7 @@ public interface PostJpRepository extends JpaRepository<PostJp, Long> {
     @Query("SELECT p FROM PostJp p ORDER BY p.createdAt DESC")
     List<PostJp> findAllOrderByCreatedAtDesc();
     List<PostJp> findByCategoryAndPublishedOrderByCreatedAtDesc(Category category, boolean published);
+    long countByPublished(boolean published);
     
 
 } 

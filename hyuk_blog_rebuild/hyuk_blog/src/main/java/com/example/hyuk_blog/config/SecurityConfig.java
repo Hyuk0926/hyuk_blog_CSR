@@ -33,6 +33,8 @@ public class SecurityConfig {
                 .requireExplicitSave(false) // 세션 자동 저장
             )
             .authorizeHttpRequests(authorize -> authorize
+                // OPTIONS 요청 허용 (CORS preflight)
+                .requestMatchers(HttpMethod.OPTIONS, "/**").permitAll()
                 // 정적 리소스 허용 (모든 정적 파일)
                 .requestMatchers("/css/**", "/js/**", "/img/**", "/svg/**", "/cursor/**", "/favicon.ico").permitAll()
                 // 메인 페이지 허용
@@ -44,12 +46,19 @@ public class SecurityConfig {
                 // 관리자 로그인 페이지는 모든 사용자 접근 가능
                 .requestMatchers("/admin/login", "/admin").permitAll()
                 // 관리자 관련 모든 페이지는 인증된 사용자만 접근 (admin 계정 포함)
-                .requestMatchers("/admin/**", "/admin_jp/**", "/admin_kr/**").permitAll()
+                .requestMatchers("/admin/**", "/admin_jp/**").hasRole("ADMIN")
                 // API 엔드포인트 설정
                 .requestMatchers("/api/auth/**").permitAll()
                 .requestMatchers("/api/comments/**").permitAll()
                 .requestMatchers("/api/like/**").permitAll()
-                .requestMatchers("/api/posts/**").permitAll()
+                // Post API - 조회는 허용, 수정/삭제는 인증 필요
+                .requestMatchers(HttpMethod.GET, "/api/posts/**").permitAll()
+                .requestMatchers(HttpMethod.POST, "/api/posts/**").authenticated()
+                .requestMatchers(HttpMethod.PUT, "/api/posts/**").authenticated()
+                .requestMatchers(HttpMethod.DELETE, "/api/posts/**").authenticated()
+                // Resume API - 조회는 허용, 수정은 인증 필요
+                .requestMatchers(HttpMethod.GET, "/api/resume").permitAll()
+                .requestMatchers(HttpMethod.PUT, "/api/resume").authenticated()
                 .requestMatchers("/api/search/**").permitAll()
                 .requestMatchers("/visitor/**").permitAll()
                 // 나머지는 인증 필요

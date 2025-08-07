@@ -13,8 +13,8 @@
     <header class="resume-header">
       <img v-if="resume.photoUrl" :src="resume.photoUrl" alt="프로필 사진" class="profile-photo">
       <div>
-        <h1>{{ resume.name }}</h1>
-        <p class="intro">{{ resume.introduction }}</p>
+        <h1>{{ currentLang === 'ja' ? resume.nameJa : resume.nameKo }}</h1>
+        <p class="intro">{{ currentLang === 'ja' ? resume.introductionJa : resume.introductionKo }}</p>
         <p class="contact">
           <span>{{ resume.email }}</span>
           <span v-if="resume.email && resume.phone && showPhone === 'true'"> | </span>
@@ -26,11 +26,11 @@
           <span v-if="showPhone === 'contact-info' && resume.phone"> | </span>
           <span v-if="showPhone === 'contact-info'">문의 시 이메일로 연락</span>
           <!-- 주소 표시 -->
-          <span v-if="showAddress === 'true' && resume.address"> | </span>
-          <span v-if="showAddress === 'true'">{{ resume.address }}</span>
+          <span v-if="showAddress === 'true' && (currentLang === 'ja' ? resume.addressJa : resume.addressKo)"> | </span>
+          <span v-if="showAddress === 'true'">{{ currentLang === 'ja' ? resume.addressJa : resume.addressKo }}</span>
           <!-- 주소 마스킹 처리 -->
-          <span v-if="showAddress === 'masked' && resume.address"> | </span>
-          <span v-if="showAddress === 'masked'">{{ maskAddress(resume.address) }}</span>
+          <span v-if="showAddress === 'masked' && (currentLang === 'ja' ? resume.addressJa : resume.addressKo)"> | </span>
+          <span v-if="showAddress === 'masked'">{{ maskAddress(currentLang === 'ja' ? resume.addressJa : resume.addressKo) }}</span>
         </p>
       </div>
     </header>
@@ -48,8 +48,8 @@
           </thead>
           <tbody>
             <tr v-for="edu in resume.educations" :key="edu.period">
-              <td>{{ edu.school }}</td>
-              <td>{{ edu.degree }}</td>
+              <td>{{ currentLang === 'ja' ? edu.schoolJa : edu.schoolKo }}</td>
+              <td>{{ currentLang === 'ja' ? edu.degreeJa : edu.degreeKo }}</td>
               <td>{{ edu.period }}</td>
             </tr>
           </tbody>
@@ -63,29 +63,29 @@
         </div>
       </section>
 
-      <section v-if="resume.studentLife">
+      <section v-if="currentLang === 'ja' ? resume.studentLifeJa : resume.studentLifeKo">
         <h2>{{ $t('resume.studentLife') }}</h2>
-        <p class="self-intro">{{ resume.studentLife }}</p>
+        <p class="self-intro">{{ currentLang === 'ja' ? resume.studentLifeJa : resume.studentLifeKo }}</p>
       </section>
 
-      <section v-if="resume.strengthsWeaknesses">
+      <section v-if="currentLang === 'ja' ? resume.strengthsWeaknessesJa : resume.strengthsWeaknessesKo">
         <h2>{{ $t('resume.strengthsWeaknesses') }}</h2>
-        <p class="self-intro">{{ resume.strengthsWeaknesses }}</p>
+        <p class="self-intro">{{ currentLang === 'ja' ? resume.strengthsWeaknessesJa : resume.strengthsWeaknessesKo }}</p>
       </section>
 
-      <section v-if="resume.effortExperience">
+      <section v-if="currentLang === 'ja' ? resume.effortExperienceJa : resume.effortExperienceKo">
         <h2>{{ $t('resume.effortExperience') }}</h2>
-        <p class="self-intro">{{ resume.effortExperience }}</p>
+        <p class="self-intro">{{ currentLang === 'ja' ? resume.effortExperienceJa : resume.effortExperienceKo }}</p>
       </section>
 
-      <section v-if="resume.japanItMotivation">
+      <section v-if="currentLang === 'ja' ? resume.japanItMotivationJa : resume.japanItMotivationKo">
         <h2>{{ $t('resume.japanItMotivation') }}</h2>
-        <p class="self-intro">{{ resume.japanItMotivation }}</p>
+        <p class="self-intro">{{ currentLang === 'ja' ? resume.japanItMotivationJa : resume.japanItMotivationKo }}</p>
       </section>
 
-      <section v-if="resume.futurePlan">
+      <section v-if="currentLang === 'ja' ? resume.futurePlanJa : resume.futurePlanKo">
         <h2>{{ $t('resume.futurePlan') }}</h2>
-        <p class="self-intro">{{ resume.futurePlan }}</p>
+        <p class="self-intro">{{ currentLang === 'ja' ? resume.futurePlanJa : resume.futurePlanKo }}</p>
       </section>
     </main>
   </div>

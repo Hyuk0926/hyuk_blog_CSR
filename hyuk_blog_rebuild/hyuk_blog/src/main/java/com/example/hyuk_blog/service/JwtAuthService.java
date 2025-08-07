@@ -44,7 +44,7 @@ public class JwtAuthService {
         }
 
         log.info("관리자 로그인 성공: {}", admin.getUsername());
-        String token = jwtUtil.generateToken(admin.getUsername(), "ADMIN");
+        String token = jwtUtil.generateToken(admin.getUsername(), "ROLE_ADMIN");
         return new JwtResponseDto(token, admin.getUsername(), "ADMIN", "관리자 로그인 성공");
     }
 
@@ -83,7 +83,7 @@ public class JwtAuthService {
             }
             
             log.info("Admin 로그인 성공: {}", admin.getUsername());
-            String token = jwtUtil.generateToken(admin.getUsername(), "ADMIN");
+            String token = jwtUtil.generateToken(admin.getUsername(), "ROLE_ADMIN");
             return new JwtResponseDto(token, admin.getUsername(), "ADMIN", "관리자 로그인 성공");
         }
 
@@ -148,8 +148,25 @@ public class JwtAuthService {
         }
 
         log.info("사용자 로그인 성공: {}", user.getUsername());
-        String token = jwtUtil.generateToken(user.getUsername(), "USER");
+        String token = jwtUtil.generateToken(user.getUsername(), "ROLE_USER");
         return new JwtResponseDto(token, user.getUsername(), "USER", "사용자 로그인 성공");
+    }
+
+    /**
+     * 통합 로그인 (사용자/관리자)
+     */
+    public JwtResponseDto login(JwtLoginRequestDto loginRequest) {
+        log.info("통합 로그인 시도: {}", loginRequest.getUsername());
+        
+        // 먼저 관리자 계정에서 확인
+        try {
+            return adminLogin(loginRequest);
+        } catch (BadCredentialsException e) {
+            log.debug("관리자 로그인 실패, 사용자 계정 확인: {}", loginRequest.getUsername());
+        }
+        
+        // 관리자 계정이 아니면 사용자 계정에서 확인
+        return userLogin(loginRequest);
     }
 
     /**

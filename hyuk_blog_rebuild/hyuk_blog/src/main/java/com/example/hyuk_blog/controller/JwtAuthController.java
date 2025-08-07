@@ -20,94 +20,14 @@ import java.util.ArrayList;
 @RestController
 @RequestMapping("/api/auth")
 @RequiredArgsConstructor
-@CrossOrigin(origins = "*")
 public class JwtAuthController {
 
     private final JwtAuthService jwtAuthService;
     private final AdminRepository adminRepository;
     private final UserRepository userRepository;
 
-    /**
-     * 관리자 JWT 로그인
-     */
-    @PostMapping("/admin/login")
-    public ResponseEntity<?> adminLogin(@RequestBody JwtLoginRequestDto loginRequest) {
-        try {
-            JwtResponseDto response = jwtAuthService.adminLogin(loginRequest);
-            return ResponseEntity.ok(response);
-        } catch (BadCredentialsException e) {
-            Map<String, String> error = new HashMap<>();
-            error.put("error", "Invalid username or password");
-            return ResponseEntity.badRequest().body(error);
-        } catch (Exception e) {
-            log.error("Admin login error: {}", e.getMessage());
-            Map<String, String> error = new HashMap<>();
-            error.put("error", "Login failed");
-            return ResponseEntity.internalServerError().body(error);
-        }
-    }
-
-    /**
-     * 사용자 JWT 로그인
-     */
-    @PostMapping("/user/login")
-    public ResponseEntity<?> userLogin(@RequestBody JwtLoginRequestDto loginRequest) {
-        try {
-            JwtResponseDto response = jwtAuthService.userLogin(loginRequest);
-            return ResponseEntity.ok(response);
-        } catch (BadCredentialsException e) {
-            Map<String, String> error = new HashMap<>();
-            error.put("error", "Invalid username or password");
-            return ResponseEntity.badRequest().body(error);
-        } catch (Exception e) {
-            log.error("User login error: {}", e.getMessage());
-            Map<String, String> error = new HashMap<>();
-            error.put("error", "Login failed");
-            return ResponseEntity.internalServerError().body(error);
-        }
-    }
-
-    /**
-     * JWT 토큰 검증
-     */
-    @PostMapping("/validate")
-    public ResponseEntity<?> validateToken(@RequestHeader("Authorization") String token) {
-        try {
-            boolean isValid = jwtAuthService.validateToken(token);
-            Map<String, Object> response = new HashMap<>();
-            response.put("valid", isValid);
-            
-            if (isValid) {
-                response.put("username", jwtAuthService.getUsernameFromToken(token));
-                response.put("role", jwtAuthService.getRoleFromToken(token));
-            }
-            
-            return ResponseEntity.ok(response);
-        } catch (Exception e) {
-            log.error("Token validation error: {}", e.getMessage());
-            Map<String, String> error = new HashMap<>();
-            error.put("error", "Token validation failed");
-            return ResponseEntity.badRequest().body(error);
-        }
-    }
-
-    /**
-     * JWT 토큰 정보 조회
-     */
-    @GetMapping("/info")
-    public ResponseEntity<?> getTokenInfo(@RequestHeader("Authorization") String token) {
-        try {
-            Map<String, Object> response = new HashMap<>();
-            response.put("username", jwtAuthService.getUsernameFromToken(token));
-            response.put("role", jwtAuthService.getRoleFromToken(token));
-            return ResponseEntity.ok(response);
-        } catch (Exception e) {
-            log.error("Token info error: {}", e.getMessage());
-            Map<String, String> error = new HashMap<>();
-            error.put("error", "Failed to get token info");
-            return ResponseEntity.badRequest().body(error);
-        }
-    }
+    // API 메서드들은 AuthApiController로 이동되었습니다.
+    // 이 컨트롤러는 웹 페이지용으로만 사용됩니다.
 
     /**
      * 데이터베이스 계정 정보 확인 (테스트용)

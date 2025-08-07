@@ -129,6 +129,18 @@ public class CommentService {
         return commentRepository.countByPostJpId(postId);
     }
     
+    // 게시글의 모든 댓글 삭제 (PostKr)
+    @Transactional
+    public void deleteCommentsByPostKrId(Long postId) {
+        commentRepository.deleteByPostKrId(postId);
+    }
+    
+    // 게시글의 모든 댓글 삭제 (PostJp)
+    @Transactional
+    public void deleteCommentsByPostJpId(Long postId) {
+        commentRepository.deleteByPostJpId(postId);
+    }
+    
     // admin 계정인지 확인하는 메서드
     private boolean isAdminUser(Long userId) {
         return userId != null && (userId == 1 || userId == 2); // admin, admin_jp 계정 ID

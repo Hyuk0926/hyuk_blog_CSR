@@ -33,11 +33,9 @@
               <label class="meta-label">카테고리</label>
               <select v-model="formData.category" class="meta-select" required>
                 <option value="">카테고리 선택</option>
-                <option value="programming">프로그래밍</option>
-                <option value="design">디자인</option>
-                <option value="life">일상</option>
-                <option value="tech">기술</option>
-                <option value="review">리뷰</option>
+                <option v-for="category in categories" :key="category.value" :value="category.value">
+                  {{ category.displayName }}
+                </option>
               </select>
             </div>
             <div class="meta-item">
@@ -179,6 +177,8 @@
 </template>
 
 <script>
+import apiService from '@/services/api.js';
+
 export default {
   name: 'PostFormView',
   data() {
@@ -186,6 +186,7 @@ export default {
       isEdit: false,
       isSubmitting: false,
       activeTab: 'write',
+      categories: [],
       formData: {
         titleKo: '',
         titleJa: '',
@@ -202,45 +203,83 @@ export default {
   },
   mounted() {
     this.checkAuth();
+    this.loadCategories();
     this.loadPostData();
   },
   methods: {
-    checkAuth() {
-      const token = localStorage.getItem('adminToken');
-      if (!token || !token.startsWith('temp_admin_token_')) {
-        this.$router.push('/admin/login');
+    async loadCategories() {
+      try {
+        const categories = await apiService.getCategories();
+        this.categories = categories;
+      } catch (error) {
+        console.error('카테고리 로드 실패:', error);
+        // 기본 카테고리 설정
+        this.categories = [
+          { value: 'HTML', displayName: 'HTML' },
+          { value: 'CSS', displayName: 'CSS' },
+          { value: 'JAVASCRIPT', displayName: 'JavaScript' },
+          { value: 'REACT', displayName: 'React' },
+          { value: 'SQL', displayName: 'SQL' },
+          { value: 'JAVA', displayName: 'Java' },
+          { value: 'PYTHON', displayName: 'Python' },
+          { value: 'BLOG_CODING', displayName: 'BlogBuild' }
+        ];
       }
     },
-    loadPostData() {
+    checkAuth() {
+      const token = localStorage.getItem('jwtToken');
+      const userRole = localStorage.getItem('userRole');
+      
+      if (!token || userRole !== 'ROLE_ADMIN') {
+        localStorage.removeItem('jwtToken');
+        localStorage.removeItem('userRole');
+        localStorage.removeItem('username');
+        localStorage.removeItem('adminToken');
+        this.$router.push('/admin/login');
+        return;
+      }
+      
+      // JWT 토큰 형식 검증 (eyJ로 시작하는지 확인)
+      if (!token.startsWith('eyJ')) {
+        localStorage.removeItem('jwtToken');
+        localStorage.removeItem('userRole');
+        localStorage.removeItem('username');
+        localStorage.removeItem('adminToken');
+        this.$router.push('/admin/login');
+        return;
+      }
+    },
+    async loadPostData() {
       // 편집 모드인 경우 기존 데이터 로드
       const postId = this.$route.params.id;
       if (postId) {
         this.isEdit = true;
-        // 실제로는 API에서 데이터를 가져옴
-        // 임시로 샘플 데이터 사용
-        this.formData = {
-          titleKo: '기존 게시글 제목',
-          titleJa: '既存の投稿タイトル',
-          summaryKo: '기존 게시글 요약',
-          summaryJa: '既存の投稿要約',
-          contentKo: '<h2>기존 내용</h2><p>이미 작성된 게시글 내용입니다.</p>',
-          contentJa: '<h2>既存の内容</h2><p>既に作成された投稿内容です。</p>',
-          category: 'programming',
-          imageUrl: 'https://example.com/image.jpg',
-          tags: 'Vue.js, JavaScript, 웹개발',
-          published: true
-        };
+        try {
+          const response = await apiService.getPost(postId, this.lang);
+          if (response.success) {
+            const postData = response.data;
+            this.formData = {
+              titleKo: postData.titleKo || '',
+              titleJa: postData.titleJa || '',
+              summaryKo: postData.summaryKo || '',
+              summaryJa: postData.summaryJa || '',
+              contentKo: postData.contentKo || '',
+              contentJa: postData.contentJa || '',
+              category: postData.category || '',
+              imageUrl: postData.imageUrl || '',
+              tags: postData.tags || '',
+              published: postData.published || false
+            };
+          }
+        } catch (error) {
+          console.error('게시글 데이터 로드 실패:', error);
+          alert('게시글 데이터를 불러오는데 실패했습니다.');
+        }
       }
     },
     getCategoryName(category) {
-      const categories = {
-        programming: '프로그래밍',
-        design: '디자인',
-        life: '일상',
-        tech: '기술',
-        review: '리뷰'
-      };
-      return categories[category] || category;
+      const foundCategory = this.categories.find(cat => cat.value === category);
+      return foundCategory ? foundCategory.displayName : category;
     },
 
     async submitForm() {
@@ -260,27 +299,19 @@ export default {
       this.isSubmitting = true;
       
       try {
-        // 실제 백엔드 API 호출
-        // const url = this.isEdit ? `/api/admin/posts/${this.$route.params.id}` : '/api/admin/posts';
-        // const method = this.isEdit ? 'PUT' : 'POST';
-        // 
-        // const response = await fetch(url, {
-        //   method: method,
-        //   headers: {
-        //     'Content-Type': 'application/json',
-        //     'Authorization': `Bearer ${localStorage.getItem('adminToken')}`
-        //   },
-        //   body: JSON.stringify(this.formData)
-        // });
-        // 
-        // if (response.ok) {
-        //   this.$router.push('/admin/dashboard');
-        // }
-
-        // 임시 저장 (실제로는 백엔드에서 처리)
-        console.log('게시글 저장:', this.formData);
-        alert(this.formData.published ? '게시글이 발행되었습니다.' : '임시저장되었습니다.');
-        this.$router.push('/admin/dashboard');
+        let response;
+        if (this.isEdit) {
+          response = await apiService.updatePost(this.$route.params.id, this.formData, this.lang);
+        } else {
+          response = await apiService.createPost(this.formData, this.lang);
+        }
+        
+        if (response.success) {
+          alert(this.formData.published ? '게시글이 발행되었습니다.' : '임시저장되었습니다.');
+          this.$router.push('/admin/dashboard');
+        } else {
+          alert('저장 중 오류가 발생했습니다: ' + response.message);
+        }
         
       } catch (error) {
         console.error('게시글 저장 실패:', error);
@@ -293,6 +324,9 @@ export default {
       this.$router.push('/admin/dashboard');
     },
     logout() {
+      localStorage.removeItem('jwtToken');
+      localStorage.removeItem('userRole');
+      localStorage.removeItem('username');
       localStorage.removeItem('adminToken');
       this.$router.push('/admin/login');
     }

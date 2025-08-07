@@ -108,10 +108,10 @@ export default {
         console.log('로그인 응답:', response); // 디버깅 로그 추가
         
         // 관리자 권한 확인
-        if (response.role === 'ROLE_ADMIN') {
+        if (response.role === 'ADMIN') {
           // JWT 토큰을 로컬 스토리지에 저장
           localStorage.setItem('jwtToken', response.token);
-          localStorage.setItem('userRole', response.role);
+          localStorage.setItem('userRole', 'ROLE_ADMIN'); // Spring Security 형식으로 저장
           localStorage.setItem('username', response.username);
           localStorage.setItem('adminToken', response.token); // 기존 호환성 유지
           

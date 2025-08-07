@@ -15,6 +15,8 @@ import jakarta.servlet.http.HttpSession;
 
 import java.util.List;
 import java.util.Locale;
+import java.util.Map;
+import java.util.HashMap;
 import java.util.Optional;
 import java.util.stream.Collectors;
 
@@ -165,18 +167,30 @@ public class PostService {
 
     // 게시글 삭제
     public boolean deletePost(Long id, String lang) {
-        if ("ja".equals(lang)) {
-            if (postJpRepository.existsById(id)) {
-                postJpRepository.deleteById(id);
-                return true;
+        try {
+            if ("ja".equals(lang)) {
+                if (postJpRepository.existsById(id)) {
+                    // 댓글과 좋아요 먼저 삭제
+                    commentService.deleteCommentsByPostJpId(id);
+                    likeService.deleteLikesByPostId(id, com.example.hyuk_blog.entity.PostType.JP);
+                    postJpRepository.deleteById(id);
+                    return true;
+                }
+            } else {
+                if (postKrRepository.existsById(id)) {
+                    // 댓글과 좋아요 먼저 삭제
+                    commentService.deleteCommentsByPostKrId(id);
+                    likeService.deleteLikesByPostId(id, com.example.hyuk_blog.entity.PostType.KR);
+                    postKrRepository.deleteById(id);
+                    return true;
+                }
             }
-        } else {
-            if (postKrRepository.existsById(id)) {
-                postKrRepository.deleteById(id);
-                return true;
-            }
+            return false;
+        } catch (Exception e) {
+            System.err.println("게시글 삭제 중 오류 발생: " + e.getMessage());
+            e.printStackTrace();
+            return false;
         }
-        return false;
     }
 
     // 제목으로 검색 (공개된 게시글만)
@@ -227,5 +241,30 @@ public class PostService {
                     })
                     .collect(Collectors.toList());
         }
+    }
+
+    // 관리자 대시보드 통계 조회
+    public Map<String, Object> getAdminStats(String lang) {
+        Map<String, Object> stats = new HashMap<>();
+        
+        if ("ja".equals(lang)) {
+            long totalPosts = postJpRepository.count();
+            long publishedPosts = postJpRepository.countByPublished(true);
+            long draftPosts = postJpRepository.countByPublished(false);
+            
+            stats.put("totalPosts", totalPosts);
+            stats.put("publishedPosts", publishedPosts);
+            stats.put("draftPosts", draftPosts);
+        } else {
+            long totalPosts = postKrRepository.count();
+            long publishedPosts = postKrRepository.countByPublished(true);
+            long draftPosts = postKrRepository.countByPublished(false);
+            
+            stats.put("totalPosts", totalPosts);
+            stats.put("publishedPosts", publishedPosts);
+            stats.put("draftPosts", draftPosts);
+        }
+        
+        return stats;
     }
 }

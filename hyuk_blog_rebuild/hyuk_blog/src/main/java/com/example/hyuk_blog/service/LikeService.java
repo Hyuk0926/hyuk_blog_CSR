@@ -64,4 +64,12 @@ public class LikeService {
             return likeRepository.save(newLike);
         }
     }
+    
+    /**
+     * 게시글의 모든 좋아요 삭제
+     */
+    @Transactional
+    public void deleteLikesByPostId(Long postId, PostType postType) {
+        likeRepository.deleteByPostIdAndPostType(postId, postType);
+    }
 } 

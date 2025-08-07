@@ -224,7 +224,8 @@ export default {
       
       try {
         const lang = this.$i18n.locale;
-        const response = await apiService.getPostsByCategory(category, lang);
+        // 카테고리 파라미터로 직접 API 호출
+        const response = await apiService.publicRequest(`/api/posts?category=${category}&lang=${lang}`);
         
         if (response.success) {
           this.posts = response.data;

@@ -136,4 +136,49 @@ public class UserService {
     public boolean existsByEmail(String email) {
         return userRepository.existsByEmail(email);
     }
+    
+    // 회원가입 (boolean 반환)
+    @Transactional
+    public boolean registerUser(UserRegistrationDto registrationDto) {
+        try {
+            // 중복 검사
+            if (userRepository.existsByUsername(registrationDto.getUsername())) {
+                throw new IllegalArgumentException("이미 존재하는 사용자명입니다.");
+            }
+            if (userRepository.existsByNickname(registrationDto.getNickname())) {
+                throw new IllegalArgumentException("이미 존재하는 닉네임입니다.");
+            }
+            if (registrationDto.getEmail() != null && !registrationDto.getEmail().isEmpty() 
+                && userRepository.existsByEmail(registrationDto.getEmail())) {
+                throw new IllegalArgumentException("이미 존재하는 이메일입니다.");
+            }
+            
+            User user = new User();
+            user.setUsername(registrationDto.getUsername());
+            user.setPassword(passwordEncoder.encode(registrationDto.getPassword())); // BCrypt로 비밀번호 인코딩
+            user.setNickname(registrationDto.getNickname());
+            user.setEmail(registrationDto.getEmail());
+            user.setActive(true);
+            
+            userRepository.save(user);
+            return true;
+        } catch (Exception e) {
+            throw new IllegalArgumentException("회원가입 중 오류가 발생했습니다: " + e.getMessage());
+        }
+    }
+    
+    // 사용자명 사용 가능 여부 확인
+    public boolean isUsernameAvailable(String username) {
+        return !userRepository.existsByUsername(username);
+    }
+    
+    // 닉네임 사용 가능 여부 확인
+    public boolean isNicknameAvailable(String nickname) {
+        return !userRepository.existsByNickname(nickname);
+    }
+    
+    // 이메일 사용 가능 여부 확인
+    public boolean isEmailAvailable(String email) {
+        return !userRepository.existsByEmail(email);
+    }
 } 

@@ -71,6 +71,8 @@
 </template>
 
 <script>
+import apiService from '@/services/api.js';
+
 export default {
   name: 'DashboardView',
   data() {
@@ -178,23 +180,20 @@ export default {
      },
      async loadDashboardData() {
       try {
-        // 실제 백엔드 API 호출
-        // const response = await fetch('/api/admin/dashboard', {
-        //   headers: {
-        //     'Authorization': `Bearer ${localStorage.getItem('adminToken')}`
-        //   }
-        // });
-        // const data = await response.json();
-        // this.stats = data.stats;
-        
-        // 샘플 데이터
-        this.stats = {
-          totalPosts: 25,
-          publishedPosts: 20,
-          draftPosts: 5
-        };
+        const response = await apiService.getAdminStats(this.lang);
+        if (response.success) {
+          this.stats = response.data;
+        } else {
+          console.error('대시보드 통계 로드 실패:', response.message);
+        }
       } catch (error) {
         console.error('대시보드 데이터 로드 실패:', error);
+        // 기본값 설정
+        this.stats = {
+          totalPosts: 0,
+          publishedPosts: 0,
+          draftPosts: 0
+        };
       }
     },
     logout() {
@@ -221,50 +220,17 @@ export default {
     },
     async loadPosts() {
       try {
-        // 실제 백엔드 API 호출
-        // const response = await fetch('/api/admin/posts', {
-        //   headers: {
-        //     'Authorization': `Bearer ${localStorage.getItem('adminToken')}`
-        //   }
-        // });
-        // const data = await response.json();
-        // this.posts = data.posts;
-        
-        // 샘플 데이터
-        this.posts = [
-          {
-            id: 1,
-            titleKo: 'Vue.js 기초 학습하기',
-            titleJa: 'Vue.jsの基礎を学ぶ',
-            summaryKo: 'Vue.js의 기본 개념과 컴포넌트 시스템에 대해 알아봅니다.',
-            summaryJa: 'Vue.jsの基本概念とコンポーネントシステムについて学びます。',
-            published: true,
-            createdAt: '2024-01-15T10:30:00',
-            updatedAt: '2024-01-15T10:30:00'
-          },
-          {
-            id: 2,
-            titleKo: 'Spring Boot REST API 개발',
-            titleJa: 'Spring Boot REST API開発',
-            summaryKo: 'Spring Boot를 사용한 RESTful API 개발 방법을 설명합니다.',
-            summaryJa: 'Spring Bootを使用したRESTful API開発方法を説明します。',
-            published: true,
-            createdAt: '2024-01-10T14:20:00',
-            updatedAt: '2024-01-12T09:15:00'
-          },
-          {
-            id: 3,
-            titleKo: '데이터베이스 설계 원칙',
-            titleJa: 'データベース設計原則',
-            summaryKo: '효율적인 데이터베이스 설계를 위한 기본 원칙들을 다룹니다.',
-            summaryJa: '効率的なデータベース設計のための基本原則を扱います。',
-            published: false,
-            createdAt: '2024-01-08T16:45:00',
-            updatedAt: '2024-01-14T11:30:00'
-          }
-        ];
+        const response = await apiService.getAllPostsForAdmin(this.lang);
+        if (response.success) {
+          this.posts = response.data;
+        } else {
+          console.error('게시글 로드 실패:', response.message);
+          this.posts = [];
+        }
       } catch (error) {
         console.error('게시글 로드 실패:', error);
+        alert('게시글 목록을 불러오는데 실패했습니다.');
+        this.posts = [];
       }
     },
     truncateText(text, maxLength) {
@@ -291,25 +257,22 @@ export default {
     async deletePost(postId) {
       if (confirm('정말 삭제하시겠습니까?')) {
         try {
-          // 실제 백엔드 API 호출
-          // const response = await fetch(`/api/admin/posts/${postId}`, {
-          //   method: 'DELETE',
-          //   headers: {
-          //     'Authorization': `Bearer ${localStorage.getItem('adminToken')}`
-          //   }
-          // });
-          
-          // if (response.ok) {
-          //   this.posts = this.posts.filter(post => post.id !== postId);
-          //   this.loadDashboardData(); // 통계 업데이트
-          // }
-          
-          // 임시 삭제 (실제로는 백엔드에서 처리)
-          this.posts = this.posts.filter(post => post.id !== postId);
-          this.loadDashboardData(); // 통계 업데이트
-          
+          const response = await apiService.deletePost(postId, this.lang);
+          if (response.success) {
+            this.posts = this.posts.filter(post => post.id !== postId);
+            this.loadDashboardData(); // 통계 업데이트
+            alert('게시글이 삭제되었습니다.');
+          } else {
+            alert('게시글 삭제에 실패했습니다: ' + response.message);
+          }
         } catch (error) {
           console.error('게시글 삭제 실패:', error);
+          // 에러 상세 정보 출력
+          if (error.response) {
+            console.error('Response status:', error.response.status);
+            console.error('Response data:', error.response.data);
+          }
+          alert('게시글 삭제에 실패했습니다. 관리자에게 문의하세요.');
         }
       }
     }

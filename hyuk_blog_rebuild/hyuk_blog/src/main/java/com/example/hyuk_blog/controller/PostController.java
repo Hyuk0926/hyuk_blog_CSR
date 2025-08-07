@@ -16,6 +16,8 @@ import com.example.hyuk_blog.dto.AdminDto;
 
 import java.util.List;
 import java.util.Optional;
+import java.util.HashMap;
+import java.util.Map;
 import com.example.hyuk_blog.dto.InquiryDto;
 import com.example.hyuk_blog.service.InquiryService;
 import com.example.hyuk_blog.service.LikeService;
@@ -188,16 +190,12 @@ public class PostController {
 
     @GetMapping("/api/search")
     @ResponseBody
-    public List<PostDto> searchApi(@RequestParam String q, @RequestParam(value = "lang", required = false, defaultValue = "ko") String lang) {
-        return postService.searchPublishedPosts(q, lang);
-    }
-
-    @GetMapping("/api/posts")
-    @ResponseBody
-    public List<PostDto> getPostsByCategory(@RequestParam(required = false) Category category, @RequestParam(value = "lang", required = false, defaultValue = "ko") String lang) {
-        if (category == null) {
-            return postService.getAllPublishedPosts(lang);
-        }
-        return postService.getPublishedPostsByCategory(category, lang);
+    public Map<String, Object> searchApi(@RequestParam String q, @RequestParam(value = "lang", required = false, defaultValue = "ko") String lang) {
+        List<PostDto> posts = postService.searchPublishedPosts(q, lang);
+        Map<String, Object> response = new HashMap<>();
+        response.put("success", true);
+        response.put("data", posts);
+        response.put("message", "검색 결과를 성공적으로 조회했습니다.");
+        return response;
     }
 }
