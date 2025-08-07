@@ -125,6 +125,7 @@ public class PostService {
 
     // 게시글 저장
     public PostDto savePost(PostDto postDto, String lang) {
+        postDto.setPublished(true); // 무조건 공개로 저장
         if ("ja".equals(lang)) {
             // 오직 posts_jp에만 저장
             PostJp saved = postJpRepository.save(postDto.toJpEntity());

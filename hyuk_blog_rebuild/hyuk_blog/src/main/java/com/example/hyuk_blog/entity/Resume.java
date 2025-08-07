@@ -22,7 +22,8 @@ public class Resume {
     private String introduction; // introduction 필드
     @Column(columnDefinition = "TEXT")
     private String introductionKo; // introductionKo 필드
-    // introductionJa 필드 삭제
+    @Column(columnDefinition = "TEXT")
+    private String introductionJa; // introductionJa 필드 추가
 
     private String birth;
     private String addressKo;

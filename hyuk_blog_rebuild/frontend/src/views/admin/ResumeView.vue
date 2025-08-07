@@ -515,27 +515,27 @@ export default {
           // API 응답 데이터를 폼 데이터로 변환
           this.resume = {
             photoUrl: response.data.photoUrl || '',
-            nameKo: response.data.name || '',
-            nameJa: response.data.name || '', // API에서 언어별 이름을 분리해서 받아야 함
+            nameKo: response.data.nameKo || '',
+            nameJa: response.data.nameJa || '',
             phone: response.data.phone || '',
             email: response.data.email || '',
             birth: response.data.birth || '',
-            addressKo: response.data.address || '',
-            addressJa: response.data.address || '', // API에서 언어별 주소를 분리해서 받아야 함
+            addressKo: response.data.addressKo || '',
+            addressJa: response.data.addressJa || '',
             educations: response.data.educations || [],
             skills: response.data.skills || '',
-                      introductionKo: response.data.introduction || '',
-          introductionJa: response.data.introduction || '',
-          studentLifeKo: response.data.studentLife || '',
-            studentLifeJa: response.data.studentLife || '',
-            strengthsWeaknessesKo: response.data.strengthsWeaknesses || '',
-            strengthsWeaknessesJa: response.data.strengthsWeaknesses || '',
-            effortExperienceKo: response.data.effortExperience || '',
-            effortExperienceJa: response.data.effortExperience || '',
-            japanItMotivationKo: response.data.japanItMotivation || '',
-            japanItMotivationJa: response.data.japanItMotivation || '',
-            futurePlanKo: response.data.futurePlan || '',
-            futurePlanJa: response.data.futurePlan || ''
+            introductionKo: response.data.introductionKo || '',
+            introductionJa: response.data.introductionJa || '',
+            studentLifeKo: response.data.studentLifeKo || '',
+            studentLifeJa: response.data.studentLifeJa || '',
+            strengthsWeaknessesKo: response.data.strengthsWeaknessesKo || '',
+            strengthsWeaknessesJa: response.data.strengthsWeaknessesJa || '',
+            effortExperienceKo: response.data.effortExperienceKo || '',
+            effortExperienceJa: response.data.effortExperienceJa || '',
+            japanItMotivationKo: response.data.japanItMotivationKo || '',
+            japanItMotivationJa: response.data.japanItMotivationJa || '',
+            futurePlanKo: response.data.futurePlanKo || '',
+            futurePlanJa: response.data.futurePlanJa || ''
           };
         }
         
