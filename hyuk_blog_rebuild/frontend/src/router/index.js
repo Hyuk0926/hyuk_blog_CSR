@@ -23,15 +23,16 @@ const routes = [
     // lazy loading for better performance
     component: () => import('../views/ProjectView.vue')
   },
-  {
-    path: '/about',
-    name: 'about',
-    component: () => import('../views/AboutView.vue')
-  },
+
   {
     path: '/contact',
     name: 'contact',
     component: () => import('../views/ContactView.vue')
+  },
+  {
+    path: '/resume',
+    name: 'resume',
+    component: () => import('../views/ResumeView.vue')
   },
   {
     path: '/user/login',

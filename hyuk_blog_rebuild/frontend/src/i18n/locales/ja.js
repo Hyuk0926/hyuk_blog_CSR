@@ -3,7 +3,7 @@ export default {
   nav: {
     knowledge: '知識集',
     projects: 'プロジェクト',
-    about: '経歴',
+    resume: '履歴書',
     contact: 'Contact',
     login: 'ログイン',
     register: '会員登録',
@@ -66,13 +66,20 @@ export default {
     }
   },
 
-  // 経歴ページ
-  about: {
-    title: '経歴',
-    subtitle: '開発者としての経歴と技術スタックを紹介します。',
-    experience: '経験',
+
+
+  // 履歴書関連
+  resume: {
     education: '学歴',
-    skills: '技術スタック'
+    school: '学校名',
+    degree: '専攻/学位',
+    period: '期間',
+    skills: '技術スタック',
+    studentLife: '学生生活(成長過程)',
+    strengthsWeaknesses: '長所と短所',
+    effortExperience: '人生で努力した経験',
+    japanItMotivation: '日本IT就職志望動機',
+    futurePlan: '将来の計画と抱負'
   },
 
   // Contactページ

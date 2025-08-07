@@ -3,7 +3,7 @@ export default {
   nav: {
     knowledge: '지식모음',
     projects: '프로젝트',
-    about: '이력',
+    resume: '이력서',
     contact: 'Contact',
     login: '로그인',
     register: '회원가입',
@@ -66,13 +66,20 @@ export default {
     }
   },
 
-  // 이력 페이지
-  about: {
-    title: '이력',
-    subtitle: '개발자로서의 경력과 기술 스택을 소개합니다.',
-    experience: '경력',
+
+
+  // 이력서 관련
+  resume: {
     education: '학력',
-    skills: '기술 스택'
+    school: '학교명',
+    degree: '전공/학위',
+    period: '기간',
+    skills: '기술스택',
+    studentLife: '학생생활(성장과정)',
+    strengthsWeaknesses: '장점과 단점',
+    effortExperience: '인생에서 노력했던 경험',
+    japanItMotivation: '일본 IT 취업 지망동기',
+    futurePlan: '장래의 계획 및 포부'
   },
 
   // Contact 페이지

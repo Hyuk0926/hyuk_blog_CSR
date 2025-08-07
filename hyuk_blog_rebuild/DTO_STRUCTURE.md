@@ -39,13 +39,18 @@ REST API에 맞게 DTO 구조를 개선했습니다. 요청(Request)과 응답(R
 - **InquiryResponseDto** - 문의 응답
 - **InquiryDto** - 기존 문의 DTO (내부 처리용)
 
-### 8. 방문자 통계 관련 DTO
+### 8. 이력서 관련 DTO
+- **ResumeResponseDto** - 이력서 정보 응답 (언어별)
+- **ResumeUpdateRequestDto** - 이력서 정보 업데이트 요청 (관리자용)
+- **ResumeDto** - 기존 이력서 DTO (내부 처리용)
+
+### 9. 방문자 통계 관련 DTO
 - **VisitorStatsResponseDto** - 방문자 통계 응답
 
-### 9. 검색 관련 DTO
+### 10. 검색 관련 DTO
 - **SearchRequestDto** - 검색 요청
 
-### 10. JWT 관련 DTO
+### 11. JWT 관련 DTO
 - **JwtLoginRequestDto** - JWT 로그인 요청
 - **JwtResponseDto** - JWT 응답
 
@@ -85,6 +90,25 @@ response.setCreatedAt(LocalDateTime.now());
   "timestamp": "2024-01-01T00:00:00",
   "errorCode": null
 }
+```
+
+### 이력서 DTO 사용 예시
+```java
+// 이력서 조회 (한국어)
+ResumeResponseDto koResume = resumeService.getResumeByLang("ko");
+
+// 이력서 조회 (일본어)
+ResumeResponseDto jaResume = resumeService.getResumeByLang("ja");
+
+// 이력서 업데이트
+ResumeUpdateRequestDto updateRequest = new ResumeUpdateRequestDto();
+updateRequest.setNameKo("홍길동");
+updateRequest.setNameJa("ホン・ギルドン");
+updateRequest.setIntroductionKo("안녕하세요. 개발자 홍길동입니다.");
+updateRequest.setIntroductionJa("こんにちは。開発者のホン・ギルドンです。");
+// ... 기타 필드 설정
+
+ResumeResponseDto updatedResume = resumeService.updateResume(updateRequest);
 ```
 
 ### 공통 응답 래퍼
@@ -155,6 +179,11 @@ PostResponseDto jpPost = dtoConverter.toPostResponseDto(postDto, "ja");
 
 ### 좋아요 API
 - `POST /api/like/kr/{postId}` → LikeResponseDto (출력)
+
+### 이력서 API
+- `GET /api/resume?lang=ko` → ResumeResponseDto (출력)
+- `GET /api/resume?lang=ja` → ResumeResponseDto (출력)
+- `PUT /api/resume` → ResumeUpdateRequestDto (입력), ResumeResponseDto (출력)
 
 ## 마이그레이션 가이드
 

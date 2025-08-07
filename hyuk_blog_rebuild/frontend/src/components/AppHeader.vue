@@ -7,7 +7,7 @@
             <ul class="navbar-nav">
               <li class="nav-item"><router-link :to="getLink('/knowledge')" class="nav-link">{{ $t('nav.knowledge') }}</router-link></li>
               <li class="nav-item"><router-link :to="getLink('/projects')" class="nav-link">{{ $t('nav.projects') }}</router-link></li>
-              <li class="nav-item"><router-link :to="getLink('/about')" class="nav-link">{{ $t('nav.about') }}</router-link></li>
+              <li class="nav-item"><router-link :to="getLink('/resume')" class="nav-link">{{ $t('nav.resume') }}</router-link></li>
               <li class="nav-item"><router-link :to="getLink('/contact')" class="nav-link">{{ $t('nav.contact') }}</router-link></li>
             </ul>
           </nav>

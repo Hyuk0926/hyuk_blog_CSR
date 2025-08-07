@@ -42,7 +42,7 @@
 - `GET /api/posts/category/{category}` - 카테고리별 게시글 조회
 - `GET /api/posts/{id}` - 게시글 상세 조회
 - `GET /api/posts/search` - 게시글 검색
-- `GET /api/resume` - 이력서 정보 조회
+- `GET /api/resume` - 이력서 정보 조회 (언어별)
 - `POST /api/inquiry` - 문의 등록
 
 ### 관리자 전용 API
@@ -51,8 +51,7 @@
 - `PUT /api/admin/posts/{id}` - 게시글 수정
 - `DELETE /api/admin/posts/{id}` - 게시글 삭제
 - `GET /api/admin/posts/{id}` - 게시글 상세 조회 (관리자용)
-- `GET /api/admin/resume` - 이력서 조회
-- `POST /api/admin/resume` - 이력서 저장
+- `PUT /api/resume` - 이력서 정보 업데이트 (관리자용)
 
 ## 댓글 관련 API
 
@@ -205,6 +204,105 @@ PUT /api/admin/2
     "email": "updated@example.com",
     "active": true,
     "createdAt": "2024-01-01T00:00:00"
+  }
+}
+```
+
+### 이력서 조회 (언어별)
+```json
+// 요청
+GET /api/resume?lang=ko
+
+// 응답
+{
+  "success": true,
+  "message": "이력서 조회에 성공했습니다.",
+  "data": {
+    "name": "홍길동",
+    "email": "hong@example.com",
+    "phone": "010-1234-5678",
+    "photoUrl": "/img/profile.jpg",
+    "birth": "1995-01-01",
+    "address": "서울시 강남구",
+    "skills": "Java, Spring, Vue.js",
+    "introduction": "안녕하세요. 개발자 홍길동입니다.",
+    "studentLife": "대학 시절 다양한 프로젝트를 통해...",
+    "strengthsWeaknesses": "장점은 꼼꼼함이고, 단점은 완벽주의입니다.",
+    "effortExperience": "알고리즘 공부를 위해 매일 2시간씩...",
+    "japanItMotivation": "일본 IT 업계에서 일하고 싶은 이유는...",
+    "futurePlan": "앞으로 5년간 일본에서 개발자로...",
+    "educations": [
+      {
+        "school": "서울대학교",
+        "degree": "컴퓨터공학과",
+        "period": "2014-2018"
+      }
+    ]
+  }
+}
+```
+
+### 이력서 업데이트 (관리자용)
+```json
+// 요청
+PUT /api/resume
+{
+  "nameKo": "홍길동",
+  "nameJa": "ホン・ギルドン",
+  "email": "hong@example.com",
+  "phone": "010-1234-5678",
+  "photoUrl": "/img/profile.jpg",
+  "birth": "1995-01-01",
+  "addressKo": "서울시 강남구",
+  "addressJa": "ソウル市江南区",
+  "skills": "Java, Spring, Vue.js",
+  "introductionKo": "안녕하세요. 개발자 홍길동입니다.",
+  "studentLifeKo": "대학 시절 다양한 프로젝트를 통해...",
+  "strengthsWeaknessesKo": "장점은 꼼꼼함이고, 단점은 완벽주의입니다.",
+  "effortExperienceKo": "알고리즘 공부를 위해 매일 2시간씩...",
+  "japanItMotivationKo": "일본 IT 업계에서 일하고 싶은 이유는...",
+  "futurePlanKo": "앞으로 5년간 일본에서 개발자로...",
+  "studentLifeJa": "大学時代、様々なプロジェクトを通じて...",
+  "strengthsWeaknessesJa": "長所は几帳面さで、短所は完璧主義です。",
+  "effortExperienceJa": "アルゴリズムの勉強のために毎日2時間...",
+  "japanItMotivationJa": "日本のIT業界で働きたい理由は...",
+  "futurePlanJa": "今後5年間、日本で開発者として...",
+  "educations": [
+    {
+      "schoolKo": "서울대학교",
+      "schoolJa": "ソウル大学校",
+      "degreeKo": "컴퓨터공학과",
+      "degreeJa": "コンピュータ工学科",
+      "period": "2014-2018"
+    }
+  ]
+}
+
+// 응답
+{
+  "success": true,
+  "message": "이력서가 성공적으로 업데이트되었습니다.",
+  "data": {
+    "name": "홍길동",
+    "email": "hong@example.com",
+    "phone": "010-1234-5678",
+    "photoUrl": "/img/profile.jpg",
+    "birth": "1995-01-01",
+    "address": "서울시 강남구",
+    "skills": "Java, Spring, Vue.js",
+    "introduction": "안녕하세요. 개발자 홍길동입니다.",
+    "studentLife": "대학 시절 다양한 프로젝트를 통해...",
+    "strengthsWeaknesses": "장점은 꼼꼼함이고, 단점은 완벽주의입니다.",
+    "effortExperience": "알고리즘 공부를 위해 매일 2시간씩...",
+    "japanItMotivation": "일본 IT 업계에서 일하고 싶은 이유는...",
+    "futurePlan": "앞으로 5년간 일본에서 개발자로...",
+    "educations": [
+      {
+        "school": "서울대학교",
+        "degree": "컴퓨터공학과",
+        "period": "2014-2018"
+      }
+    ]
   }
 }
 ```

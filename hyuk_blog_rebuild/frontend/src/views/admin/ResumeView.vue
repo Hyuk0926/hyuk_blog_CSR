@@ -4,6 +4,10 @@
       <h1 class="resume-form-title">
         <i class="fas fa-user-tie"></i>
         이력서 관리
+        <span v-if="loading" class="loading-indicator">
+          <i class="fas fa-spinner fa-spin"></i>
+          로딩 중...
+        </span>
       </h1>
       
       <form @submit.prevent="saveResume" class="resume-form">
@@ -246,6 +250,32 @@
           <div class="form-group">
             <label class="form-label">
               <span class="flag-ko">🇰🇷</span>
+              자기소개 (한국어)
+            </label>
+            <textarea 
+              v-model="resume.introductionKo" 
+              class="form-textarea" 
+              placeholder="한국어 자기소개를 입력하세요"
+              rows="4"
+            ></textarea>
+          </div>
+          
+          <div class="form-group">
+            <label class="form-label">
+              <span class="flag-ja">🇯🇵</span>
+              自己紹介 (일본어)
+            </label>
+            <textarea 
+              v-model="resume.introductionJa" 
+              class="form-textarea" 
+              placeholder="日本語 自己紹介を入力してください"
+              rows="4"
+            ></textarea>
+          </div>
+          
+          <div class="form-group">
+            <label class="form-label">
+              <span class="flag-ko">🇰🇷</span>
               학생생활 (한국어)
             </label>
             <textarea 
@@ -408,11 +438,11 @@
 
         <!-- 버튼 -->
         <div class="form-buttons">
-          <button type="submit" class="btn-submit">
+          <button type="submit" class="btn-submit" :disabled="saving">
             <i class="fas fa-save"></i>
-            저장
+            {{ saving ? '저장 중...' : '저장' }}
           </button>
-          <router-link to="/admin" class="btn-cancel">
+          <router-link to="/admin" class="btn-cancel" :class="{ 'disabled': saving }">
             <i class="fas fa-times"></i>
             취소
           </router-link>
@@ -423,6 +453,8 @@
 </template>
 
 <script>
+import apiService from '@/services/api.js'
+
 export default {
   name: 'ResumeView',
   data() {
@@ -438,6 +470,8 @@ export default {
         addressJa: '',
         educations: [],
         skills: '',
+        introductionKo: '',
+        introductionJa: '',
         studentLifeKo: '',
         studentLifeJa: '',
         strengthsWeaknessesKo: '',
@@ -448,7 +482,9 @@ export default {
         japanItMotivationJa: '',
         futurePlanKo: '',
         futurePlanJa: ''
-      }
+      },
+      loading: false,
+      saving: false
     }
   },
   mounted() {
@@ -472,29 +508,95 @@ export default {
   methods: {
     async loadResume() {
       try {
-        // TODO: API 호출로 이력서 데이터 로드
-        // const response = await this.$http.get('/api/resume')
-        // this.resume = response.data
+        this.loading = true;
+        const response = await apiService.getResume('ko');
         
-        // 임시로 기본 학력 데이터 추가
+        if (response.success && response.data) {
+          // API 응답 데이터를 폼 데이터로 변환
+          this.resume = {
+            photoUrl: response.data.photoUrl || '',
+            nameKo: response.data.name || '',
+            nameJa: response.data.name || '', // API에서 언어별 이름을 분리해서 받아야 함
+            phone: response.data.phone || '',
+            email: response.data.email || '',
+            birth: response.data.birth || '',
+            addressKo: response.data.address || '',
+            addressJa: response.data.address || '', // API에서 언어별 주소를 분리해서 받아야 함
+            educations: response.data.educations || [],
+            skills: response.data.skills || '',
+                      introductionKo: response.data.introduction || '',
+          introductionJa: response.data.introduction || '',
+          studentLifeKo: response.data.studentLife || '',
+            studentLifeJa: response.data.studentLife || '',
+            strengthsWeaknessesKo: response.data.strengthsWeaknesses || '',
+            strengthsWeaknessesJa: response.data.strengthsWeaknesses || '',
+            effortExperienceKo: response.data.effortExperience || '',
+            effortExperienceJa: response.data.effortExperience || '',
+            japanItMotivationKo: response.data.japanItMotivation || '',
+            japanItMotivationJa: response.data.japanItMotivation || '',
+            futurePlanKo: response.data.futurePlan || '',
+            futurePlanJa: response.data.futurePlan || ''
+          };
+        }
+        
+        // 학력 데이터가 없으면 기본 추가
         if (this.resume.educations.length === 0) {
           this.addEducation()
         }
       } catch (error) {
         console.error('이력서 로드 실패:', error)
+        // 에러가 발생해도 기본 학력 데이터는 추가
+        if (this.resume.educations.length === 0) {
+          this.addEducation()
+        }
+      } finally {
+        this.loading = false;
       }
     },
     
     async saveResume() {
       try {
-        // TODO: API 호출로 이력서 저장
-        // await this.$http.post('/api/resume', this.resume)
-        console.log('저장할 이력서 데이터:', this.resume)
-        alert('이력서가 저장되었습니다.')
-        this.$router.push('/admin')
+        this.saving = true;
+        
+        // 폼 데이터를 API 요청 형식으로 변환
+        const resumeData = {
+          nameKo: this.resume.nameKo,
+          nameJa: this.resume.nameJa,
+          phone: this.resume.phone,
+          email: this.resume.email,
+          photoUrl: this.resume.photoUrl,
+          birth: this.resume.birth,
+          addressKo: this.resume.addressKo,
+          addressJa: this.resume.addressJa,
+          educations: this.resume.educations,
+          skills: this.resume.skills,
+          introductionKo: this.resume.introductionKo,
+          introductionJa: this.resume.introductionJa,
+          studentLifeKo: this.resume.studentLifeKo,
+          studentLifeJa: this.resume.studentLifeJa,
+          strengthsWeaknessesKo: this.resume.strengthsWeaknessesKo,
+          strengthsWeaknessesJa: this.resume.strengthsWeaknessesJa,
+          effortExperienceKo: this.resume.effortExperienceKo,
+          effortExperienceJa: this.resume.effortExperienceJa,
+          japanItMotivationKo: this.resume.japanItMotivationKo,
+          japanItMotivationJa: this.resume.japanItMotivationJa,
+          futurePlanKo: this.resume.futurePlanKo,
+          futurePlanJa: this.resume.futurePlanJa
+        };
+        
+        const response = await apiService.updateResume(resumeData);
+        
+        if (response.success) {
+          alert('이력서가 성공적으로 저장되었습니다.');
+          this.$router.push('/admin');
+        } else {
+          alert('저장에 실패했습니다: ' + (response.message || '알 수 없는 오류'));
+        }
       } catch (error) {
         console.error('이력서 저장 실패:', error)
-        alert('저장에 실패했습니다.')
+        alert('저장에 실패했습니다: ' + (error.message || '알 수 없는 오류'));
+      } finally {
+        this.saving = false;
       }
     },
     
@@ -550,8 +652,17 @@ export default {
   font-weight: 600;
   display: flex;
   align-items: center;
-  gap: 15px;
-  border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+  justify-content: space-between;
+}
+
+.loading-indicator {
+  font-size: 1rem;
+  font-weight: normal;
+  opacity: 0.8;
+}
+
+.loading-indicator i {
+  margin-right: 8px;
 }
 
 .resume-form {
@@ -794,6 +905,21 @@ export default {
   background: linear-gradient(145deg, #666666 0%, #444444 100%);
   transform: translateY(-2px);
   box-shadow: 0 6px 20px rgba(0, 0, 0, 0.4);
+}
+
+.btn-submit:disabled,
+.btn-cancel.disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+  transform: none !important;
+  box-shadow: none !important;
+}
+
+.btn-submit:disabled:hover,
+.btn-cancel.disabled:hover {
+  background: linear-gradient(145deg, #555555 0%, #333333 100%);
+  transform: none;
+  box-shadow: none;
 }
 
 /* 반응형 디자인 */

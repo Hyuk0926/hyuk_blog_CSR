@@ -51,4 +51,5 @@ encryption:
 logging:
   level:
     com.example.hyuk_blog: INFO
-    org.springframework.security: WARN 
+    org.springframework.security: WARN
+    org.springframework.web.servlet.mvc.method.annotation.RequestMappingHandlerMapping: DEBUG 

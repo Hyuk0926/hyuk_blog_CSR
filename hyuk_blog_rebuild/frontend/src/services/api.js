@@ -324,6 +324,25 @@ class ApiService {
     });
   }
 
+  // ==================== 이력서 관련 API ====================
+
+  /**
+   * 언어별 이력서 조회
+   */
+  async getResume(lang = 'ko') {
+    return this.request(`/api/resume?lang=${lang}`);
+  }
+
+  /**
+   * 이력서 수정 (관리자용)
+   */
+  async updateResume(resumeData) {
+    return this.request('/api/resume', {
+      method: 'PUT',
+      body: JSON.stringify(resumeData),
+    });
+  }
+
   // ==================== 유틸리티 메서드 ====================
 
   /**
