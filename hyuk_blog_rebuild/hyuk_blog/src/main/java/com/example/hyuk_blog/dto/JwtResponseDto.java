@@ -1,4 +1,4 @@
-package com.example.hyuk_blog.dto.login;
+package com.example.hyuk_blog.dto;
 
 import lombok.AllArgsConstructor;
 import lombok.Data;

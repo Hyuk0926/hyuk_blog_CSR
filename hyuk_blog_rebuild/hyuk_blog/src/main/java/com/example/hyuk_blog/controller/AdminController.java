@@ -2,7 +2,6 @@ package com.example.hyuk_blog.controller;
 
 import com.example.hyuk_blog.dto.AdminDto;
 import com.example.hyuk_blog.dto.PostDto;
-import com.example.hyuk_blog.dto.post.PostResponseDto;
 import com.example.hyuk_blog.entity.Category;
 import com.example.hyuk_blog.service.PostService;
 import com.example.hyuk_blog.service.ResumeService;
@@ -46,7 +45,7 @@ public class AdminController {
             }
         }
         String lang = "ko";
-        List<PostDto> posts = postService.getAllPublishedPostsAsPostDto(lang);
+        List<PostDto> posts = postService.getAllPosts(lang);
         model.addAttribute("posts", posts);
         model.addAttribute("inquiryCount", inquiryService.getUnreadCount());
         model.addAttribute("inquiries", inquiryService.getAllInquiries());
@@ -70,14 +69,14 @@ public class AdminController {
     // 새 게시글 저장
     @PostMapping("/post/new")
     public String createPost(@ModelAttribute PostDto postDto) {
-        postService.savePostAsPostDto(postDto, "ko");
+        postService.savePost(postDto, "ko");
         return "redirect:/admin";
     }
     
     // 게시글 수정 폼
     @GetMapping("/post/edit/{id}")
     public String editPostForm(@PathVariable Long id, Model model, HttpSession session) {
-        Optional<PostDto> post = postService.getPostByIdAsPostDto(id, "ko");
+        Optional<PostDto> post = postService.getPostById(id, "ko");
         AdminDto admin = (AdminDto) session.getAttribute("admin");
         
         if (post.isPresent()) {
@@ -107,7 +106,7 @@ public class AdminController {
     // 게시글 미리보기
     @GetMapping("/post/preview/{id}")
     public String previewPost(@PathVariable Long id, Model model, HttpSession session) {
-        Optional<PostDto> post = postService.getPostByIdAsPostDto(id, "ko");
+        Optional<PostDto> post = postService.getPostById(id, "ko");
         if (post.isPresent()) {
             // 미리보기에서는 published 상태와 관계없이 표시
             UserDto user = (UserDto) session.getAttribute("user");

@@ -12,7 +12,7 @@ import java.time.LocalDateTime;
 @Table(name = "posts_kr")
 @Data
 @NoArgsConstructor
-public class PostKr implements PostCommon {
+public class PostKr {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
@@ -46,11 +46,6 @@ public class PostKr implements PostCommon {
     @UpdateTimestamp
     @Column(name = "updated_at")
     private LocalDateTime updatedAt;
-
-    @Override
-    public PostType getPostType() {
-        return PostType.KR;
-    }
 
 
 //    @PrePersist

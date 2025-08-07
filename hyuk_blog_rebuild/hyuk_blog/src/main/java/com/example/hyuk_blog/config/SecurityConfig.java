@@ -1,11 +1,10 @@
 package com.example.hyuk_blog.config;
 
+import com.example.hyuk_blog.service.CustomUserDetailsService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.http.HttpMethod;
-import org.springframework.security.authentication.AuthenticationManager;
-import org.springframework.security.authentication.ProviderManager;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
 import org.springframework.security.config.annotation.web.configurers.AbstractHttpConfigurer;
@@ -14,11 +13,6 @@ import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
-import org.springframework.web.cors.CorsConfiguration;
-import org.springframework.web.cors.CorsConfigurationSource;
-import org.springframework.web.cors.UrlBasedCorsConfigurationSource;
-
-import java.util.Arrays;
 
 @Configuration
 @EnableWebSecurity
@@ -26,52 +20,47 @@ import java.util.Arrays;
 public class SecurityConfig {
 
     private final JwtAuthenticationFilter jwtAuthenticationFilter;
-    // ⭐ 우리가 만든 커스텀 인증 전문가를 주입받습니다.
-    private final CustomAuthenticationProvider customAuthenticationProvider;
+    private final CustomUserDetailsService customUserDetailsService;
 
     @Bean
     public SecurityFilterChain filterChain(HttpSecurity http) throws Exception {
         http
-            .cors(cors -> cors.configurationSource(corsConfigurationSource()))
-            .csrf(AbstractHttpConfigurer::disable)
-            .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
+            .csrf(AbstractHttpConfigurer::disable) // CSRF 비활성화
+            .sessionManagement(session -> session
+                .sessionCreationPolicy(SessionCreationPolicy.IF_REQUIRED) // 세션 활성화
+            )
+            .securityContext(securityContext -> securityContext
+                .requireExplicitSave(false) // 세션 자동 저장
+            )
             .authorizeHttpRequests(authorize -> authorize
-                .requestMatchers(HttpMethod.OPTIONS, "/**").permitAll()
-                .requestMatchers("/css/**", "/js/**", "/img/**", "/svg/**", "/cursor/**", "/favicon.ico", "/").permitAll()
+                // 정적 리소스 허용 (모든 정적 파일)
+                .requestMatchers("/css/**", "/js/**", "/img/**", "/svg/**", "/cursor/**", "/favicon.ico").permitAll()
+                // 메인 페이지 허용
+                .requestMatchers("/", "/index", "/jp", "/home", "/about", "/contact", "/projects", "/search").permitAll()
+                // 게시글 조회 허용
+                .requestMatchers("/post/**", "/posts/**").permitAll()
+                // 사용자 인증 관련 페이지 허용 (로그인, 회원가입, 로그아웃)
+                .requestMatchers("/user/login", "/user/register", "/user/logout", "/user/check-username", "/user/check-nickname", "/user/check-email").permitAll()
+                // 관리자 로그인 페이지는 모든 사용자 접근 가능
+                .requestMatchers("/admin/login", "/admin").permitAll()
+                // 관리자 관련 모든 페이지는 인증된 사용자만 접근 (admin 계정 포함)
+                .requestMatchers("/admin/**", "/admin_jp/**", "/admin_kr/**").permitAll()
+                // API 엔드포인트 설정
                 .requestMatchers("/api/auth/**").permitAll()
-                .requestMatchers(HttpMethod.GET, "/api/posts/**").permitAll()
-                .requestMatchers(HttpMethod.GET, "/api/comments/**").permitAll()
-                .requestMatchers(HttpMethod.GET, "/api/resume/**").permitAll()
-                .requestMatchers("/api/user/**").authenticated()
+                .requestMatchers("/api/comments/**").permitAll()
+                .requestMatchers("/api/like/**").permitAll()
+                .requestMatchers("/api/posts/**").permitAll()
+                .requestMatchers("/api/search/**").permitAll()
+                .requestMatchers("/visitor/**").permitAll()
+                // 나머지는 인증 필요
                 .anyRequest().authenticated()
             )
-            .authenticationProvider(customAuthenticationProvider) // ⭐ 인증 전문가를 여기에 등록!
-            .formLogin(AbstractHttpConfigurer::disable)
-            .logout(AbstractHttpConfigurer::disable)
-            .addFilterBefore(jwtAuthenticationFilter, UsernamePasswordAuthenticationFilter.class);
+            .userDetailsService(customUserDetailsService) // UserDetailsService 등록
+            .formLogin(AbstractHttpConfigurer::disable) // 기본 로그인 폼 비활성화
+            .logout(AbstractHttpConfigurer::disable) // 기본 로그아웃 비활성화
+            .addFilterBefore(jwtAuthenticationFilter, UsernamePasswordAuthenticationFilter.class); // JWT 필터 추가
 
         return http.build();
-    }
-    
-    // ⭐ AuthenticationManager 설정 변경
-    @Bean
-    public AuthenticationManager authenticationManager() {
-        // 우리가 만든 CustomAuthenticationProvider를 사용하도록 설정
-        return new ProviderManager(customAuthenticationProvider);
-    }
-
-    @Bean
-    public CorsConfigurationSource corsConfigurationSource() {
-        CorsConfiguration configuration = new CorsConfiguration();
-        configuration.setAllowedOriginPatterns(Arrays.asList("http://localhost:8080", "http://localhost:8082", "http://localhost:8083", "http://localhost:3000"));
-        configuration.setAllowedMethods(Arrays.asList("GET", "POST", "PUT", "DELETE", "OPTIONS"));
-        configuration.setAllowedHeaders(Arrays.asList("*"));
-        configuration.setAllowCredentials(true);
-        configuration.setMaxAge(3600L);
-        
-        UrlBasedCorsConfigurationSource source = new UrlBasedCorsConfigurationSource();
-        source.registerCorsConfiguration("/**", configuration);
-        return source;
     }
 
     @Bean

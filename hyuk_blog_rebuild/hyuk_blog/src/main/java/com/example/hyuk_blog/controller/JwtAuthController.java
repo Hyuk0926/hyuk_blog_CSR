@@ -1,10 +1,8 @@
 package com.example.hyuk_blog.controller;
 
-import com.example.hyuk_blog.dto.login.JwtLoginRequestDto;
-import com.example.hyuk_blog.dto.login.JwtResponseDto;
-import com.example.hyuk_blog.dto.login.SignupRequestDto;
+import com.example.hyuk_blog.dto.JwtLoginRequestDto;
+import com.example.hyuk_blog.dto.JwtResponseDto;
 import com.example.hyuk_blog.service.JwtAuthService;
-import com.example.hyuk_blog.service.UserService;
 import com.example.hyuk_blog.repository.AdminRepository;
 import com.example.hyuk_blog.repository.UserRepository;
 import lombok.RequiredArgsConstructor;
@@ -22,68 +20,49 @@ import java.util.ArrayList;
 @RestController
 @RequestMapping("/api/auth")
 @RequiredArgsConstructor
-@CrossOrigin(originPatterns = "*", allowCredentials = "true")
+@CrossOrigin(origins = "*")
 public class JwtAuthController {
 
     private final JwtAuthService jwtAuthService;
-    private final UserService userService;
     private final AdminRepository adminRepository;
     private final UserRepository userRepository;
 
     /**
-     * 통합 JWT 로그인 (사용자/관리자)
+     * 관리자 JWT 로그인
      */
-    @PostMapping("/login")
-    public ResponseEntity<?> login(@RequestBody JwtLoginRequestDto loginRequest) {
-        log.info("=== 로그인 요청 수신 ===");
-        log.info("요청 본문: {}", loginRequest);
-        
+    @PostMapping("/admin/login")
+    public ResponseEntity<?> adminLogin(@RequestBody JwtLoginRequestDto loginRequest) {
         try {
-            log.info("로그인 시도: 사용자명={}", loginRequest.getUsername());
-            
-            JwtResponseDto response = jwtAuthService.login(loginRequest);
-            log.info("로그인 성공: 사용자명={}, 역할={}", response.getUsername(), response.getRole());
-            
+            JwtResponseDto response = jwtAuthService.adminLogin(loginRequest);
             return ResponseEntity.ok(response);
         } catch (BadCredentialsException e) {
-            log.warn("로그인 실패 (잘못된 자격증명): 사용자명={}, 오류={}", loginRequest.getUsername(), e.getMessage());
             Map<String, String> error = new HashMap<>();
             error.put("error", "Invalid username or password");
             return ResponseEntity.badRequest().body(error);
         } catch (Exception e) {
-            log.error("로그인 오류: 사용자명={}, 오류={}", loginRequest.getUsername(), e.getMessage(), e);
+            log.error("Admin login error: {}", e.getMessage());
             Map<String, String> error = new HashMap<>();
-            error.put("error", "Login failed: " + e.getMessage());
+            error.put("error", "Login failed");
             return ResponseEntity.internalServerError().body(error);
         }
     }
 
     /**
-     * 회원가입
+     * 사용자 JWT 로그인
      */
-    @PostMapping("/register")
-    public ResponseEntity<?> register(@RequestBody SignupRequestDto signupRequest) {
-        log.info("=== 회원가입 요청 수신 ===");
-        log.info("요청 본문: {}", signupRequest);
-        
+    @PostMapping("/user/login")
+    public ResponseEntity<?> userLogin(@RequestBody JwtLoginRequestDto loginRequest) {
         try {
-            log.info("회원가입 시도: 사용자명={}", signupRequest.getUsername());
-            
-            userService.register(signupRequest);
-            log.info("회원가입 성공: 사용자명={}", signupRequest.getUsername());
-            
-            Map<String, String> response = new HashMap<>();
-            response.put("message", "회원가입이 성공적으로 완료되었습니다.");
+            JwtResponseDto response = jwtAuthService.userLogin(loginRequest);
             return ResponseEntity.ok(response);
-        } catch (IllegalArgumentException e) {
-            log.warn("회원가입 실패 (유효성 검증 오류): 사용자명={}, 오류={}", signupRequest.getUsername(), e.getMessage());
+        } catch (BadCredentialsException e) {
             Map<String, String> error = new HashMap<>();
-            error.put("error", e.getMessage());
+            error.put("error", "Invalid username or password");
             return ResponseEntity.badRequest().body(error);
         } catch (Exception e) {
-            log.error("회원가입 오류: 사용자명={}, 오류={}", signupRequest.getUsername(), e.getMessage(), e);
+            log.error("User login error: {}", e.getMessage());
             Map<String, String> error = new HashMap<>();
-            error.put("error", "회원가입 실패: " + e.getMessage());
+            error.put("error", "Login failed");
             return ResponseEntity.internalServerError().body(error);
         }
     }

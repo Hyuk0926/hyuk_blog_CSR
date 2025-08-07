@@ -54,14 +54,11 @@ public class PostController {
 
     @GetMapping("/index")
     public String index(@RequestParam(value = "lang", required = false, defaultValue = "ko") String lang, Model model) {
-        List<PostDto> posts = postService.getAllPublishedPosts;AsPostDto(lang);
+        List<PostDto> posts = postService.getAllPublishedPosts(lang);
         model.addAttribute("posts", posts);
         model.addAttribute("categories", Category.values());
         model.addAttribute("lang", lang);
         return "index";
-    }
-
-    private void AsPostDto(String lang) {
     }
 
     @GetMapping("/jp")
@@ -72,7 +69,7 @@ public class PostController {
         }
         
         // 기본적으로 일본어 포스트 표시
-        List<PostDto> posts = postService.getAllPublishedPostsAsPostDto("ja");
+        List<PostDto> posts = postService.getAllPublishedPosts("ja");
         model.addAttribute("posts", posts);
         model.addAttribute("categories", Category.values());
         model.addAttribute("lang", "ja");
@@ -81,7 +78,7 @@ public class PostController {
 
     @GetMapping("/post/{id}")
     public String postDetail(@PathVariable Long id, @RequestParam(value = "lang", required = false, defaultValue = "ko") String lang, Model model, HttpServletRequest request, HttpSession session) {
-        Optional<PostDto> post = postService.getPostByIdAsPostDto(id, lang);
+        Optional<PostDto> post = postService.getPostById(id, lang);
         if (post.isPresent()) {
             // user 또는 admin 세션 확인
             UserDto user = (UserDto) session.getAttribute("user");
@@ -147,7 +144,7 @@ public class PostController {
 
     @GetMapping("/search")
     public String search(@RequestParam String q, @RequestParam(value = "lang", required = false, defaultValue = "ko") String lang, Model model) {
-        List<PostDto> posts = postService.searchPublishedPostsAsPostDto(q, lang);
+        List<PostDto> posts = postService.searchPublishedPosts(q, lang);
         model.addAttribute("posts", posts);
         model.addAttribute("searchQuery", q);
         model.addAttribute("lang", lang);
@@ -189,5 +186,18 @@ public class PostController {
         return "contact";
     }
 
+    @GetMapping("/api/search")
+    @ResponseBody
+    public List<PostDto> searchApi(@RequestParam String q, @RequestParam(value = "lang", required = false, defaultValue = "ko") String lang) {
+        return postService.searchPublishedPosts(q, lang);
+    }
 
+    @GetMapping("/api/posts")
+    @ResponseBody
+    public List<PostDto> getPostsByCategory(@RequestParam(required = false) Category category, @RequestParam(value = "lang", required = false, defaultValue = "ko") String lang) {
+        if (category == null) {
+            return postService.getAllPublishedPosts(lang);
+        }
+        return postService.getPublishedPostsByCategory(category, lang);
+    }
 }

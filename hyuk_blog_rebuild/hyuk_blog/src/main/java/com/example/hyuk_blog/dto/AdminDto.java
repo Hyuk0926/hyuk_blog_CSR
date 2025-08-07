@@ -8,10 +8,6 @@ import lombok.Setter;
 
 import java.time.LocalDateTime;
 
-/**
- * 기존 세션 관리 및 내부 처리를 위한 AdminDto
- * 보안을 위해 password 필드는 내부 처리 시에만 사용
- */
 @Getter
 @Setter
 @NoArgsConstructor
@@ -19,33 +15,19 @@ import java.time.LocalDateTime;
 public class AdminDto {
     private Long id;
     private String username;
-    private String password; // 내부 처리용, 외부 노출 시 주의
+    private String password;
     private String name;
     private String email;
     private boolean active;
     private LocalDateTime createdAt;
     private LocalDateTime updatedAt;
     
-    // Entity를 DTO로 변환 (세션용)
+    // Entity를 DTO로 변환
     public static AdminDto fromEntity(Admin admin) {
         AdminDto dto = new AdminDto();
         dto.setId(admin.getId());
         dto.setUsername(admin.getUsername());
         dto.setPassword(admin.getPassword());
-        dto.setName(admin.getName());
-        dto.setEmail(admin.getEmail());
-        dto.setActive(admin.isActive());
-        dto.setCreatedAt(admin.getCreatedAt());
-        dto.setUpdatedAt(admin.getUpdatedAt());
-        return dto;
-    }
-    
-    // Entity를 DTO로 변환 (응답용 - 비밀번호 제외)
-    public static AdminDto fromEntityForResponse(Admin admin) {
-        AdminDto dto = new AdminDto();
-        dto.setId(admin.getId());
-        dto.setUsername(admin.getUsername());
-        dto.setPassword(null); // 보안을 위해 비밀번호 제외
         dto.setName(admin.getName());
         dto.setEmail(admin.getEmail());
         dto.setActive(admin.isActive());

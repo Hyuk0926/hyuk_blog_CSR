@@ -39,7 +39,7 @@ public class AdminJpController {
         session.setAttribute("lang", "ja");
         
         String lang = "ja";
-        List<PostDto> posts = postService.getAllPublishedPostsAsPostDto(lang);
+        List<PostDto> posts = postService.getAllPosts(lang);
         model.addAttribute("posts", posts);
         model.addAttribute("inquiryCount", inquiryService.getUnreadCount());
         model.addAttribute("inquiries", inquiryService.getAllInquiries());
@@ -63,14 +63,14 @@ public class AdminJpController {
     // 새 일본어 게시글 저장
     @PostMapping("/post/new")
     public String createJpPost(@ModelAttribute PostDto postDto) {
-        postService.savePostAsPostDto(postDto, "ja");
+        postService.savePost(postDto, "ja");
         return "redirect:/admin_jp";
     }
     
     // 일본어 게시글 수정 폼
     @GetMapping("/post/edit/{id}")
     public String editJpPostForm(@PathVariable Long id, Model model, HttpSession session) {
-        Optional<PostDto> post = postService.getPostByIdAsPostDto(id, "ja");
+        Optional<PostDto> post = postService.getPostById(id, "ja");
         AdminDto admin = (AdminDto) session.getAttribute("admin");
         
         if (post.isPresent()) {
@@ -100,7 +100,7 @@ public class AdminJpController {
     // 일본어 게시글 미리보기
     @GetMapping("/post/preview/{id}")
     public String previewJpPost(@PathVariable Long id, Model model, HttpSession session) {
-        Optional<PostDto> post = postService.getPostByIdAsPostDto(id, "ja");
+        Optional<PostDto> post = postService.getPostById(id, "ja");
         if (post.isPresent()) {
             // 미리보기에서는 published 상태와 관계없이 표시
             UserDto user = (UserDto) session.getAttribute("user");

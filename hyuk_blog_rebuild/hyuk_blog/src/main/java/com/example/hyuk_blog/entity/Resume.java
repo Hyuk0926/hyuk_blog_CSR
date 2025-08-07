@@ -7,10 +7,9 @@ import lombok.*;
 
 
 @Entity
-@Table(name = "resume")
-@Getter
-@Setter
-@NoArgsConstructor
+@Data
+@NoArgsConstructor // Lombok 사용 시 추가
+@AllArgsConstructor // Lombok 사용 시 추가
 public class Resume {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
@@ -20,9 +19,10 @@ public class Resume {
     private String email;
     private String phone;
     @Column(columnDefinition = "TEXT")
-    private String introductionKo; // introductionKo 필드
+    private String introduction; // introduction 필드
     @Column(columnDefinition = "TEXT")
-    private String introductionJa; // introductionJa 필드
+    private String introductionKo; // introductionKo 필드
+    // introductionJa 필드 삭제
 
     private String birth;
     private String addressKo;
@@ -67,9 +67,7 @@ public class Resume {
     // Lombok(@Getter, @Setter)을 사용하면 이 부분은 자동으로 처리됩니다.
 
     @Embeddable
-    @Getter
-    @Setter
-    @NoArgsConstructor
+    @Data
     public static class Education {
         private String schoolKo;
         private String schoolJa;
