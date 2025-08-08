@@ -23,7 +23,8 @@ public class SecurityConfig {
     private final CustomUserDetailsService customUserDetailsService;
 
     @Bean
-    public SecurityFilterChain filterChain(HttpSecurity http) throws Exception {
+    public SecurityFilterChain
+    filterChain(HttpSecurity http) throws Exception {
         http
             .csrf(AbstractHttpConfigurer::disable) // CSRF 비활성화
             .sessionManagement(session -> session
@@ -51,10 +52,9 @@ public class SecurityConfig {
                 .requestMatchers("/api/auth/**").permitAll()
                 // Like API - 모든 요청에 인증 필요
                 .requestMatchers("/api/posts/*/like").authenticated()
-                // Comment API - 조회는 허용, 생성/수정/삭제는 인증 필요
+                // Comment API - 조회는 허용, 생성/삭제는 인증 필요
                 .requestMatchers(HttpMethod.GET, "/api/posts/*/comments").permitAll()
                 .requestMatchers(HttpMethod.POST, "/api/posts/*/comments").authenticated()
-                .requestMatchers(HttpMethod.PUT, "/api/comments/*").authenticated()
                 .requestMatchers(HttpMethod.DELETE, "/api/comments/*").authenticated()
                 // Post API - 조회는 허용, 수정/삭제는 인증 필요
                 .requestMatchers(HttpMethod.GET, "/api/posts/**").permitAll()
