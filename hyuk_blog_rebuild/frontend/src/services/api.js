@@ -5,7 +5,7 @@
 class ApiService {
   constructor() {
     // 프록시 설정을 사용하므로 상대 경로 사용
-    this.baseURL = process.env.VUE_APP_API_URL || '';
+    this.baseURL = '';
     console.log('API Service initialized with baseURL:', this.baseURL);
   }
 

@@ -42,7 +42,6 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
         
         try {
             String jwt = getJwtFromRequest(request);
-            
             if (StringUtils.hasText(jwt) && jwtUtil.validateToken(jwt, jwtUtil.extractUsername(jwt))) {
                 String username = jwtUtil.extractUsername(jwt);
                 
@@ -74,8 +73,7 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
                requestURI.startsWith("/cursor/") || 
                requestURI.endsWith(".html") || 
                requestURI.equals("/favicon.ico") ||
-               requestURI.startsWith("/api/auth/") ||
-               requestURI.startsWith("/api/like/");
+               requestURI.startsWith("/api/auth/");
     }
 
     private String getJwtFromRequest(HttpServletRequest request) {

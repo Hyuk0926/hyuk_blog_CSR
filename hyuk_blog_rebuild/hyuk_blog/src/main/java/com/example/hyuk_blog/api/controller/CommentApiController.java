@@ -9,6 +9,7 @@ import com.example.hyuk_blog.service.UserService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.web.bind.annotation.*;
 
@@ -56,6 +57,12 @@ public class CommentApiController {
             @RequestBody Map<String, String> requestBody,
             @AuthenticationPrincipal UserDetails userDetails) {
         
+        System.out.println("=== COMMENT CREATE METHOD ENTERED ===");
+        System.out.println("PostId: " + postId);
+        System.out.println("PostType: " + postTypeStr);
+        System.out.println("RequestBody: " + requestBody);
+        System.out.println("UserDetails: " + (userDetails != null ? userDetails.getUsername() : "null"));
+        
         if (userDetails == null) {
             return ResponseEntity.status(401).body(Map.of("error", "로그인이 필요합니다."));
         }
@@ -79,6 +86,17 @@ public class CommentApiController {
             );
 
             return ResponseEntity.ok(createdComment);
+        } catch (jakarta.persistence.EntityNotFoundException e) {
+            String errorMessage = e.getMessage();
+            if (errorMessage.contains("PostKr not found") || errorMessage.contains("PostJp not found")) {
+                return ResponseEntity.status(404).body(Map.of("error", "게시글을 찾을 수 없습니다. (ID: " + postId + ", Type: " + postTypeStr + ")"));
+            } else if (errorMessage.contains("User not found")) {
+                return ResponseEntity.status(404).body(Map.of("error", "사용자 정보를 찾을 수 없습니다."));
+            } else {
+                return ResponseEntity.status(404).body(Map.of("error", errorMessage));
+            }
+        } catch (IllegalArgumentException e) {
+            return ResponseEntity.status(400).body(Map.of("error", e.getMessage()));
         } catch (Exception e) {
             return ResponseEntity.status(500).body(Map.of("error", "댓글 작성 중 오류가 발생했습니다: " + e.getMessage()));
         }

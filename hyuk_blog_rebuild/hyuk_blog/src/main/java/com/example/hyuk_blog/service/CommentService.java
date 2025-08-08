@@ -97,18 +97,27 @@ public class CommentService {
                 PostKr postKr = postKrRepository.findById(postId)
                     .orElseThrow(() -> new EntityNotFoundException("PostKr not found with id: " + postId));
                 comment.setPostKr(postKr);
+                logger.info("Found PostKr with id: {}", postId);
             } else if (postType == PostType.JP) {
                 PostJp postJp = postJpRepository.findById(postId)
                     .orElseThrow(() -> new EntityNotFoundException("PostJp not found with id: " + postId));
                 comment.setPostJp(postJp);
+                logger.info("Found PostJp with id: {}", postId);
+            } else {
+                throw new IllegalArgumentException("Invalid post type: " + postType);
             }
             
             Comment savedComment = commentRepository.save(comment);
-            logger.info("Comment saved successfully: {}", savedComment);
+            logger.info("Comment saved successfully: {}", savedComment.getId());
             
             return convertToDto(savedComment);
+        } catch (EntityNotFoundException e) {
+            logger.error("Entity not found while creating comment - postId: {}, postType: {}, error: {}", 
+                        postId, postType, e.getMessage());
+            throw e;
         } catch (Exception e) {
-            logger.error("Error creating comment: {}", e.getMessage());
+            logger.error("Error creating comment - postId: {}, postType: {}, error: {}", 
+                        postId, postType, e.getMessage(), e);
             throw e;
         }
     }

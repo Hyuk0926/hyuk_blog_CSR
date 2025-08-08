@@ -20,20 +20,30 @@ public class LikeService {
     @Transactional
     public boolean toggleLike(Long postId, String postTypeStr, Long userId) {
         PostType postType = PostType.valueOf(postTypeStr.toUpperCase()); // 서비스 내부에서 변환
-        boolean exists = likeRepository.existsByPostIdAndPostTypeAndUserId(postId, postType, userId);
+        logger.info("Toggling like - postId: {}, postType: {}, userId: {}", postId, postType, userId);
         
-        if (exists) {
-            // 좋아요 취소
-            likeRepository.deleteByPostIdAndPostTypeAndUserId(postId, postType, userId);
-            return false;
-        } else {
-            // 좋아요 추가
-            Like like = new Like();
-            like.setPostId(postId);
-            like.setPostType(postType);
-            like.setUserId(userId);
-            safeSave(like);
-            return true;
+        try {
+            boolean exists = likeRepository.existsByPostIdAndPostTypeAndUserId(postId, postType, userId);
+            
+            if (exists) {
+                // 좋아요 취소
+                likeRepository.deleteByPostIdAndPostTypeAndUserId(postId, postType, userId);
+                logger.info("Like removed for postId: {}, postType: {}, userId: {}", postId, postType, userId);
+                return false;
+            } else {
+                // 좋아요 추가
+                Like like = new Like();
+                like.setPostId(postId);
+                like.setPostType(postType);
+                like.setUserId(userId);
+                safeSave(like);
+                logger.info("Like added for postId: {}, postType: {}, userId: {}", postId, postType, userId);
+                return true;
+            }
+        } catch (Exception e) {
+            logger.error("Error toggling like - postId: {}, postType: {}, userId: {}, error: {}", 
+                        postId, postType, userId, e.getMessage(), e);
+            throw e;
         }
     }
     

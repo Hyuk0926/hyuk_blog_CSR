@@ -9,6 +9,7 @@ import com.example.hyuk_blog.service.UserService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.web.bind.annotation.*;
 
@@ -36,6 +37,11 @@ public class LikeApiController {
             @RequestParam(defaultValue = "KR") String postTypeStr,
             @AuthenticationPrincipal UserDetails userDetails) {
         
+        System.out.println("=== LIKE TOGGLE METHOD ENTERED ===");
+        System.out.println("PostId: " + postId);
+        System.out.println("PostType: " + postTypeStr);
+        System.out.println("UserDetails: " + (userDetails != null ? userDetails.getUsername() : "null"));
+        
         if (userDetails == null) {
             return ResponseEntity.status(401).body("로그인이 필요합니다.");
         }
@@ -50,6 +56,29 @@ public class LikeApiController {
                 "success", true,
                 "isLiked", isLiked,
                 "message", isLiked ? "좋아요가 추가되었습니다." : "좋아요가 취소되었습니다."
+            ));
+        } catch (jakarta.persistence.EntityNotFoundException e) {
+            String errorMessage = e.getMessage();
+            if (errorMessage.contains("PostKr not found") || errorMessage.contains("PostJp not found")) {
+                return ResponseEntity.status(404).body(Map.of(
+                    "success", false,
+                    "message", "게시글을 찾을 수 없습니다. (ID: " + postId + ", Type: " + postTypeStr + ")"
+                ));
+            } else if (errorMessage.contains("User not found")) {
+                return ResponseEntity.status(404).body(Map.of(
+                    "success", false,
+                    "message", "사용자 정보를 찾을 수 없습니다."
+                ));
+            } else {
+                return ResponseEntity.status(404).body(Map.of(
+                    "success", false,
+                    "message", errorMessage
+                ));
+            }
+        } catch (IllegalArgumentException e) {
+            return ResponseEntity.status(400).body(Map.of(
+                "success", false,
+                "message", e.getMessage()
             ));
         } catch (Exception e) {
             return ResponseEntity.status(500).body(Map.of(
