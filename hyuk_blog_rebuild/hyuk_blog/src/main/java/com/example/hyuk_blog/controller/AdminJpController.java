@@ -40,6 +40,7 @@ public class AdminJpController {
         
         String lang = "ja";
         List<PostDto> posts = postService.getAllPosts(lang);
+        
         model.addAttribute("posts", posts);
         model.addAttribute("inquiryCount", inquiryService.getUnreadCount());
         model.addAttribute("inquiries", inquiryService.getAllInquiries());

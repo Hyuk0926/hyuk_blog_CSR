@@ -91,11 +91,21 @@ export default {
       posts: []
     }
   },
-  mounted() {
+  async mounted() {
     this.checkAuth();
-    this.loadAdminInfo();
-    this.loadDashboardData();
-    this.loadPosts();
+    await this.loadAdminInfo();
+    await this.loadDashboardData();
+    await this.loadPosts();
+    
+    // 언어 변경 감지
+    this.$watch('$i18n.locale', async (newLang, oldLang) => {
+      if (newLang !== oldLang) {
+        console.log(`Admin language changed from ${oldLang} to ${newLang}`);
+        this.lang = newLang;
+        await this.loadDashboardData();
+        await this.loadPosts();
+      }
+    });
   },
   methods: {
     checkAuth() {
@@ -169,6 +179,15 @@ export default {
                name: data.data.name,
                email: data.data.email
              };
+             
+             // admin_jp 계정인지 확인하여 언어 설정
+             if (data.data.username === 'admin_jp') {
+               this.lang = 'ja';
+               console.log('Admin JP detected, language set to Japanese');
+             } else {
+               this.lang = 'ko';
+               console.log('Admin detected, language set to Korean');
+             }
            }
          }
        } catch (error) {
@@ -176,6 +195,15 @@ export default {
          // 로컬 스토리지 정보만 사용
          const username = localStorage.getItem('username');
          this.adminInfo.username = username || '';
+         
+         // 로컬 스토리지 정보로 언어 설정
+         if (username === 'admin_jp') {
+           this.lang = 'ja';
+           console.log('Admin JP detected from localStorage, language set to Japanese');
+         } else {
+           this.lang = 'ko';
+           console.log('Admin detected from localStorage, language set to Korean');
+         }
        }
      },
      async loadDashboardData() {
@@ -218,21 +246,26 @@ export default {
     goToSettings() {
       this.$router.push('/admin/settings');
     },
-    async loadPosts() {
-      try {
-        const response = await apiService.getAllPostsForAdmin(this.lang);
-        if (response.success) {
-          this.posts = response.data;
-        } else {
-          console.error('게시글 로드 실패:', response.message);
-          this.posts = [];
-        }
-      } catch (error) {
-        console.error('게시글 로드 실패:', error);
-        alert('게시글 목록을 불러오는데 실패했습니다.');
-        this.posts = [];
-      }
-    },
+         async loadPosts() {
+       try {
+         console.log('Loading admin posts for language:', this.lang);
+         console.log('Current admin username:', this.adminInfo.username);
+         const response = await apiService.getAllPostsForAdmin(this.lang);
+         console.log('API response:', response);
+         if (response.success) {
+           this.posts = response.data;
+           console.log('Loaded admin posts:', this.posts.length, 'posts for language:', this.lang);
+           console.log('Posts data:', this.posts);
+         } else {
+           console.error('게시글 로드 실패:', response.message);
+           this.posts = [];
+         }
+       } catch (error) {
+         console.error('게시글 로드 실패:', error);
+         alert('게시글 목록을 불러오는데 실패했습니다.');
+         this.posts = [];
+       }
+     },
     truncateText(text, maxLength) {
       if (!text) return '';
       return text.length > maxLength ? text.substring(0, maxLength) + '...' : text;

@@ -247,14 +247,14 @@ class ApiService {
    * 게시글의 댓글 목록 조회
    */
   async getComments(postId, postType) {
-    return this.request(`/api/comments?postId=${postId}&postType=${postType}`);
+    return this.request(`/api/posts/${postId}/comments?postType=${postType}`);
   }
 
   /**
    * 댓글 작성
    */
-  async createComment(commentData) {
-    return this.request('/api/comments', {
+  async addComment(postId, postType, commentData) {
+    return this.request(`/api/posts/${postId}/comments?postType=${postType}`, {
       method: 'POST',
       body: JSON.stringify(commentData),
     });

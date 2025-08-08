@@ -180,7 +180,9 @@ public class PostApiController {
     public ResponseEntity<Map<String, Object>> getAdminPosts(
             @RequestParam(defaultValue = "ko") String lang) {
         
+        System.out.println("[PostApiController] getAdminPosts called with lang: " + lang);
         List<PostDto> posts = postService.getAllPosts(lang);
+        System.out.println("[PostApiController] Retrieved " + posts.size() + " posts for language: " + lang);
         
         Map<String, Object> response = new HashMap<>();
         response.put("success", true);

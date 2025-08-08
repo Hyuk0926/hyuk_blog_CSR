@@ -18,11 +18,35 @@
     <div class="form-content">
       <div class="form-main">
         <div class="title-section">
+          <div class="language-tabs">
+            <button 
+              @click="activeLanguage = 'ko'" 
+              :class="['lang-tab', { active: activeLanguage === 'ko' }]"
+            >
+              한국어
+            </button>
+            <button 
+              @click="activeLanguage = 'ja'" 
+              :class="['lang-tab', { active: activeLanguage === 'ja' }]"
+            >
+              日本語
+            </button>
+          </div>
+          
           <input 
+            v-if="activeLanguage === 'ko'"
             v-model="formData.titleKo" 
             type="text" 
             class="title-input" 
-            placeholder="제목을 입력하세요..."
+            placeholder="한국어 제목을 입력하세요..."
+            required
+          >
+          <input 
+            v-if="activeLanguage === 'ja'"
+            v-model="formData.titleJa" 
+            type="text" 
+            class="title-input" 
+            placeholder="日本語のタイトルを入力してください..."
             required
           >
         </div>
@@ -74,18 +98,34 @@
           <div v-if="activeTab === 'write'" class="write-area">
             <div class="summary-section">
               <textarea 
+                v-if="activeLanguage === 'ko'"
                 v-model="formData.summaryKo" 
                 class="summary-input" 
-                placeholder="게시글 요약을 입력하세요... (선택사항)"
+                placeholder="한국어 요약을 입력하세요... (선택사항)"
+                rows="3"
+              ></textarea>
+              <textarea 
+                v-if="activeLanguage === 'ja'"
+                v-model="formData.summaryJa" 
+                class="summary-input" 
+                placeholder="日本語の要約を入力してください... (選択項目)"
                 rows="3"
               ></textarea>
             </div>
             
             <div class="content-editor">
               <textarea 
+                v-if="activeLanguage === 'ko'"
                 v-model="formData.contentKo" 
                 class="content-input" 
-                placeholder="내용을 입력하세요..."
+                placeholder="한국어 내용을 입력하세요..."
+                required
+              ></textarea>
+              <textarea 
+                v-if="activeLanguage === 'ja'"
+                v-model="formData.contentJa" 
+                class="content-input" 
+                placeholder="日本語の内容を入力してください..."
                 required
               ></textarea>
             </div>
@@ -186,6 +226,7 @@ export default {
       isEdit: false,
       isSubmitting: false,
       activeTab: 'write',
+      activeLanguage: 'ko', // 기본 언어 설정
       categories: [],
       formData: {
         titleKo: '',
@@ -283,16 +324,29 @@ export default {
     },
 
     async submitForm() {
-      if (!this.formData.titleKo.trim()) {
-        alert('제목을 입력해주세요.');
-        return;
+      // 현재 선택된 언어에 따라 필수 필드 검증
+      if (this.activeLanguage === 'ko') {
+        if (!this.formData.titleKo.trim()) {
+          alert('한국어 제목을 입력해주세요.');
+          return;
+        }
+        if (!this.formData.contentKo.trim()) {
+          alert('한국어 내용을 입력해주세요.');
+          return;
+        }
+      } else if (this.activeLanguage === 'ja') {
+        if (!this.formData.titleJa.trim()) {
+          alert('일본어 제목을 입력해주세요.');
+          return;
+        }
+        if (!this.formData.contentJa.trim()) {
+          alert('일본어 내용을 입력해주세요.');
+          return;
+        }
       }
+      
       if (!this.formData.category) {
         alert('카테고리를 선택해주세요.');
-        return;
-      }
-      if (!this.formData.contentKo.trim()) {
-        alert('내용을 입력해주세요.');
         return;
       }
 
@@ -300,10 +354,12 @@ export default {
       
       try {
         let response;
+        const currentLang = this.activeLanguage; // 현재 선택된 언어 사용
+        
         if (this.isEdit) {
-          response = await apiService.updatePost(this.$route.params.id, this.formData, this.lang);
+          response = await apiService.updatePost(this.$route.params.id, this.formData, currentLang);
         } else {
-          response = await apiService.createPost(this.formData, this.lang);
+          response = await apiService.createPost(this.formData, currentLang);
         }
         
         if (response.success) {
@@ -432,6 +488,34 @@ export default {
 .title-input::placeholder {
   color: #adb5bd;
   font-weight: 400;
+}
+
+.language-tabs {
+  display: flex;
+  gap: 8px;
+  margin-bottom: 16px;
+}
+
+.lang-tab {
+  padding: 8px 16px;
+  border: 1px solid #dee2e6;
+  background: #ffffff;
+  color: #6c757d;
+  border-radius: 4px;
+  cursor: pointer;
+  font-size: 0.9rem;
+  transition: all 0.3s ease;
+}
+
+.lang-tab:hover {
+  background: #f8f9fa;
+  border-color: #adb5bd;
+}
+
+.lang-tab.active {
+  background: #007bff;
+  color: #ffffff;
+  border-color: #007bff;
 }
 
 .meta-section {

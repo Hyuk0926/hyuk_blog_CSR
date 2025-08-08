@@ -30,6 +30,7 @@ public class PostDto {
     private LocalDateTime updatedAt;
     private Long likeCount; // 좋아요 수 추가
     private Long commentCount; // 댓글 수 추가
+    private String lang; // 언어 정보 추가
 
     // PostKr Entity를 DTO로 변환
     public static PostDto fromKrEntity(PostKr post) {
@@ -57,7 +58,6 @@ public class PostDto {
         dto.setUpdatedAt(post.getUpdatedAt());
         dto.setSummaryJa(post.getSummary());
         dto.setContentJa(post.getContent());
-        System.out.println("[JP DTO] id=" + dto.getId() + ", title=" + dto.getTitleJa() + ", summary=" + dto.getSummaryJa() + ", content=" + dto.getContentJa());
         return dto;
     }
     // DTO를 PostKr Entity로 변환
@@ -106,7 +106,6 @@ public class PostDto {
     // 현재 언어에 맞는 내용 반환
     public String getContent() {
         String lang = LocaleContextHolder.getLocale().getLanguage();
-        System.out.println("[getContent] lang=" + lang + ", contentJa=" + contentJa + ", contentKo=" + contentKo);
         if ("ja".equals(lang)) {
             return contentJa;
         } else {

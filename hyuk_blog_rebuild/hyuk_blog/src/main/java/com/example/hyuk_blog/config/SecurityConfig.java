@@ -49,8 +49,12 @@ public class SecurityConfig {
                 .requestMatchers("/admin/**", "/admin_jp/**").hasRole("ADMIN")
                 // API 엔드포인트 설정
                 .requestMatchers("/api/auth/**").permitAll()
-                .requestMatchers("/api/comments/**").permitAll()
                 .requestMatchers("/api/like/**").permitAll()
+                // Comment API - 조회는 허용, 생성/수정/삭제는 인증 필요
+                .requestMatchers(HttpMethod.GET, "/api/posts/*/comments").permitAll()
+                .requestMatchers(HttpMethod.POST, "/api/posts/*/comments").authenticated()
+                .requestMatchers(HttpMethod.PUT, "/api/comments/*").authenticated()
+                .requestMatchers(HttpMethod.DELETE, "/api/comments/*").authenticated()
                 // Post API - 조회는 허용, 수정/삭제는 인증 필요
                 .requestMatchers(HttpMethod.GET, "/api/posts/**").permitAll()
                 .requestMatchers(HttpMethod.POST, "/api/posts/**").authenticated()

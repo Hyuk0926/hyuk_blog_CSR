@@ -17,6 +17,11 @@ spring:
         order_inserts: true
         order_updates: true
         enable_lazy_load_no_trans: true
+        # SQL 로깅 완전 비활성화 (민감한 데이터 노출 방지)
+        format_sql: false
+        use_sql_comments: false
+        # SQL 로깅 비활성화
+        show_sql: false
   servlet:
     multipart:
       max-file-size: 10MB
@@ -51,5 +56,17 @@ encryption:
 logging:
   level:
     com.example.hyuk_blog: INFO
+    com.example.hyuk_blog.service.JwtAuthService: DEBUG
+    com.example.hyuk_blog.util.JwtUtil: DEBUG
+    com.example.hyuk_blog.api.controller.AdminApiController: DEBUG
     org.springframework.security: WARN
-    org.springframework.web.servlet.mvc.method.annotation.RequestMappingHandlerMapping: DEBUG 
+    org.springframework.web.servlet.mvc.method.annotation.RequestMappingHandlerMapping: DEBUG
+    # SQL 로깅 비활성화 (민감한 데이터 노출 방지)
+    org.hibernate.SQL: OFF
+    org.hibernate.type.descriptor.sql.BasicBinder: OFF
+    # JPA 로깅 비활성화
+    org.hibernate: WARN
+    org.springframework.orm.jpa: WARN
+  pattern:
+    console: "%d{yyyy-MM-dd HH:mm:ss} [%thread] %-5level %logger{36} - %msg%n"
+    file: "%d{yyyy-MM-dd HH:mm:ss} [%thread] %-5level %logger{36} - %msg%n" 

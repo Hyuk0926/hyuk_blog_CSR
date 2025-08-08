@@ -35,22 +35,25 @@ public class AdminController {
     // 관리자 대시보드
     @GetMapping("")
     public String adminDashboard(Model model, HttpSession session) {
-        // 세션에 lang이 없으면 admin 계정에 따라 기본값 세팅
-        if (session.getAttribute("lang") == null) {
-            AdminDto admin = (AdminDto) session.getAttribute("admin");
-            if (admin != null && "admin_jp".equals(admin.getUsername())) {
-                session.setAttribute("lang", "ja");
-            } else {
-                session.setAttribute("lang", "ko");
-            }
+        // admin 계정에 따라 언어 결정
+        AdminDto admin = (AdminDto) session.getAttribute("admin");
+        String lang;
+        
+        if (admin != null && "admin_jp".equals(admin.getUsername())) {
+            lang = "ja";
+            session.setAttribute("lang", "ja");
+        } else {
+            lang = "ko";
+            session.setAttribute("lang", "ko");
         }
-        String lang = "ko";
+        
         List<PostDto> posts = postService.getAllPosts(lang);
+        
         model.addAttribute("posts", posts);
         model.addAttribute("inquiryCount", inquiryService.getUnreadCount());
         model.addAttribute("inquiries", inquiryService.getAllInquiries());
         model.addAttribute("adminPrefix", "/admin");
-        model.addAttribute("lang", "ko");
+        model.addAttribute("lang", lang);
         return "admin/dashboard";
     }
     

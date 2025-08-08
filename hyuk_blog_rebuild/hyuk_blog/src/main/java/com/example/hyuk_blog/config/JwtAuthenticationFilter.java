@@ -1,5 +1,7 @@
 package com.example.hyuk_blog.config;
 
+import com.example.hyuk_blog.entity.User;
+import com.example.hyuk_blog.service.CustomUserDetailsService;
 import com.example.hyuk_blog.util.JwtUtil;
 import jakarta.servlet.FilterChain;
 import jakarta.servlet.ServletException;
@@ -10,6 +12,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.core.context.SecurityContextHolder;
+import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.stereotype.Component;
 import org.springframework.util.StringUtils;
 import org.springframework.web.filter.OncePerRequestFilter;
@@ -23,6 +26,7 @@ import java.util.Collections;
 public class JwtAuthenticationFilter extends OncePerRequestFilter {
 
     private final JwtUtil jwtUtil;
+    private final CustomUserDetailsService customUserDetailsService;
 
     @Override
     protected void doFilterInternal(HttpServletRequest request, 
@@ -41,13 +45,15 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
             
             if (StringUtils.hasText(jwt) && jwtUtil.validateToken(jwt, jwtUtil.extractUsername(jwt))) {
                 String username = jwtUtil.extractUsername(jwt);
-                String role = jwtUtil.extractRole(jwt);
+                
+                // UserDetails를 통해 User 객체 가져오기
+                UserDetails userDetails = customUserDetailsService.loadUserByUsername(username);
                 
                 UsernamePasswordAuthenticationToken authentication = 
                     new UsernamePasswordAuthenticationToken(
-                        username, 
+                        userDetails, 
                         null, 
-                        Collections.singletonList(new SimpleGrantedAuthority(role))
+                        userDetails.getAuthorities()
                     );
                 
                 SecurityContextHolder.getContext().setAuthentication(authentication);
@@ -69,8 +75,7 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
                requestURI.endsWith(".html") || 
                requestURI.equals("/favicon.ico") ||
                requestURI.startsWith("/api/auth/") ||
-               requestURI.startsWith("/api/like/") ||
-               requestURI.startsWith("/api/comments/");
+               requestURI.startsWith("/api/like/");
     }
 
     private String getJwtFromRequest(HttpServletRequest request) {

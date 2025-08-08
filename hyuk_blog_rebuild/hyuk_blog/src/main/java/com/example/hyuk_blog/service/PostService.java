@@ -58,6 +58,7 @@ public class PostService {
                     PostDto dto = PostDto.fromJpEntity(post);
                     dto.setLikeCount(likeService.getLikeCount(post.getId(), com.example.hyuk_blog.entity.PostType.JP));
                     dto.setCommentCount(commentService.getCommentCountByPostJpId(post.getId()));
+                    dto.setLang("ja"); // 언어 정보 추가
                     return dto;
                 })
                 .collect(Collectors.toList());
@@ -68,6 +69,7 @@ public class PostService {
                     PostDto dto = PostDto.fromKrEntity(post);
                     dto.setLikeCount(likeService.getLikeCount(post.getId(), com.example.hyuk_blog.entity.PostType.KR));
                     dto.setCommentCount(commentService.getCommentCountByPostKrId(post.getId()));
+                    dto.setLang("ko"); // 언어 정보 추가
                     return dto;
                 })
                 .collect(Collectors.toList());
@@ -88,6 +90,7 @@ public class PostService {
                         PostDto dto = PostDto.fromJpEntity(post);
                         dto.setLikeCount(likeService.getLikeCount(post.getId(), com.example.hyuk_blog.entity.PostType.JP));
                         dto.setCommentCount(commentService.getCommentCountByPostJpId(post.getId()));
+                        dto.setLang("ja"); // 언어 정보 추가
                         return dto;
                     })
                     .collect(Collectors.toList());
@@ -98,6 +101,7 @@ public class PostService {
                         PostDto dto = PostDto.fromKrEntity(post);
                         dto.setLikeCount(likeService.getLikeCount(post.getId(), com.example.hyuk_blog.entity.PostType.KR));
                         dto.setCommentCount(commentService.getCommentCountByPostKrId(post.getId()));
+                        dto.setLang("ko"); // 언어 정보 추가
                         return dto;
                     })
                     .collect(Collectors.toList());
@@ -125,7 +129,7 @@ public class PostService {
 
     // 게시글 저장
     public PostDto savePost(PostDto postDto, String lang) {
-        postDto.setPublished(true); // 무조건 공개로 저장
+        // published 상태는 PostDto에서 받은 값을 그대로 사용 (임시저장 지원)
         if ("ja".equals(lang)) {
             // 오직 posts_jp에만 저장
             PostJp saved = postJpRepository.save(postDto.toJpEntity());

@@ -164,10 +164,12 @@ export default {
       
       try {
         const lang = this.$i18n.locale;
+        console.log('Loading posts for language:', lang);
         const response = await apiService.getPosts(lang);
         
         if (response.success) {
           this.posts = response.data;
+          console.log('Loaded posts:', this.posts.length, 'posts for language:', lang);
         } else {
           this.error = response.message || '게시글을 불러오는데 실패했습니다.';
         }

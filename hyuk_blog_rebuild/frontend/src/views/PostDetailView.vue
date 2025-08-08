@@ -85,19 +85,37 @@
           <div class="comment-header">
             <div class="comment-info">
               <div class="comment-nickname">{{ comment.nickname }}</div>
-              <div class="comment-date">{{ formatDate(comment.createdAt) }}</div>
+              <div class="comment-date">
+                {{ formatDate(comment.createdAt) }}
+                <span v-if="comment.isEdited" class="edited-badge">(수정됨)</span>
+              </div>
             </div>
-            <div class="comment-actions" v-if="comment.canEdit">
-              <button class="comment-action-btn" @click="editComment(comment.id)">수정</button>
+            <div class="comment-actions" v-if="isAuthenticated && user && comment.userId === user.id">
+              <button v-if="editingCommentId !== comment.id" class="comment-action-btn" @click="startEditComment(comment)">수정</button>
               <button class="comment-action-btn delete" @click="deleteComment(comment.id)">삭제</button>
             </div>
           </div>
-          <div class="comment-content">{{ comment.content }}</div>
+          
+          <!-- 댓글 내용 (수정 모드가 아닐 때) -->
+          <div v-if="editingCommentId !== comment.id" class="comment-content">{{ comment.content }}</div>
+          
+          <!-- 댓글 수정 폼 (수정 모드일 때) -->
+          <div v-if="editingCommentId === comment.id" class="comment-edit-form">
+            <textarea 
+              v-model="editingContent"
+              class="comment-edit-textarea"
+              placeholder="댓글을 수정하세요..."
+            ></textarea>
+            <div class="comment-edit-actions">
+              <button class="comment-action-btn" @click="updateComment(comment.id)">저장</button>
+              <button class="comment-action-btn cancel" @click="cancelEditComment">취소</button>
+            </div>
+          </div>
         </div>
       </div>
       
       <!-- 댓글 작성 폼 -->
-      <div class="comment-form" v-if="isLoggedIn">
+      <div class="comment-form" v-if="isAuthenticated">
         <div class="comment-content-group">
           <textarea 
             id="comment-content" 
@@ -110,7 +128,7 @@
       </div>
       
       <!-- 로그인 필요 메시지 -->
-      <div class="comment-login-message" v-if="!isLoggedIn">
+      <div class="comment-login-message" v-if="!isAuthenticated">
         <p>댓글을 작성하려면 <a href="/user/login" class="login-link">로그인</a>이 필요합니다.</p>
       </div>
     </div>
@@ -118,267 +136,340 @@
   </div>
 </template>
 
-<script>
+<script setup>
+import { ref, onMounted, nextTick, watch } from 'vue';
+import { useRoute, useRouter } from 'vue-router';
+import { useI18n } from 'vue-i18n';
 import apiService from '@/services/api.js';
+import { useAuth } from '@/composables/useAuth.js';
 
-export default {
-  name: 'PostDetailView',
-  data() {
-    return {
-      post: {
-        id: null,
-        title: '',
+// Composables
+const route = useRoute();
+const router = useRouter();
+const { locale } = useI18n();
+const { user, isAuthenticated, fetchUserInfo } = useAuth();
+
+// Reactive data
+const post = ref({
+  id: null,
+  title: '',
+  summary: '',
+  content: '',
+  imageUrl: '',
+  createdAt: null,
+  category: null,
+  postType: null
+});
+
+const isLiked = ref(false);
+const likeCount = ref(0);
+const isPreview = ref(false);
+const comments = ref([]);
+const newComment = ref('');
+const loading = ref(false);
+const error = ref(null);
+
+// Methods
+const loadPost = async () => {
+  const postId = route.params.id;
+  loading.value = true;
+  error.value = null;
+  
+  try {
+    const response = await apiService.getPost(postId, locale.value);
+    
+    if (response.success) {
+      post.value = response.data;
+      likeCount.value = post.value.likeCount || 0;
+    } else {
+      error.value = response.message || '게시글을 찾을 수 없습니다.';
+      post.value = {
+        id: postId,
+        title: '게시글을 찾을 수 없습니다',
         summary: '',
-        content: '',
+        content: '<p>요청하신 게시글을 찾을 수 없습니다.</p>',
         imageUrl: '',
-        createdAt: null,
-        category: null,
-        postType: null
-      },
-      isLiked: false,
-      likeCount: 0,
-      isPreview: false,
-      isLoggedIn: false,
-      comments: [],
-      newComment: '',
-      loading: false,
-      error: null
+        createdAt: new Date(),
+        likeCount: 0
+      };
     }
-  },
-  async mounted() {
-    await this.loadPost();
-    await this.loadComments();
-    this.checkLoginStatus();
-    this.setupCodeCopy();
-    this.setupPrism();
-  },
-  watch: {
-    'post.content': {
-      handler() {
-        this.$nextTick(() => {
-          this.setupCodeCopy();
-          this.setupPrism();
-        });
-      }
+  } catch (error) {
+    console.error('포스트 로드 실패:', error);
+    error.value = '게시글을 불러오는데 실패했습니다.';
+    post.value = {
+      id: postId,
+      title: '게시글을 찾을 수 없습니다',
+      summary: '',
+      content: '<p>요청하신 게시글을 찾을 수 없습니다.</p>',
+      imageUrl: '',
+      createdAt: new Date(),
+      likeCount: 0
+    };
+  } finally {
+    loading.value = false;
+  }
+};
+
+const loadComments = async () => {
+  if (!post.value.id) return;
+  
+  try {
+    const postType = post.value.postType || apiService.getPostTypeFromLang(locale.value);
+    const response = await apiService.getComments(post.value.id, postType);
+    
+    if (response && Array.isArray(response)) {
+      comments.value = response;
+    } else {
+      console.error('댓글 로드 실패:', response);
+      comments.value = [];
     }
-  },
-  methods: {
-    async loadPost() {
-      const postId = this.$route.params.id;
-      this.loading = true;
-      this.error = null;
-      
-      try {
-        const lang = this.$i18n.locale;
-        const response = await apiService.getPost(postId, lang);
-        
-        if (response.success) {
-          this.post = response.data;
-          this.likeCount = this.post.likeCount || 0;
-        } else {
-          this.error = response.message || '게시글을 찾을 수 없습니다.';
-          this.post = {
-            id: postId,
-            title: '게시글을 찾을 수 없습니다',
-            summary: '',
-            content: '<p>요청하신 게시글을 찾을 수 없습니다.</p>',
-            imageUrl: '',
-            createdAt: new Date(),
-            likeCount: 0
-          };
-        }
-      } catch (error) {
-        console.error('포스트 로드 실패:', error);
-        this.error = '게시글을 불러오는데 실패했습니다.';
-        this.post = {
-          id: postId,
-          title: '게시글을 찾을 수 없습니다',
-          summary: '',
-          content: '<p>요청하신 게시글을 찾을 수 없습니다.</p>',
-          imageUrl: '',
-          createdAt: new Date(),
-          likeCount: 0
-        };
-      } finally {
-        this.loading = false;
-      }
-    },
+  } catch (error) {
+    console.error('댓글 로드 실패:', error);
+    comments.value = [];
+  }
+};
+
+const formatDate = (date) => {
+  if (!date) return '';
+  const d = new Date(date);
+  return `${d.getFullYear()}년 ${String(d.getMonth() + 1).padStart(2, '0')}월 ${String(d.getDate()).padStart(2, '0')}일`;
+};
+
+const toggleLike = async () => {
+  if (!isAuthenticated.value) {
+    showLoginModal();
+    return;
+  }
+  
+  try {
+    const postType = post.value.postType || apiService.getPostTypeFromLang(locale.value);
+    const response = await apiService.toggleLike(post.value.id, postType);
     
-    async loadComments() {
-      if (!this.post.id) return;
-      
-      try {
-        const postType = this.post.postType || apiService.getPostTypeFromLang(this.$i18n.locale);
-        const response = await apiService.getComments(this.post.id, postType);
-        
-        if (response.success) {
-          this.comments = response.data;
-        } else {
-          console.error('댓글 로드 실패:', response.message);
-          this.comments = [];
-        }
-      } catch (error) {
-        console.error('댓글 로드 실패:', error);
-        this.comments = [];
-      }
-    },
+    if (response.success) {
+      isLiked.value = !isLiked.value;
+      likeCount.value = response.data.likeCount || likeCount.value;
+      showNotification(isLiked.value ? '좋아요를 눌렀습니다!' : '좋아요를 취소했습니다.');
+    } else {
+      showNotification(response.message || '좋아요 처리 중 오류가 발생했습니다.');
+    }
+  } catch (error) {
+    console.error('좋아요 토글 실패:', error);
+    showNotification('좋아요 처리 중 오류가 발생했습니다.');
+  }
+};
+
+const submitComment = async () => {
+  if (!newComment.value.trim()) {
+    showNotification('댓글 내용을 입력해주세요.');
+    return;
+  }
+  
+  // 로그인 상태 확인
+  if (!isAuthenticated.value) {
+    showNotification('댓글을 작성하려면 로그인이 필요합니다.');
+    return;
+  }
+  
+  // JWT 토큰 확인
+  const token = localStorage.getItem('jwtToken');
+  if (!token) {
+    showNotification('인증 토큰이 없습니다. 다시 로그인해주세요.');
+    return;
+  }
+  
+  console.log('댓글 작성 시도:', {
+    postId: post.value.id,
+    postType: post.value.postType || apiService.getPostTypeFromLang(locale.value),
+    isAuthenticated: isAuthenticated.value,
+    hasToken: !!token,
+    user: user.value
+  });
+  
+  try {
+    const postType = post.value.postType || apiService.getPostTypeFromLang(locale.value);
+    const commentData = {
+      content: newComment.value
+    };
     
-    checkLoginStatus() {
-      // 로그인 상태 확인 (임시)
-      this.isLoggedIn = false;
-    },
+    const response = await apiService.addComment(post.value.id, postType, commentData);
     
-    formatDate(date) {
-      if (!date) return '';
-      const d = new Date(date);
-      return `${d.getFullYear()}년 ${String(d.getMonth() + 1).padStart(2, '0')}월 ${String(d.getDate()).padStart(2, '0')}일`;
-    },
-    
-    async toggleLike() {
-      if (!this.isLoggedIn) {
-        this.showLoginModal();
-        return;
-      }
-      
-      try {
-        const postType = this.post.postType || apiService.getPostTypeFromLang(this.$i18n.locale);
-        const response = await apiService.toggleLike(this.post.id, postType);
-        
-        if (response.success) {
-          this.isLiked = !this.isLiked;
-          this.likeCount = response.data.likeCount || this.likeCount;
-          this.showNotification(this.isLiked ? '좋아요를 눌렀습니다!' : '좋아요를 취소했습니다.');
-        } else {
-          this.showNotification(response.message || '좋아요 처리 중 오류가 발생했습니다.');
-        }
-      } catch (error) {
-        console.error('좋아요 토글 실패:', error);
-        this.showNotification('좋아요 처리 중 오류가 발생했습니다.');
-      }
-    },
-    
-    async submitComment() {
-      if (!this.newComment.trim()) {
-        this.showNotification('댓글 내용을 입력해주세요.');
-        return;
-      }
-      
-      try {
-        const postType = this.post.postType || apiService.getPostTypeFromLang(this.$i18n.locale);
-        const commentData = {
-          postId: this.post.id,
-          postType: postType,
-          content: this.newComment
-        };
-        
-        const response = await apiService.createComment(commentData);
-        
-        if (response.success) {
-          this.comments.unshift(response.data);
-          this.newComment = '';
-          this.showNotification('댓글이 작성되었습니다.');
-        } else {
-          this.showNotification(response.message || '댓글 작성 중 오류가 발생했습니다.');
-        }
-      } catch (error) {
-        console.error('댓글 작성 실패:', error);
-        this.showNotification('댓글 작성 중 오류가 발생했습니다.');
-      }
-    },
-    
-    editComment(commentId) {
-      // 댓글 수정 로직
-      console.log('댓글 수정:', commentId);
-    },
-    
-    deleteComment(commentId) {
-      if (confirm('댓글을 삭제하시겠습니까?')) {
-        this.comments = this.comments.filter(c => c.id !== commentId);
-        this.showNotification('댓글이 삭제되었습니다.');
-      }
-    },
-    
-    showLoginModal() {
-      document.getElementById('login-confirm-modal').style.display = 'flex';
-    },
-    
-    closeLoginModal() {
-      document.getElementById('login-confirm-modal').style.display = 'none';
-    },
-    
-    confirmLogin() {
-      this.closeLoginModal();
-      this.$router.push('/user/login');
-    },
-    
-    showNotification(message) {
-      const container = document.getElementById('notification-container');
-      const text = document.getElementById('notification-text');
-      
-      text.textContent = message;
-      container.style.display = 'block';
-      
-      setTimeout(() => {
-        this.closeNotification();
-      }, 3000);
-    },
-    
-    closeNotification() {
-      document.getElementById('notification-container').style.display = 'none';
-    },
-    
-    setupCodeCopy() {
-      // 코드 복사 기능 설정
-      this.$nextTick(() => {
-        const codeBlocks = document.querySelectorAll('#post-content pre');
-        codeBlocks.forEach(block => {
-          // 이미 wrapper가 있는지 확인
-          if (block.parentNode.classList.contains('code-block-wrapper')) {
-            return;
-          }
-          
-          const wrapper = document.createElement('div');
-          wrapper.className = 'code-block-wrapper';
-          block.parentNode.insertBefore(wrapper, block);
-          wrapper.appendChild(block);
-          
-          const copyBtn = document.createElement('button');
-          copyBtn.className = 'copy-btn';
-          copyBtn.textContent = '복사';
-          copyBtn.onclick = () => this.copyCode(block, copyBtn);
-          wrapper.appendChild(copyBtn);
-        });
-      });
-    },
-    
-    copyCode(block, btn) {
-      const code = block.textContent;
-      navigator.clipboard.writeText(code).then(() => {
-        btn.textContent = '복사됨!';
-        btn.disabled = true;
-        setTimeout(() => {
-          btn.textContent = '복사';
-          btn.disabled = false;
-        }, 2000);
-      });
-    },
-    
-    setupPrism() {
-      // Prism.js 설정
-      this.$nextTick(() => {
-        // Prism.js가 로드될 때까지 대기
-        const checkPrism = () => {
-          if (window.Prism) {
-            window.Prism.highlightAll();
-          } else {
-            setTimeout(checkPrism, 100);
-          }
-        };
-        checkPrism();
-      });
+    if (response) {
+      // 새 댓글을 목록에 추가
+      comments.value.unshift(response);
+      newComment.value = '';
+      showNotification('댓글이 작성되었습니다.');
+    } else {
+      showNotification('댓글 작성 중 오류가 발생했습니다.');
+    }
+  } catch (error) {
+    console.error('댓글 작성 실패:', error);
+    if (error.message && error.message.includes('401')) {
+      showNotification('인증이 만료되었습니다. 다시 로그인해주세요.');
+    } else {
+      showNotification('댓글 작성 중 오류가 발생했습니다.');
     }
   }
-}
+};
+
+// 댓글 수정 관련 상태
+const editingCommentId = ref(null);
+const editingContent = ref('');
+
+const startEditComment = (comment) => {
+  editingCommentId.value = comment.id;
+  editingContent.value = comment.content;
+};
+
+const cancelEditComment = () => {
+  editingCommentId.value = null;
+  editingContent.value = '';
+};
+
+const updateComment = async (commentId) => {
+  if (!editingContent.value.trim()) {
+    showNotification('댓글 내용을 입력해주세요.');
+    return;
+  }
+  
+  try {
+    const commentData = {
+      content: editingContent.value
+    };
+    
+    const response = await apiService.updateComment(commentId, commentData);
+    
+    if (response) {
+      // 로컬 상태에서 댓글 업데이트
+      const commentIndex = comments.value.findIndex(c => c.id === commentId);
+      if (commentIndex !== -1) {
+        comments.value[commentIndex] = {
+          ...comments.value[commentIndex],
+          content: editingContent.value,
+          isEdited: true,
+          updatedAt: new Date().toISOString()
+        };
+      }
+      
+      editingCommentId.value = null;
+      editingContent.value = '';
+      showNotification('댓글이 수정되었습니다.');
+    } else {
+      showNotification('댓글 수정 중 오류가 발생했습니다.');
+    }
+  } catch (error) {
+    console.error('댓글 수정 실패:', error);
+    showNotification('댓글 수정 중 오류가 발생했습니다.');
+  }
+};
+
+const deleteComment = async (commentId) => {
+  if (confirm('댓글을 삭제하시겠습니까?')) {
+    try {
+      await apiService.deleteComment(commentId);
+      // 로컬 상태에서 댓글 제거
+      comments.value = comments.value.filter(c => c.id !== commentId);
+      showNotification('댓글이 삭제되었습니다.');
+    } catch (error) {
+      console.error('댓글 삭제 실패:', error);
+      showNotification('댓글 삭제 중 오류가 발생했습니다.');
+    }
+  }
+};
+
+const showLoginModal = () => {
+  document.getElementById('login-confirm-modal').style.display = 'flex';
+};
+
+const closeLoginModal = () => {
+  document.getElementById('login-confirm-modal').style.display = 'none';
+};
+
+const confirmLogin = () => {
+  closeLoginModal();
+  router.push('/user/login');
+};
+
+const showNotification = (message) => {
+  const container = document.getElementById('notification-container');
+  const text = document.getElementById('notification-text');
+  
+  text.textContent = message;
+  container.style.display = 'block';
+  
+  setTimeout(() => {
+    closeNotification();
+  }, 3000);
+};
+
+const closeNotification = () => {
+  document.getElementById('notification-container').style.display = 'none';
+};
+
+const setupCodeCopy = () => {
+  nextTick(() => {
+    const codeBlocks = document.querySelectorAll('#post-content pre');
+    codeBlocks.forEach(block => {
+      // 이미 wrapper가 있는지 확인
+      if (block.parentNode.classList.contains('code-block-wrapper')) {
+        return;
+      }
+      
+      const wrapper = document.createElement('div');
+      wrapper.className = 'code-block-wrapper';
+      block.parentNode.insertBefore(wrapper, block);
+      wrapper.appendChild(block);
+      
+      const copyBtn = document.createElement('button');
+      copyBtn.className = 'copy-btn';
+      copyBtn.textContent = '복사';
+      copyBtn.onclick = () => copyCode(block, copyBtn);
+      wrapper.appendChild(copyBtn);
+    });
+  });
+};
+
+const copyCode = (block, btn) => {
+  const code = block.textContent;
+  navigator.clipboard.writeText(code).then(() => {
+    btn.textContent = '복사됨!';
+    btn.disabled = true;
+    setTimeout(() => {
+      btn.textContent = '복사';
+      btn.disabled = false;
+    }, 2000);
+  });
+};
+
+const setupPrism = () => {
+  nextTick(() => {
+    // Prism.js가 로드될 때까지 대기
+    const checkPrism = () => {
+      if (window.Prism) {
+        window.Prism.highlightAll();
+      } else {
+        setTimeout(checkPrism, 100);
+      }
+    };
+    checkPrism();
+  });
+};
+
+// Watch for content changes
+watch(() => post.value.content, () => {
+  nextTick(() => {
+    setupCodeCopy();
+    setupPrism();
+  });
+});
+
+// Lifecycle
+onMounted(async () => {
+  await fetchUserInfo();
+  await loadPost();
+  await loadComments();
+  setupCodeCopy();
+  setupPrism();
+});
 </script>
 
 <style scoped>
@@ -841,6 +932,17 @@ export default {
   color: #c53030;
 }
 
+.comment-action-btn.cancel {
+  color: #718096;
+  border-color: #e2e8f0;
+}
+
+.comment-action-btn.cancel:hover {
+  background: #f7fafc;
+  border-color: #cbd5e0;
+  color: #4a5568;
+}
+
 .comment-content {
   color: #2d3748;
   line-height: 1.6;
@@ -853,6 +955,43 @@ export default {
   margin-top: 12px;
   white-space: pre-wrap;
   word-wrap: break-word;
+}
+
+.edited-badge {
+  color: #718096;
+  font-size: 0.75rem;
+  font-style: italic;
+  margin-left: 8px;
+}
+
+.comment-edit-form {
+  margin-top: 12px;
+}
+
+.comment-edit-textarea {
+  width: 100%;
+  padding: 12px 16px;
+  border: 1px solid #e2e8f0;
+  border-radius: 6px;
+  font-size: 0.9rem;
+  min-height: 80px;
+  resize: vertical;
+  font-family: inherit;
+  transition: all 0.2s ease;
+  background: #ffffff;
+  line-height: 1.5;
+  margin-bottom: 12px;
+}
+
+.comment-edit-textarea:focus {
+  outline: none;
+  border-color: #007bff;
+}
+
+.comment-edit-actions {
+  display: flex;
+  gap: 10px;
+  justify-content: flex-end;
 }
 
 /* 알림 메시지 스타일 */
@@ -1190,6 +1329,32 @@ export default {
   background: #742a2a;
   border-color: #fc8181;
   color: #fed7d7;
+}
+
+:global(body.dark-mode) .comment-action-btn.cancel {
+  color: #a0aec0;
+  border-color: #4a5568;
+}
+
+:global(body.dark-mode) .comment-action-btn.cancel:hover {
+  background: #4a5568;
+  border-color: #a0aec0;
+  color: #e2e8f0;
+}
+
+:global(body.dark-mode) .edited-badge {
+  color: #a0aec0;
+}
+
+:global(body.dark-mode) .comment-edit-textarea {
+  background: #1a202c;
+  border-color: #4a5568;
+  color: #e2e8f0;
+}
+
+:global(body.dark-mode) .comment-edit-textarea:focus {
+  border-color: #ffe082;
+  box-shadow: 0 0 0 3px rgba(255, 224, 130, 0.1);
 }
 
 :global(body.dark-mode) .notification-message {

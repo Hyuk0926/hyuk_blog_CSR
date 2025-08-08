@@ -189,7 +189,10 @@ public class JwtAuthService {
     public String getUsernameFromToken(String token) {
         try {
             String cleanToken = jwtUtil.removeBearerPrefix(token);
-            return jwtUtil.extractUsername(cleanToken);
+            log.debug("Extracting username from token: {}", cleanToken.substring(0, Math.min(20, cleanToken.length())) + "...");
+            String username = jwtUtil.extractUsername(cleanToken);
+            log.debug("Extracted username: {}", username);
+            return username;
         } catch (Exception e) {
             log.error("Failed to extract username from token: {}", e.getMessage());
             return null;
@@ -202,7 +205,10 @@ public class JwtAuthService {
     public String getRoleFromToken(String token) {
         try {
             String cleanToken = jwtUtil.removeBearerPrefix(token);
-            return jwtUtil.extractRole(cleanToken);
+            log.debug("Extracting role from token: {}", cleanToken.substring(0, Math.min(20, cleanToken.length())) + "...");
+            String role = jwtUtil.extractRole(cleanToken);
+            log.debug("Extracted role: {}", role);
+            return role;
         } catch (Exception e) {
             log.error("Failed to extract role from token: {}", e.getMessage());
             return null;
