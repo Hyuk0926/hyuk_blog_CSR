@@ -176,7 +176,9 @@ const loadPost = async () => {
   error.value = null;
   
   try {
-    const response = await apiService.getPost(postId, locale.value);
+    // URL 쿼리 파라미터의 언어 설정을 우선 사용, 없으면 현재 locale 사용
+    const lang = route.query.lang || locale.value;
+    const response = await apiService.getPost(postId, lang);
     
     if (response.success) {
       post.value = response.data;
@@ -213,7 +215,9 @@ const loadLikeStatus = async () => {
   if (!post.value.id) return;
   
   try {
-    const postType = post.value.postType || apiService.getPostTypeFromLang(locale.value);
+    // URL 쿼리 파라미터의 언어 설정을 우선 사용, 없으면 현재 locale 사용
+    const lang = route.query.lang || locale.value;
+    const postType = post.value.postType || apiService.getPostTypeFromLang(lang);
     const response = await apiService.getLikeStatus(post.value.id, postType);
     
     if (response) {
@@ -232,7 +236,9 @@ const loadComments = async () => {
   if (!post.value.id) return;
   
   try {
-    const postType = post.value.postType || apiService.getPostTypeFromLang(locale.value);
+    // URL 쿼리 파라미터의 언어 설정을 우선 사용, 없으면 현재 locale 사용
+    const lang = route.query.lang || locale.value;
+    const postType = post.value.postType || apiService.getPostTypeFromLang(lang);
     const response = await apiService.getComments(post.value.id, postType);
     
     if (response && Array.isArray(response)) {
@@ -260,7 +266,9 @@ const handleLikeToggle = async () => {
   }
   
   try {
-    const postType = post.value.postType || apiService.getPostTypeFromLang(locale.value);
+    // URL 쿼리 파라미터의 언어 설정을 우선 사용, 없으면 현재 locale 사용
+    const lang = route.query.lang || locale.value;
+    const postType = post.value.postType || apiService.getPostTypeFromLang(lang);
     const response = await apiService.toggleLike(post.value.id, postType);
     
     if (response.success) {
@@ -309,7 +317,9 @@ const submitComment = async () => {
   });
   
   try {
-    const postType = post.value.postType || apiService.getPostTypeFromLang(locale.value);
+    // URL 쿼리 파라미터의 언어 설정을 우선 사용, 없으면 현재 locale 사용
+    const lang = route.query.lang || locale.value;
+    const postType = post.value.postType || apiService.getPostTypeFromLang(lang);
     const commentData = {
       content: newComment.value
     };

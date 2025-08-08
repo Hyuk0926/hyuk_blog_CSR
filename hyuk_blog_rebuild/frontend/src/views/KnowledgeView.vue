@@ -127,6 +127,11 @@ export default {
     this.$watch('$i18n.locale', async (newLang, oldLang) => {
       if (newLang !== oldLang) {
         console.log(`Language changed from ${oldLang} to ${newLang}`);
+        // URL 쿼리 파라미터도 함께 업데이트
+        this.$router.push({ 
+          path: this.$route.path, 
+          query: { ...this.$route.query, lang: newLang } 
+        });
         await this.loadPosts();
       }
     });
@@ -163,7 +168,8 @@ export default {
       this.error = null;
       
       try {
-        const lang = this.$i18n.locale;
+        // URL 쿼리 파라미터의 언어 설정을 우선 사용, 없으면 현재 locale 사용
+        const lang = this.$route.query.lang || this.$i18n.locale;
         console.log('Loading posts for language:', lang);
         const response = await apiService.getPosts(lang);
         
@@ -191,7 +197,8 @@ export default {
       this.error = null;
       
       try {
-        const lang = this.$i18n.locale;
+        // URL 쿼리 파라미터의 언어 설정을 우선 사용, 없으면 현재 locale 사용
+        const lang = this.$route.query.lang || this.$i18n.locale;
         const response = await apiService.searchPosts(this.searchQuery, lang);
         
         if (response.success) {
@@ -225,7 +232,8 @@ export default {
       this.error = null;
       
       try {
-        const lang = this.$i18n.locale;
+        // URL 쿼리 파라미터의 언어 설정을 우선 사용, 없으면 현재 locale 사용
+        const lang = this.$route.query.lang || this.$i18n.locale;
         // 카테고리 파라미터로 직접 API 호출
         const response = await apiService.publicRequest(`/api/posts?category=${category}&lang=${lang}`);
         
@@ -243,7 +251,9 @@ export default {
     },
 
     goToPostDetail(postId) {
-      this.$router.push(`/knowledge/${postId}`);
+      // URL 쿼리 파라미터의 언어 설정을 우선 사용, 없으면 현재 locale 사용
+      const lang = this.$route.query.lang || this.$i18n.locale;
+      this.$router.push(`/knowledge/${postId}?lang=${lang}`);
     },
 
     formatDate(dateString) {

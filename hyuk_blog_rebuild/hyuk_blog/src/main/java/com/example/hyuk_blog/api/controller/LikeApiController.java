@@ -33,21 +33,19 @@ public class LikeApiController {
     @PostMapping("/posts/{postId}/like")
     public ResponseEntity<?> toggleLike(
             @PathVariable Long postId,
-            @RequestParam(defaultValue = "KR") PostType postType,
+            @RequestParam(defaultValue = "KR") String postTypeStr,
             @AuthenticationPrincipal UserDetails userDetails) {
         
         if (userDetails == null) {
             return ResponseEntity.status(401).body("로그인이 필요합니다.");
         }
 
-        Optional<UserDto> userOpt = userService.findByUsername(userDetails.getUsername());
-        if (userOpt.isEmpty()) {
-            return ResponseEntity.status(401).body("사용자 정보를 찾을 수 없습니다.");
-        }
-        UserDto userDto = userOpt.get();
-
         try {
-            boolean isLiked = likeService.toggleLike(postId, postType, userDto.getId());
+            // userDetails에서 username을 가져와 User 엔티티를 조회합니다.
+            User user = userService.findUserEntityByUsername(userDetails.getUsername())
+                    .orElseThrow(() -> new IllegalArgumentException("User not found"));
+            
+            boolean isLiked = likeService.toggleLike(postId, postTypeStr, user.getId());
             return ResponseEntity.ok().body(Map.of(
                 "success", true,
                 "isLiked", isLiked,
@@ -68,22 +66,30 @@ public class LikeApiController {
     @GetMapping("/posts/{postId}/like")
     public ResponseEntity<LikeStatusDto> getLikeStatus(
             @PathVariable Long postId,
-            @RequestParam(defaultValue = "KR") PostType postType,
+            @RequestParam(defaultValue = "KR") String postTypeStr,
             @AuthenticationPrincipal UserDetails userDetails) {
         
-        Long likeCount = likeService.getLikeCount(postId, postType);
-        boolean isLiked = false;
+        try {
+            Long likeCount = likeService.getLikeCount(postId, postTypeStr);
+            boolean isLiked = false;
 
-        // 로그인한 사용자인 경우 좋아요 여부 확인
-        if (userDetails != null) {
-            Optional<UserDto> userOpt = userService.findByUsername(userDetails.getUsername());
-            if (userOpt.isPresent()) {
-                UserDto userDto = userOpt.get();
-                isLiked = likeService.isLikedByUser(postId, postType, userDto.getId());
+            // 로그인한 사용자인 경우 좋아요 여부 확인
+            if (userDetails != null) {
+                try {
+                    // userDetails에서 username을 가져와 User 엔티티를 조회합니다.
+                    User user = userService.findUserEntityByUsername(userDetails.getUsername())
+                            .orElseThrow(() -> new IllegalArgumentException("User not found"));
+                    isLiked = likeService.isLikedByUser(postId, postTypeStr, user.getId());
+                } catch (Exception e) {
+                    // 사용자 정보를 찾을 수 없는 경우 isLiked는 false로 유지
+                    isLiked = false;
+                }
             }
-        }
 
-        LikeStatusDto likeStatus = new LikeStatusDto(postId, likeCount, isLiked);
-        return ResponseEntity.ok(likeStatus);
+            LikeStatusDto likeStatus = new LikeStatusDto(postId, likeCount, isLiked);
+            return ResponseEntity.ok(likeStatus);
+        } catch (Exception e) {
+            return ResponseEntity.status(500).body(new LikeStatusDto(postId, 0L, false));
+        }
     }
 }

@@ -56,7 +56,7 @@ public class PostService {
                 .stream()
                 .map(post -> {
                     PostDto dto = PostDto.fromJpEntity(post);
-                    dto.setLikeCount(likeService.getLikeCount(post.getId(), com.example.hyuk_blog.entity.PostType.JP));
+                    dto.setLikeCount(likeService.getLikeCount(post.getId(), String.valueOf(com.example.hyuk_blog.entity.PostType.JP)));
                     dto.setCommentCount(commentService.getCommentCountByPostJpId(post.getId()));
                     dto.setLang("ja"); // 언어 정보 추가
                     return dto;
@@ -67,7 +67,7 @@ public class PostService {
                 .stream()
                 .map(post -> {
                     PostDto dto = PostDto.fromKrEntity(post);
-                    dto.setLikeCount(likeService.getLikeCount(post.getId(), com.example.hyuk_blog.entity.PostType.KR));
+                    dto.setLikeCount(likeService.getLikeCount(post.getId(), String.valueOf(com.example.hyuk_blog.entity.PostType.KR)));
                     dto.setCommentCount(commentService.getCommentCountByPostKrId(post.getId()));
                     dto.setLang("ko"); // 언어 정보 추가
                     return dto;
@@ -92,7 +92,7 @@ public class PostService {
                     .stream()
                     .map(post -> {
                         PostDto dto = PostDto.fromJpEntity(post);
-                        dto.setLikeCount(likeService.getLikeCount(post.getId(), com.example.hyuk_blog.entity.PostType.JP));
+                        dto.setLikeCount(likeService.getLikeCount(post.getId(), String.valueOf(com.example.hyuk_blog.entity.PostType.JP)));
                         dto.setCommentCount(commentService.getCommentCountByPostJpId(post.getId()));
                         dto.setLang("ja"); // 언어 정보 추가
                         return dto;
@@ -106,7 +106,7 @@ public class PostService {
                     .stream()
                     .map(post -> {
                         PostDto dto = PostDto.fromKrEntity(post);
-                        dto.setLikeCount(likeService.getLikeCount(post.getId(), com.example.hyuk_blog.entity.PostType.KR));
+                        dto.setLikeCount(likeService.getLikeCount(post.getId(), String.valueOf(com.example.hyuk_blog.entity.PostType.KR)));
                         dto.setCommentCount(commentService.getCommentCountByPostKrId(post.getId()));
                         dto.setLang("ko"); // 언어 정보 추가
                         return dto;
@@ -122,14 +122,14 @@ public class PostService {
         if ("ja".equals(lang)) {
             return postJpRepository.findById(id).map(post -> {
                 PostDto dto = PostDto.fromJpEntity(post);
-                dto.setLikeCount(likeService.getLikeCount(post.getId(), com.example.hyuk_blog.entity.PostType.JP));
+                dto.setLikeCount(likeService.getLikeCount(post.getId(), String.valueOf(com.example.hyuk_blog.entity.PostType.JP)));
                 dto.setCommentCount(commentService.getCommentCountByPostJpId(post.getId()));
                 return dto;
             });
         } else {
             return postKrRepository.findById(id).map(post -> {
                 PostDto dto = PostDto.fromKrEntity(post);
-                dto.setLikeCount(likeService.getLikeCount(post.getId(), com.example.hyuk_blog.entity.PostType.KR));
+                dto.setLikeCount(likeService.getLikeCount(post.getId(), String.valueOf(com.example.hyuk_blog.entity.PostType.KR)));
                 dto.setCommentCount(commentService.getCommentCountByPostKrId(post.getId()));
                 return dto;
             });
@@ -228,7 +228,7 @@ public class PostService {
                     .stream()
                     .map(post -> {
                         PostDto dto = PostDto.fromJpEntity(post);
-                        dto.setLikeCount(likeService.getLikeCount(post.getId(), com.example.hyuk_blog.entity.PostType.JP));
+                        dto.setLikeCount(likeService.getLikeCount(post.getId(), String.valueOf(com.example.hyuk_blog.entity.PostType.JP)));
                         dto.setCommentCount(commentService.getCommentCountByPostJpId(post.getId()));
                         return dto;
                     })
@@ -238,7 +238,7 @@ public class PostService {
                     .stream()
                     .map(post -> {
                         PostDto dto = PostDto.fromKrEntity(post);
-                        dto.setLikeCount(likeService.getLikeCount(post.getId(), com.example.hyuk_blog.entity.PostType.KR));
+                        dto.setLikeCount(likeService.getLikeCount(post.getId(), String.valueOf(com.example.hyuk_blog.entity.PostType.KR)));
                         dto.setCommentCount(commentService.getCommentCountByPostKrId(post.getId()));
                         return dto;
                     })
@@ -253,7 +253,7 @@ public class PostService {
                     .stream()
                     .map(post -> {
                         PostDto dto = PostDto.fromJpEntity(post);
-                        dto.setLikeCount(likeService.getLikeCount(post.getId(), com.example.hyuk_blog.entity.PostType.JP));
+                        dto.setLikeCount(likeService.getLikeCount(post.getId(), String.valueOf(com.example.hyuk_blog.entity.PostType.JP)));
                         dto.setCommentCount(commentService.getCommentCountByPostJpId(post.getId()));
                         return dto;
                     })
@@ -263,7 +263,7 @@ public class PostService {
                     .stream()
                     .map(post -> {
                         PostDto dto = PostDto.fromKrEntity(post);
-                        dto.setLikeCount(likeService.getLikeCount(post.getId(), com.example.hyuk_blog.entity.PostType.KR));
+                        dto.setLikeCount(likeService.getLikeCount(post.getId(), String.valueOf(com.example.hyuk_blog.entity.PostType.KR)));
                         dto.setCommentCount(commentService.getCommentCountByPostKrId(post.getId()));
                         return dto;
                     })

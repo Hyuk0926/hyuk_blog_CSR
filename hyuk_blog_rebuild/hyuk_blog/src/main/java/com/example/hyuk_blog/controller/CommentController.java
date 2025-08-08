@@ -98,7 +98,7 @@ public class CommentController {
         String nickname = user != null ? user.getNickname() : admin.getUsername();
         
         try {
-            CommentDto commentDto = commentService.createComment(postId, PostType.KR, content, userId, nickname);
+            CommentDto commentDto = commentService.createComment(postId, "KR", content, userId, nickname);
             Map<String, Object> response = new HashMap<>();
             response.put("success", true);
             response.put("message", "댓글이 작성되었습니다.");
@@ -139,7 +139,7 @@ public class CommentController {
         String nickname = user != null ? user.getNickname() : admin.getUsername();
         
         try {
-            CommentDto commentDto = commentService.createComment(postId, PostType.JP, content, userId, nickname);
+            CommentDto commentDto = commentService.createComment(postId, "JP", content, userId, nickname);
             Map<String, Object> response = new HashMap<>();
             response.put("success", true);
             response.put("message", "댓글이 작성되었습니다.");

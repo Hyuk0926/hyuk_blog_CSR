@@ -34,15 +34,11 @@ public class CommentApiController {
     @GetMapping("/posts/{postId}/comments")
     public ResponseEntity<List<CommentDto>> getComments(
             @PathVariable Long postId,
-            @RequestParam(defaultValue = "KR") PostType postType) {
+            @RequestParam(defaultValue = "KR") String postTypeStr) {
         
         try {
-            List<CommentDto> comments;
-            if (postType == PostType.KR) {
-                comments = commentService.getCommentsByPostKrId(postId);
-            } else {
-                comments = commentService.getCommentsByPostJpId(postId);
-            }
+            // 수정된 서비스 메서드 호출
+            List<CommentDto> comments = commentService.getCommentsByPost(postId, postTypeStr);
             return ResponseEntity.ok(comments);
         } catch (Exception e) {
             return ResponseEntity.status(500).body(List.of());
@@ -56,7 +52,7 @@ public class CommentApiController {
     @PostMapping("/posts/{postId}/comments")
     public ResponseEntity<?> createComment(
             @PathVariable Long postId,
-            @RequestParam(defaultValue = "KR") PostType postType,
+            @RequestParam(defaultValue = "KR") String postTypeStr,
             @RequestBody Map<String, String> requestBody,
             @AuthenticationPrincipal UserDetails userDetails) {
         
@@ -70,18 +66,16 @@ public class CommentApiController {
         }
 
         try {
-            Optional<UserDto> userOpt = userService.findByUsername(userDetails.getUsername());
-            if (userOpt.isEmpty()) {
-                return ResponseEntity.status(401).body(Map.of("error", "사용자 정보를 찾을 수 없습니다."));
-            }
-
-            UserDto userDto = userOpt.get();
+            // userDetails에서 username을 가져와 User 엔티티를 조회합니다.
+            User user = userService.findUserEntityByUsername(userDetails.getUsername())
+                    .orElseThrow(() -> new IllegalArgumentException("User not found"));
+            
             CommentDto createdComment = commentService.createComment(
                 postId, 
-                postType, 
+                postTypeStr, 
                 content.trim(), 
-                userDto.getId(), 
-                userDto.getNickname()
+                user.getId(), 
+                user.getNickname()
             );
 
             return ResponseEntity.ok(createdComment);
@@ -104,13 +98,11 @@ public class CommentApiController {
         }
 
         try {
-            Optional<UserDto> userOpt = userService.findByUsername(userDetails.getUsername());
-            if (userOpt.isEmpty()) {
-                return ResponseEntity.status(401).body(Map.of("error", "사용자 정보를 찾을 수 없습니다."));
-            }
-
-            UserDto userDto = userOpt.get();
-            boolean deleted = commentService.deleteComment(commentId, userDto.getId());
+            // userDetails에서 username을 가져와 User 엔티티를 조회합니다.
+            User user = userService.findUserEntityByUsername(userDetails.getUsername())
+                    .orElseThrow(() -> new IllegalArgumentException("User not found"));
+            
+            boolean deleted = commentService.deleteComment(commentId, user.getId());
 
             if (deleted) {
                 return ResponseEntity.ok(Map.of("message", "댓글이 삭제되었습니다."));

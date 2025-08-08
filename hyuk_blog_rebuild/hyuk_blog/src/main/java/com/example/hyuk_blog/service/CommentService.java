@@ -23,6 +23,7 @@ import java.util.stream.Collectors;
 import jakarta.persistence.EntityNotFoundException;
 
 @Service
+@Transactional
 public class CommentService {
     
     private static final Logger logger = LoggerFactory.getLogger(CommentService.class);
@@ -39,20 +40,44 @@ public class CommentService {
     @Autowired
     private UserRepository userRepository;
     
-    // 한국어 게시글 댓글 조회
+    // 게시글 댓글 조회 (통합 메서드)
+    @Transactional(readOnly = true)
+    public List<CommentDto> getCommentsByPost(Long postId, String postTypeStr) {
+        try {
+            PostType postType = PostType.valueOf(postTypeStr.toUpperCase()); // 서비스 내부에서 변환
+            logger.info("Getting comments for postId: {}, postType: {}", postId, postType);
+            List<Comment> comments;
+            if (postType == PostType.KR) {
+                comments = commentRepository.findByPostKrIdOrderByCreatedAtAsc(postId);
+            } else {
+                comments = commentRepository.findByPostJpIdOrderByCreatedAtAsc(postId);
+            }
+            logger.info("Found {} comments", comments.size());
+            // 서비스 내에서 DTO 변환을 완료하여 LazyInitializationException 방지
+            return comments.stream().map(this::convertToDto).collect(Collectors.toList());
+        } catch (Exception e) {
+            logger.error("Error getting comments for postId: {}, postType: {}", postId, postTypeStr, e);
+            throw e;
+        }
+    }
+    
+    // 한국어 게시글 댓글 조회 (기존 메서드 유지)
+    @Transactional(readOnly = true)
     public List<CommentDto> getCommentsByPostKrId(Long postId) {
         List<Comment> comments = commentRepository.findByPostKrIdOrderByCreatedAtAsc(postId);
         return comments.stream().map(this::convertToDto).collect(Collectors.toList());
     }
     
-    // 일본어 게시글 댓글 조회
+    // 일본어 게시글 댓글 조회 (기존 메서드 유지)
+    @Transactional(readOnly = true)
     public List<CommentDto> getCommentsByPostJpId(Long postId) {
         List<Comment> comments = commentRepository.findByPostJpIdOrderByCreatedAtAsc(postId);
         return comments.stream().map(this::convertToDto).collect(Collectors.toList());
     }
     
     @Transactional
-    public CommentDto createComment(Long postId, PostType postType, String content, Long userId, String nickname) {
+    public CommentDto createComment(Long postId, String postTypeStr, String content, Long userId, String nickname) {
+        PostType postType = PostType.valueOf(postTypeStr.toUpperCase()); // 서비스 내부에서 변환
         logger.info("Creating comment - postId: {}, postType: {}, content: {}, userId: {}, nickname: {}", 
                    postId, postType, content, userId, nickname);
         
@@ -147,22 +172,11 @@ public class CommentService {
     }
     
     private CommentDto convertToDto(Comment comment) {
-        CommentDto dto = new CommentDto();
-        dto.setId(comment.getId());
-        dto.setNickname(comment.getNickname());
-        dto.setContent(comment.getContent());
-        dto.setUserId(comment.getUser() != null ? comment.getUser().getId() : null);
-        dto.setCreatedAt(comment.getCreatedAt());
-        dto.setUpdatedAt(comment.getUpdatedAt());
-        dto.setEdited(!comment.getCreatedAt().equals(comment.getUpdatedAt()));
-        
-        // 게시글 타입에 따라 ID 설정
-        if (comment.getPostType() == PostType.KR && comment.getPostKr() != null) {
-            dto.setPostkrId(comment.getPostKr().getId());
-        } else if (comment.getPostType() == PostType.JP && comment.getPostJp() != null) {
-            dto.setPostjpId(comment.getPostJp().getId());
+        try {
+            return CommentDto.fromEntity(comment);
+        } catch (Exception e) {
+            logger.error("Error converting comment to DTO: {}", comment.getId(), e);
+            throw e;
         }
-        
-        return dto;
     }
 } 

@@ -18,7 +18,8 @@ public class LikeService {
     private LikeRepository likeRepository;
     
     @Transactional
-    public boolean toggleLike(Long postId, PostType postType, Long userId) {
+    public boolean toggleLike(Long postId, String postTypeStr, Long userId) {
+        PostType postType = PostType.valueOf(postTypeStr.toUpperCase()); // 서비스 내부에서 변환
         boolean exists = likeRepository.existsByPostIdAndPostTypeAndUserId(postId, postType, userId);
         
         if (exists) {
@@ -36,16 +37,35 @@ public class LikeService {
         }
     }
     
-    public long getLikeCount(Long postId, PostType postType) {
-        return likeRepository.countByPostIdAndPostType(postId, postType);
+    public long getLikeCount(Long postId, String postTypeStr) {
+        try {
+            PostType postType = PostType.valueOf(postTypeStr.toUpperCase()); // 서비스 내부에서 변환
+            logger.info("Getting like count for postId: {}, postType: {}", postId, postType);
+            long count = likeRepository.countByPostIdAndPostType(postId, postType);
+            logger.info("Like count: {}", count);
+            return count;
+        } catch (Exception e) {
+            logger.error("Error getting like count for postId: {}, postType: {}", postId, postTypeStr, e);
+            throw e;
+        }
     }
     
-    public boolean isLikedByUser(Long postId, PostType postType, Long userId) {
-        // userId가 null이면 좋아요하지 않은 것으로 처리
-        if (userId == null) {
-            return false;
+    public boolean isLikedByUser(Long postId, String postTypeStr, Long userId) {
+        try {
+            // userId가 null이면 좋아요하지 않은 것으로 처리
+            if (userId == null) {
+                logger.info("User ID is null, returning false for isLikedByUser");
+                return false;
+            }
+            PostType postType = PostType.valueOf(postTypeStr.toUpperCase()); // 서비스 내부에서 변환
+            logger.info("Checking if user {} liked postId: {}, postType: {}", userId, postId, postType);
+            boolean isLiked = likeRepository.existsByPostIdAndPostTypeAndUserId(postId, postType, userId);
+            logger.info("Is liked by user: {}", isLiked);
+            return isLiked;
+        } catch (Exception e) {
+            logger.error("Error checking if user {} liked postId: {}, postType: {}", userId, postId, postTypeStr, e);
+            throw e;
         }
-        return likeRepository.existsByPostIdAndPostTypeAndUserId(postId, postType, userId);
     }
     
     /**

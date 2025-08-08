@@ -79,10 +79,15 @@ public class UserService {
         }
     }
     
-    // 사용자명으로 사용자 조회
+    // 사용자명으로 사용자 조회 (DTO 반환)
     public Optional<UserDto> findByUsername(String username) {
         return userRepository.findByUsername(username)
                 .map(UserDto::fromEntity);
+    }
+    
+    // 사용자명으로 사용자 엔티티 조회
+    public Optional<User> findUserEntityByUsername(String username) {
+        return userRepository.findByUsername(username);
     }
     
     // 회원가입 (DTO 사용)

@@ -23,8 +23,7 @@ public class Comment {
     @Column(name = "content", nullable = false, columnDefinition = "TEXT")
     private String content;
     
-    @Column(name = "user_id", insertable = false, updatable = false)
-    private Long userId;
+    // userId는 User 엔티티와의 관계를 통해 접근
     
     @Column(name = "created_at", nullable = false, columnDefinition = "TIMESTAMP(6) DEFAULT CURRENT_TIMESTAMP(6)")
     private LocalDateTime createdAt;

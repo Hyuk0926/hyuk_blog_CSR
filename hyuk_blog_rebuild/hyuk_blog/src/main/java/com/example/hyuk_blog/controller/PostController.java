@@ -99,15 +99,15 @@ public class PostController {
             
             if (lang.equals("ja")) {
                 // 일본어 게시글
-                likeCount = likeService.getLikeCount(id, com.example.hyuk_blog.entity.PostType.JP);
+                likeCount = likeService.getLikeCount(id, String.valueOf(com.example.hyuk_blog.entity.PostType.JP));
                 if (userId != null) {
-                    isLiked = likeService.isLikedByUser(id, com.example.hyuk_blog.entity.PostType.JP, userId);
+                    isLiked = likeService.isLikedByUser(id, String.valueOf(com.example.hyuk_blog.entity.PostType.JP), userId);
                 }
             } else {
                 // 한국어 게시글
-                likeCount = likeService.getLikeCount(id, com.example.hyuk_blog.entity.PostType.KR);
+                likeCount = likeService.getLikeCount(id, String.valueOf(com.example.hyuk_blog.entity.PostType.KR));
                 if (userId != null) {
-                    isLiked = likeService.isLikedByUser(id, com.example.hyuk_blog.entity.PostType.KR, userId);
+                    isLiked = likeService.isLikedByUser(id, String.valueOf(com.example.hyuk_blog.entity.PostType.KR), userId);
                 }
             }
             
