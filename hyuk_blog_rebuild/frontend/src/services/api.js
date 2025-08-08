@@ -4,7 +4,9 @@
  */
 class ApiService {
   constructor() {
-    this.baseURL = process.env.VUE_APP_API_URL || 'http://localhost:9090';
+    // 프록시 설정을 사용하므로 상대 경로 사용
+    this.baseURL = process.env.VUE_APP_API_URL || '';
+    console.log('API Service initialized with baseURL:', this.baseURL);
   }
 
   /**
@@ -12,6 +14,9 @@ class ApiService {
    */
   async request(endpoint, options = {}) {
     const url = `${this.baseURL}${endpoint}`;
+    console.log('API Request URL:', url);
+    console.log('API Request endpoint:', endpoint);
+    console.log('API Request baseURL:', this.baseURL);
     
     const defaultOptions = {
       headers: {
@@ -218,27 +223,19 @@ class ApiService {
   // ==================== 좋아요 관련 API ====================
 
   /**
+   * 좋아요 상태 및 개수 조회
+   */
+  async getLikeStatus(postId, postType) {
+    return this.request(`/api/posts/${postId}/like?postType=${postType}`);
+  }
+
+  /**
    * 좋아요 토글
    */
   async toggleLike(postId, postType) {
-    return this.request(`/api/likes/toggle`, {
+    return this.request(`/api/posts/${postId}/like?postType=${postType}`, {
       method: 'POST',
-      body: JSON.stringify({ postId, postType }),
     });
-  }
-
-  /**
-   * 좋아요 수 조회
-   */
-  async getLikeCount(postId, postType) {
-    return this.request(`/api/likes/count?postId=${postId}&postType=${postType}`);
-  }
-
-  /**
-   * 사용자의 좋아요 여부 확인
-   */
-  async checkUserLike(postId, postType) {
-    return this.request(`/api/likes/check?postId=${postId}&postType=${postType}`);
   }
 
   // ==================== 댓글 관련 API ====================

@@ -71,16 +71,25 @@ public class PostApiController {
             @PathVariable Long id,
             @RequestParam(defaultValue = "ko") String lang) {
         
+        System.out.println("=== POST DETAIL API DEBUG ===");
+        System.out.println("[PostApiController] getPostById called with id: " + id + ", lang: " + lang);
+        
         Optional<PostDto> post = postService.getPostById(id, lang);
         
         Map<String, Object> response = new HashMap<>();
         
         if (post.isPresent()) {
+            PostDto postData = post.get();
+            System.out.println("[PostApiController] Post found - ID: " + postData.getId() + 
+                             ", titleKo: " + (postData.getTitleKo() != null ? "있음" : "없음") + 
+                             ", titleJa: " + (postData.getTitleJa() != null ? "있음" : "없음"));
+            
             response.put("success", true);
-            response.put("data", post.get());
+            response.put("data", postData);
             response.put("message", "게시글을 성공적으로 조회했습니다.");
             return ResponseEntity.ok(response);
         } else {
+            System.out.println("[PostApiController] Post not found for ID: " + id + ", lang: " + lang);
             response.put("success", false);
             response.put("message", "게시글을 찾을 수 없습니다.");
             return ResponseEntity.status(HttpStatus.NOT_FOUND).body(response);
@@ -154,15 +163,20 @@ public class PostApiController {
             @PathVariable Long id,
             @RequestParam(defaultValue = "ko") String lang) {
         
+        System.out.println("=== DELETE POST API DEBUG ===");
+        System.out.println("[PostApiController] deletePost called with id: " + id + ", lang: " + lang);
+        
         boolean deleted = postService.deletePost(id, lang);
         
         Map<String, Object> response = new HashMap<>();
         
         if (deleted) {
+            System.out.println("[PostApiController] Post deleted successfully - ID: " + id);
             response.put("success", true);
             response.put("message", "게시글이 성공적으로 삭제되었습니다.");
             return ResponseEntity.ok(response);
         } else {
+            System.out.println("[PostApiController] Post not found for deletion - ID: " + id + ", lang: " + lang);
             response.put("success", false);
             response.put("message", "게시글을 찾을 수 없습니다.");
             return ResponseEntity.status(HttpStatus.NOT_FOUND).body(response);
@@ -180,9 +194,20 @@ public class PostApiController {
     public ResponseEntity<Map<String, Object>> getAdminPosts(
             @RequestParam(defaultValue = "ko") String lang) {
         
+        System.out.println("=== POST API DEBUG ===");
         System.out.println("[PostApiController] getAdminPosts called with lang: " + lang);
+        System.out.println("[PostApiController] Request received at: " + java.time.LocalDateTime.now());
+        
         List<PostDto> posts = postService.getAllPosts(lang);
         System.out.println("[PostApiController] Retrieved " + posts.size() + " posts for language: " + lang);
+        
+        // 각 게시글의 언어 정보 출력
+        for (int i = 0; i < Math.min(posts.size(), 5); i++) { // 처음 5개만 출력
+            PostDto post = posts.get(i);
+            System.out.println("Post " + (i+1) + ": ID=" + post.getId() + 
+                             ", titleKo=" + (post.getTitleKo() != null ? "있음" : "없음") + 
+                             ", titleJa=" + (post.getTitleJa() != null ? "있음" : "없음"));
+        }
         
         Map<String, Object> response = new HashMap<>();
         response.put("success", true);

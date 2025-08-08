@@ -115,6 +115,11 @@ export default {
           localStorage.setItem('username', response.username);
           localStorage.setItem('adminToken', response.token); // 기존 호환성 유지
           
+          // 사용자 언어 정보 저장 (admin_jp는 일본어, admin은 한국어)
+          const userLang = response.username === 'admin_jp' ? 'ja' : 'ko';
+          localStorage.setItem('userLang', userLang);
+          console.log('사용자 언어 설정:', userLang, 'for username:', response.username);
+          
           // 관리자 대시보드로 리다이렉트
           console.log('대시보드로 리다이렉트 시도...'); // 디버깅 로그 추가
           this.$router.push('/admin/dashboard');

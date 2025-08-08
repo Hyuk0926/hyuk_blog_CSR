@@ -64,7 +64,7 @@
     
     <!-- 좋아요 버튼 (미리보기 모드에서는 비활성화) -->
     <div class="like-section" v-if="!isPreview">
-      <button class="like-button" @click="toggleLike" :data-post-id="post.id">
+      <button class="like-button" @click="handleLikeToggle" :data-post-id="post.id">
         <span class="heart-icon" :class="{ liked: isLiked }">{{ isLiked ? '♥' : '♡' }}</span>
         <span class="like-count">{{ likeCount }}</span>
       </button>
@@ -180,7 +180,6 @@ const loadPost = async () => {
     
     if (response.success) {
       post.value = response.data;
-      likeCount.value = post.value.likeCount || 0;
     } else {
       error.value = response.message || '게시글을 찾을 수 없습니다.';
       post.value = {
@@ -210,6 +209,25 @@ const loadPost = async () => {
   }
 };
 
+const loadLikeStatus = async () => {
+  if (!post.value.id) return;
+  
+  try {
+    const postType = post.value.postType || apiService.getPostTypeFromLang(locale.value);
+    const response = await apiService.getLikeStatus(post.value.id, postType);
+    
+    if (response) {
+      likeCount.value = response.likeCount || 0;
+      isLiked.value = response.isLiked || false;
+    }
+  } catch (error) {
+    console.error('좋아요 상태 로드 실패:', error);
+    // 에러가 발생해도 기본값으로 설정
+    likeCount.value = 0;
+    isLiked.value = false;
+  }
+};
+
 const loadComments = async () => {
   if (!post.value.id) return;
   
@@ -235,7 +253,7 @@ const formatDate = (date) => {
   return `${d.getFullYear()}년 ${String(d.getMonth() + 1).padStart(2, '0')}월 ${String(d.getDate()).padStart(2, '0')}일`;
 };
 
-const toggleLike = async () => {
+const handleLikeToggle = async () => {
   if (!isAuthenticated.value) {
     showLoginModal();
     return;
@@ -246,8 +264,13 @@ const toggleLike = async () => {
     const response = await apiService.toggleLike(post.value.id, postType);
     
     if (response.success) {
+      // 즉각적인 사용자 경험을 위해 로컬 상태를 직접 업데이트
       isLiked.value = !isLiked.value;
-      likeCount.value = response.data.likeCount || likeCount.value;
+      if (isLiked.value) {
+        likeCount.value++;
+      } else {
+        likeCount.value--;
+      }
       showNotification(isLiked.value ? '좋아요를 눌렀습니다!' : '좋아요를 취소했습니다.');
     } else {
       showNotification(response.message || '좋아요 처리 중 오류가 발생했습니다.');
@@ -466,6 +489,7 @@ watch(() => post.value.content, () => {
 onMounted(async () => {
   await fetchUserInfo();
   await loadPost();
+  await loadLikeStatus();
   await loadComments();
   setupCodeCopy();
   setupPrism();

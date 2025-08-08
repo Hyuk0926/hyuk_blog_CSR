@@ -58,11 +58,11 @@
           <td>{{ formatDate(post.createdAt) }}</td>
           <td>{{ formatDate(post.updatedAt) }}</td>
           <td>
-            <div class="action-buttons">
-              <button @click="editPost(post.id)" class="btn-action btn-edit">수정</button>
-              <button @click="previewPost(post.id)" class="btn-action btn-preview">미리보기</button>
-              <button @click="deletePost(post.id)" class="btn-action btn-delete">삭제</button>
-            </div>
+                         <div class="action-buttons">
+               <button @click="editPost(post.id)" class="btn-action btn-edit">수정</button>
+               <button @click="previewPost(post.id)" class="btn-action btn-preview">미리보기</button>
+               <button @click="deletePost(post.id)" class="btn-action btn-delete" :data-post-id="post.id">삭제</button>
+             </div>
           </td>
         </tr>
       </tbody>
@@ -158,21 +158,29 @@ export default {
       }
              */
      },
-     async loadAdminInfo() {
+          async loadAdminInfo() {
        try {
+         console.log('=== ADMIN INFO LOADING DEBUG ===');
+         
          // 로컬 스토리지에서 기본 정보 가져오기
          const username = localStorage.getItem('username');
          this.adminInfo.username = username || '';
+         console.log('localStorage username:', username);
          
          // 백엔드에서 상세 정보 가져오기
+         console.log('Fetching admin profile from backend...');
          const response = await fetch('/api/admin/auth/profile', {
            headers: {
              'Authorization': `Bearer ${localStorage.getItem('jwtToken')}`
            }
          });
          
+         console.log('Profile response status:', response.status);
+         
          if (response.ok) {
            const data = await response.json();
+           console.log('Profile response data:', data);
+           
            if (data.success && data.data) {
              this.adminInfo = {
                username: data.data.username,
@@ -180,30 +188,69 @@ export default {
                email: data.data.email
              };
              
+             console.log('Admin info set:', this.adminInfo);
+             
              // admin_jp 계정인지 확인하여 언어 설정
              if (data.data.username === 'admin_jp') {
                this.lang = 'ja';
-               console.log('Admin JP detected, language set to Japanese');
+               console.log('✅ Admin JP detected, language set to Japanese');
              } else {
                this.lang = 'ko';
-               console.log('Admin detected, language set to Korean');
+               console.log('✅ Admin detected, language set to Korean');
+             }
+             
+             console.log('Final lang setting:', this.lang);
+           }
+         } else {
+           console.log('Profile API failed, using localStorage fallback');
+           // API 실패 시 로컬 스토리지 사용
+           const savedLang = localStorage.getItem('userLang');
+           console.log('Saved language from localStorage:', savedLang);
+           
+           if (savedLang) {
+             this.lang = savedLang;
+             console.log('✅ Using saved language from localStorage:', savedLang);
+           } else {
+             // 폴백: username 기반 언어 설정
+             if (username === 'admin_jp') {
+               this.lang = 'ja';
+               console.log('✅ Admin JP detected from localStorage, language set to Japanese');
+             } else {
+               this.lang = 'ko';
+               console.log('✅ Admin detected from localStorage, language set to Korean');
              }
            }
+           
+           console.log('Final fallback lang setting:', this.lang);
          }
        } catch (error) {
-         console.error('관리자 정보 로드 실패:', error);
+         console.error('❌ 관리자 정보 로드 실패:', error);
+         console.log('=== FALLBACK TO LOCALSTORAGE ===');
+         
          // 로컬 스토리지 정보만 사용
          const username = localStorage.getItem('username');
          this.adminInfo.username = username || '';
+         console.log('Fallback username from localStorage:', username);
          
-         // 로컬 스토리지 정보로 언어 설정
-         if (username === 'admin_jp') {
-           this.lang = 'ja';
-           console.log('Admin JP detected from localStorage, language set to Japanese');
+         // 저장된 언어 정보 사용 (로그인 시 저장된 userLang)
+         const savedLang = localStorage.getItem('userLang');
+         console.log('Saved language from localStorage:', savedLang);
+         
+         if (savedLang) {
+           this.lang = savedLang;
+           console.log('✅ Using saved language from localStorage:', savedLang);
          } else {
-           this.lang = 'ko';
-           console.log('Admin detected from localStorage, language set to Korean');
+           // 폴백: username 기반 언어 설정
+           if (username === 'admin_jp') {
+             this.lang = 'ja';
+             console.log('✅ Admin JP detected from localStorage, language set to Japanese');
+           } else {
+             this.lang = 'ko';
+             console.log('✅ Admin detected from localStorage, language set to Korean');
+           }
          }
+         
+         console.log('Final fallback lang setting:', this.lang);
        }
      },
      async loadDashboardData() {
@@ -248,14 +295,30 @@ export default {
     },
          async loadPosts() {
        try {
-         console.log('Loading admin posts for language:', this.lang);
+         console.log('=== POST LOADING DEBUG ===');
+         console.log('Current lang setting:', this.lang);
          console.log('Current admin username:', this.adminInfo.username);
+         console.log('localStorage userLang:', localStorage.getItem('userLang'));
+         console.log('localStorage username:', localStorage.getItem('username'));
+         
          const response = await apiService.getAllPostsForAdmin(this.lang);
-         console.log('API response:', response);
+         console.log('API response status:', response.success);
+         console.log('API response data length:', response.data ? response.data.length : 'no data');
+         
          if (response.success) {
            this.posts = response.data;
            console.log('Loaded admin posts:', this.posts.length, 'posts for language:', this.lang);
-           console.log('Posts data:', this.posts);
+           
+           // 각 게시글의 언어 정보 확인
+           this.posts.forEach((post, index) => {
+             console.log(`Post ${index + 1}:`, {
+               id: post.id,
+               titleKo: post.titleKo,
+               titleJa: post.titleJa,
+               hasKoreanContent: !!post.titleKo,
+               hasJapaneseContent: !!post.titleJa
+             });
+           });
          } else {
            console.error('게시글 로드 실패:', response.message);
            this.posts = [];
@@ -284,31 +347,52 @@ export default {
     editPost(postId) {
       this.$router.push(`/admin/posts/edit/${postId}`);
     },
-    previewPost(postId) {
-      this.$router.push(`/admin/posts/preview/${postId}`);
-    },
-    async deletePost(postId) {
-      if (confirm('정말 삭제하시겠습니까?')) {
-        try {
-          const response = await apiService.deletePost(postId, this.lang);
-          if (response.success) {
-            this.posts = this.posts.filter(post => post.id !== postId);
-            this.loadDashboardData(); // 통계 업데이트
-            alert('게시글이 삭제되었습니다.');
-          } else {
-            alert('게시글 삭제에 실패했습니다: ' + response.message);
-          }
-        } catch (error) {
-          console.error('게시글 삭제 실패:', error);
-          // 에러 상세 정보 출력
-          if (error.response) {
-            console.error('Response status:', error.response.status);
-            console.error('Response data:', error.response.data);
-          }
-          alert('게시글 삭제에 실패했습니다. 관리자에게 문의하세요.');
-        }
-      }
-    }
+         previewPost(postId) {
+       this.$router.push(`/admin/posts/preview/${postId}`);
+     },
+
+         async deletePost(postId) {
+       console.log('=== DELETE POST DEBUG ===');
+       console.log('Delete request for postId:', postId);
+       console.log('Current lang:', this.lang);
+       console.log('Method called at:', new Date().toISOString());
+       console.log('Button clicked successfully!');
+               console.log('About to show confirm dialog...');
+        
+        // 임시로 alert 사용
+        alert('삭제를 진행합니다. 확인을 누르면 삭제됩니다.');
+        const confirmed = true;
+        console.log('Confirm result:', confirmed);
+       
+       if (confirmed) {
+         try {
+           console.log('Calling apiService.deletePost...');
+           const response = await apiService.deletePost(postId, this.lang);
+           console.log('Delete response:', response);
+           
+           if (response.success) {
+             console.log('Delete successful, updating posts list...');
+             this.posts = this.posts.filter(post => post.id !== postId);
+             console.log('Posts list updated, loading dashboard data...');
+             this.loadDashboardData(); // 통계 업데이트
+             alert('게시글이 삭제되었습니다.');
+           } else {
+             console.error('Delete failed:', response.message);
+             alert('게시글 삭제에 실패했습니다: ' + response.message);
+           }
+         } catch (error) {
+           console.error('게시글 삭제 실패:', error);
+           // 에러 상세 정보 출력
+           if (error.response) {
+             console.error('Response status:', error.response.status);
+             console.error('Response data:', error.response.data);
+           }
+           alert('게시글 삭제에 실패했습니다. 관리자에게 문의하세요.');
+         }
+       } else {
+         console.log('Delete cancelled by user');
+       }
+     }
   }
 }
 </script>
@@ -526,6 +610,8 @@ export default {
   background: #fff5f5;
   color: #dc3545;
   border: 1px solid #fed7d7;
+  position: relative;
+  z-index: 10;
 }
 
 .btn-delete:hover {

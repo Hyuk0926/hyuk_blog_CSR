@@ -227,6 +227,7 @@ export default {
       isSubmitting: false,
       activeTab: 'write',
       activeLanguage: 'ko', // 기본 언어 설정
+      lang: 'ko', // API 요청용 언어 설정
       categories: [],
       formData: {
         titleKo: '',
@@ -245,6 +246,7 @@ export default {
   mounted() {
     this.checkAuth();
     this.loadCategories();
+    this.setLanguage();
     this.loadPostData();
   },
   methods: {
@@ -266,6 +268,25 @@ export default {
           { value: 'BLOG_CODING', displayName: 'BlogBuild' }
         ];
       }
+    },
+    setLanguage() {
+      // localStorage에서 저장된 언어 정보 가져오기
+      const savedLang = localStorage.getItem('userLang');
+      if (savedLang) {
+        this.lang = savedLang;
+        this.activeLanguage = savedLang;
+      } else {
+        // username 기반으로 언어 설정
+        const username = localStorage.getItem('username');
+        if (username === 'admin_jp') {
+          this.lang = 'ja';
+          this.activeLanguage = 'ja';
+        } else {
+          this.lang = 'ko';
+          this.activeLanguage = 'ko';
+        }
+      }
+      console.log('PostFormView - Language set to:', this.lang);
     },
     checkAuth() {
       const token = localStorage.getItem('jwtToken');
@@ -293,12 +314,19 @@ export default {
     async loadPostData() {
       // 편집 모드인 경우 기존 데이터 로드
       const postId = this.$route.params.id;
+      console.log('PostFormView - loadPostData called with postId:', postId);
+      console.log('PostFormView - current lang:', this.lang);
+      
       if (postId) {
         this.isEdit = true;
         try {
+          console.log('PostFormView - Fetching post data for ID:', postId, 'with lang:', this.lang);
           const response = await apiService.getPost(postId, this.lang);
+          console.log('PostFormView - API response:', response);
+          
           if (response.success) {
             const postData = response.data;
+            console.log('PostFormView - Post data loaded:', postData);
             this.formData = {
               titleKo: postData.titleKo || '',
               titleJa: postData.titleJa || '',
@@ -311,11 +339,16 @@ export default {
               tags: postData.tags || '',
               published: postData.published || false
             };
+            console.log('PostFormView - Form data set:', this.formData);
+          } else {
+            console.error('PostFormView - API response not successful:', response);
           }
         } catch (error) {
-          console.error('게시글 데이터 로드 실패:', error);
+          console.error('PostFormView - 게시글 데이터 로드 실패:', error);
           alert('게시글 데이터를 불러오는데 실패했습니다.');
         }
+      } else {
+        console.log('PostFormView - No postId, creating new post');
       }
     },
     getCategoryName(category) {

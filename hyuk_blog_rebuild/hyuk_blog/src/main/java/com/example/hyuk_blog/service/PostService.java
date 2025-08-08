@@ -83,8 +83,12 @@ public class PostService {
 
     // 모든 게시글 조회 (관리자용)
     public List<PostDto> getAllPosts(String lang) {
+        System.out.println("=== POST SERVICE DEBUG ===");
+        System.out.println("[PostService] getAllPosts called with lang: " + lang);
+        
         if ("ja".equals(lang)) {
-            return postJpRepository.findAllOrderByCreatedAtDesc()
+            System.out.println("[PostService] Fetching Japanese posts...");
+            List<PostDto> posts = postJpRepository.findAllOrderByCreatedAtDesc()
                     .stream()
                     .map(post -> {
                         PostDto dto = PostDto.fromJpEntity(post);
@@ -94,8 +98,11 @@ public class PostService {
                         return dto;
                     })
                     .collect(Collectors.toList());
+            System.out.println("[PostService] Retrieved " + posts.size() + " Japanese posts");
+            return posts;
         } else {
-            return postKrRepository.findAllOrderByCreatedAtDesc()
+            System.out.println("[PostService] Fetching Korean posts...");
+            List<PostDto> posts = postKrRepository.findAllOrderByCreatedAtDesc()
                     .stream()
                     .map(post -> {
                         PostDto dto = PostDto.fromKrEntity(post);
@@ -105,6 +112,8 @@ public class PostService {
                         return dto;
                     })
                     .collect(Collectors.toList());
+            System.out.println("[PostService] Retrieved " + posts.size() + " Korean posts");
+            return posts;
         }
     }
 
@@ -172,24 +181,38 @@ public class PostService {
 
     // 게시글 삭제
     public boolean deletePost(Long id, String lang) {
+        System.out.println("=== DELETE POST SERVICE DEBUG ===");
+        System.out.println("[PostService] deletePost called with id: " + id + ", lang: " + lang);
+        
         try {
             if ("ja".equals(lang)) {
+                System.out.println("[PostService] Attempting to delete Japanese post...");
                 if (postJpRepository.existsById(id)) {
+                    System.out.println("[PostService] Japanese post found, deleting...");
                     // 댓글과 좋아요 먼저 삭제
                     commentService.deleteCommentsByPostJpId(id);
                     likeService.deleteLikesByPostId(id, com.example.hyuk_blog.entity.PostType.JP);
                     postJpRepository.deleteById(id);
+                    System.out.println("[PostService] Japanese post deleted successfully");
                     return true;
+                } else {
+                    System.out.println("[PostService] Japanese post not found with ID: " + id);
                 }
             } else {
+                System.out.println("[PostService] Attempting to delete Korean post...");
                 if (postKrRepository.existsById(id)) {
+                    System.out.println("[PostService] Korean post found, deleting...");
                     // 댓글과 좋아요 먼저 삭제
                     commentService.deleteCommentsByPostKrId(id);
                     likeService.deleteLikesByPostId(id, com.example.hyuk_blog.entity.PostType.KR);
                     postKrRepository.deleteById(id);
+                    System.out.println("[PostService] Korean post deleted successfully");
                     return true;
+                } else {
+                    System.out.println("[PostService] Korean post not found with ID: " + id);
                 }
             }
+            System.out.println("[PostService] Post not found for deletion");
             return false;
         } catch (Exception e) {
             System.err.println("게시글 삭제 중 오류 발생: " + e.getMessage());

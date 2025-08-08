@@ -2,7 +2,15 @@ const { defineConfig } = require('@vue/cli-service')
 module.exports = defineConfig({
   transpileDependencies: true,
   devServer: {
-    port: 8082
+    port: 8082,
+    proxy: {
+      '/api': {
+        target: 'http://localhost:9090',
+        changeOrigin: true,
+        secure: false,
+        logLevel: 'debug'
+      }
+    }
   },
   configureWebpack: {
     resolve: {
