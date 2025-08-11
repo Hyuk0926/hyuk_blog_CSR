@@ -42,7 +42,7 @@ dependencies {
     testImplementation 'org.springframework.boot:spring-boot-starter-test'
     testRuntimeOnly 'org.junit.platform:junit-platform-launcher'
 
-    // REST API 서버로 전환하면서 Thymeleaf 관련 의존성을 제거했습니다.
+    // REST API 서버로 전환하면서 Thymeleaf 관련 의존성을 제거
     // implementation 'org.springframework.boot:spring-boot-starter-thymeleaf'
     // implementation 'org.thymeleaf.extras:thymeleaf-extras-springsecurity6'
 }

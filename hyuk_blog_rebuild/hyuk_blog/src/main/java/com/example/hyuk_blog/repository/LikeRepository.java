@@ -10,7 +10,6 @@ import org.springframework.stereotype.Repository;
 
 import java.util.Optional;
 
-@Repository
 public interface LikeRepository extends JpaRepository<Like, Long> {
     
     @Query("SELECT COUNT(l) FROM Like l WHERE l.postId = :postId AND l.postType = :postType")
@@ -20,8 +19,12 @@ public interface LikeRepository extends JpaRepository<Like, Long> {
     
     boolean existsByPostIdAndPostTypeAndUserId(Long postId, PostType postType, Long userId);
     
-    void deleteByPostIdAndPostTypeAndUserId(Long postId, PostType postType, Long userId);
-    
+//    void deleteByPostIdAndPostTypeAndUserId(Long postId, PostType postType, Long userId);
+
+    @Modifying
+    @Query("DELETE FROM Like l WHERE l.postId = :postId AND l.postType = :postType AND l.userId = :userId")
+    void deleteByPostIdAndPostTypeAndUserId(@Param("postId") Long postId, @Param("postType") PostType postType, @Param("userId") Long userId);
+
     @Modifying
     @Query("DELETE FROM Like l WHERE l.postId = :postId AND l.postType = :postType")
     void deleteByPostIdAndPostType(@Param("postId") Long postId, @Param("postType") PostType postType);

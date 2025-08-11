@@ -36,12 +36,19 @@ public class CommentApiController {
     public ResponseEntity<List<CommentDto>> getComments(
             @PathVariable Long postId,
             @RequestParam(defaultValue = "KR") String postTypeStr) {
-        
+
+        System.out.println("=== GET COMMENTS METHOD ENTERED ===");
+        System.out.println("PostId: " + postId);
+        System.out.println("PostType: " + postTypeStr);
+
         try {
             // 수정된 서비스 메서드 호출
             List<CommentDto> comments = commentService.getCommentsByPost(postId, postTypeStr);
+            System.out.println("Comments found: " + comments.size());
             return ResponseEntity.ok(comments);
         } catch (Exception e) {
+            System.out.println("ERROR in getComments: " + e.getMessage());
+            e.printStackTrace();
             return ResponseEntity.status(500).body(List.of());
         }
     }
@@ -54,21 +61,20 @@ public class CommentApiController {
     public ResponseEntity<?> createComment(
             @PathVariable Long postId,
             @RequestParam(defaultValue = "KR") String postTypeStr,
-            @RequestBody Map<String, String> requestBody,
+            @RequestBody CommentDto commentDto,
             @AuthenticationPrincipal UserDetails userDetails) {
         
         System.out.println("=== COMMENT CREATE METHOD ENTERED ===");
         System.out.println("PostId: " + postId);
         System.out.println("PostType: " + postTypeStr);
-        System.out.println("RequestBody: " + requestBody);
+        System.out.println("CommentDto: " + commentDto);
         System.out.println("UserDetails: " + (userDetails != null ? userDetails.getUsername() : "null"));
         
         if (userDetails == null) {
             return ResponseEntity.status(401).body(Map.of("error", "로그인이 필요합니다."));
         }
 
-        String content = requestBody.get("content");
-        if (content == null || content.trim().isEmpty()) {
+        if (commentDto.getContent() == null || commentDto.getContent().trim().isEmpty()) {
             return ResponseEntity.status(400).body(Map.of("error", "댓글 내용을 입력해주세요."));
         }
 
@@ -80,7 +86,7 @@ public class CommentApiController {
             CommentDto createdComment = commentService.createComment(
                 postId, 
                 postTypeStr, 
-                content.trim(), 
+                commentDto.getContent().trim(), 
                 user.getId(), 
                 user.getNickname()
             );

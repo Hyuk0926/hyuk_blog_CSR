@@ -5,7 +5,8 @@
 class ApiService {
   constructor() {
     // 프록시 설정을 사용하므로 상대 경로 사용
-    this.baseURL = '';
+    
+    this.baseURL ='http://localhost:9090';
     console.log('API Service initialized with baseURL:', this.baseURL);
   }
 
@@ -57,13 +58,13 @@ class ApiService {
       return await response.json();
     } catch (error) {
       // 404 오류는 백엔드 서버가 없음을 의미하므로 조용히 처리
-      if (error.message && error.message.includes('404')) {
-        console.warn('백엔드 서버에 연결할 수 없습니다. 오프라인 모드로 실행됩니다.');
-        throw error;
-      }
+      // if (error.message && error.message.includes('404')) {
+      //   console.warn('백엔드 서버에 연결할 수 없습니다. 오프라인 모드로 실행됩니다.');
+      //   throw error;
+      // }
       
-      console.error('API 요청 실패:', error);
-      throw error;
+      // console.error('API 요청 실패:', error);
+      // throw error;
     }
   }
 
@@ -226,6 +227,8 @@ class ApiService {
    * 좋아요 상태 및 개수 조회
    */
   async getLikeStatus(postId, postType) {
+    console.log("postId ::::::::::::", postId);
+    console.log("postType ::::::::::::", postType);
     return this.request(`/api/posts/${postId}/like?postType=${postType}`);
   }
 

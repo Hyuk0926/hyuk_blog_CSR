@@ -31,24 +31,31 @@ public class SecurityConfig {
     private final CustomUserDetailsService customUserDetailsService;
 
     @Bean
-    public SecurityFilterChain
-    filterChain(HttpSecurity http) throws Exception {
+    public SecurityFilterChain filterChain(HttpSecurity http) throws Exception {
         http
-            .csrf(AbstractHttpConfigurer::disable) // CSRF 비활성화
+            .csrf(AbstractHttpConfigurer::disable)
+            .cors(AbstractHttpConfigurer::disable)  // CORS 비활성화 (WebMvcConfig에서 처리)
             .sessionManagement(session -> session
-                .sessionCreationPolicy(SessionCreationPolicy.IF_REQUIRED) // 세션 활성화
-            )
-            .securityContext(securityContext -> securityContext
-                .requireExplicitSave(false) // 세션 자동 저장
+                .sessionCreationPolicy(SessionCreationPolicy.STATELESS)
             )
             .authorizeHttpRequests(authorize -> authorize
-                // 모든 요청 허용 (디버깅용)
-                .anyRequest().permitAll()
+                // --- GET 요청은 대부분 허용 ---
+                .requestMatchers(HttpMethod.GET, "/api/posts/**").permitAll()
+                .requestMatchers(HttpMethod.GET, "/api/resume").permitAll()
+                .requestMatchers(HttpMethod.GET, "/api/posts/*/comments").permitAll()
+                .requestMatchers(HttpMethod.GET, "/api/user/info").permitAll()
+                .requestMatchers(HttpMethod.GET, "/api/test").permitAll() // 테스트용
+                
+                // --- 인증(로그인/회원가입) API 허용 ---
+                .requestMatchers("/api/auth/**").permitAll()
+
+                // --- 그 외 모든 요청은 인증 필요 ---
+                .anyRequest().authenticated()
             )
-            .userDetailsService(customUserDetailsService) // UserDetailsService 등록
-            .formLogin(AbstractHttpConfigurer::disable) // 기본 로그인 폼 비활성화
-            .logout(AbstractHttpConfigurer::disable); // 기본 로그아웃 비활성화
-            // JWT 필터 임시 제거 (디버깅용)
+            .userDetailsService(customUserDetailsService)
+            .formLogin(AbstractHttpConfigurer::disable)
+            .logout(AbstractHttpConfigurer::disable)
+            .addFilterBefore(jwtAuthenticationFilter, UsernamePasswordAuthenticationFilter.class);
 
         return http.build();
     }

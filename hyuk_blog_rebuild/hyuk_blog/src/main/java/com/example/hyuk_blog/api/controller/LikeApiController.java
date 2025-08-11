@@ -28,6 +28,15 @@ public class LikeApiController {
     private UserService userService;
 
     /**
+     * 테스트용 간단한 메서드
+     */
+    @GetMapping("/test")
+    public ResponseEntity<String> test() {
+        System.out.println("=== TEST METHOD ENTERED ===");
+        return ResponseEntity.ok("Test successful!");
+    }
+
+    /**
      * 좋아요 토글 API
      * POST /api/posts/{postId}/like
      */
@@ -98,6 +107,11 @@ public class LikeApiController {
             @RequestParam(defaultValue = "KR") String postTypeStr,
             @AuthenticationPrincipal UserDetails userDetails) {
         
+        System.out.println("=== GET LIKE STATUS METHOD ENTERED ===");
+        System.out.println("PostId: " + postId);
+        System.out.println("PostType: " + postTypeStr);
+        System.out.println("UserDetails: " + (userDetails != null ? userDetails.getUsername() : "null"));
+        
         try {
             Long likeCount = likeService.getLikeCount(postId, postTypeStr);
             boolean isLiked = false;
@@ -116,8 +130,11 @@ public class LikeApiController {
             }
 
             LikeStatusDto likeStatus = new LikeStatusDto(postId, likeCount, isLiked);
+            System.out.println("LikeStatus: " + likeStatus);
             return ResponseEntity.ok(likeStatus);
         } catch (Exception e) {
+            System.out.println("ERROR in getLikeStatus: " + e.getMessage());
+            e.printStackTrace();
             return ResponseEntity.status(500).body(new LikeStatusDto(postId, 0L, false));
         }
     }

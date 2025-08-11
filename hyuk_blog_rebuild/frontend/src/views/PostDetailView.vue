@@ -180,6 +180,8 @@ const loadPost = async () => {
     const lang = route.query.lang || locale.value;
     const response = await apiService.getPost(postId, lang);
     
+    console.log("post response ::::::::::::", response);
+
     if (response.success) {
       post.value = response.data;
     } else {
@@ -191,7 +193,7 @@ const loadPost = async () => {
         content: '<p>요청하신 게시글을 찾을 수 없습니다.</p>',
         imageUrl: '',
         createdAt: new Date(),
-        likeCount: 0
+        // likeCount: 0
       };
     }
   } catch (error) {
@@ -212,8 +214,15 @@ const loadPost = async () => {
 };
 
 const loadLikeStatus = async () => {
-  if (!post.value.id) return;
+  // if (!post.value.id) return;
   
+  const lang = route.query.lang || locale.value;
+  const postType = post.value.postType || apiService.getPostTypeFromLang(lang);
+  const response = await apiService.getLikeStatus(post.value.id, postType);
+
+  console.log("postType ::::::::::::", postType);
+  console.log("좋아요 response ::::::::::::", response);
+
   try {
     // URL 쿼리 파라미터의 언어 설정을 우선 사용, 없으면 현재 locale 사용
     const lang = route.query.lang || locale.value;
@@ -235,11 +244,19 @@ const loadLikeStatus = async () => {
 const loadComments = async () => {
   if (!post.value.id) return;
   
+  const lang = route.query.lang || locale.value;
+  const postType = post.value.postType || apiService.getPostTypeFromLang(lang);
+   const response = await apiService.getComments(post.value.id, postType);
+
+  console.log("response ::::::::::::", response);
+
   try {
     // URL 쿼리 파라미터의 언어 설정을 우선 사용, 없으면 현재 locale 사용
     const lang = route.query.lang || locale.value;
     const postType = post.value.postType || apiService.getPostTypeFromLang(lang);
     const response = await apiService.getComments(post.value.id, postType);
+
+    console.log("response ::::::::::::", response);
     
     if (response && Array.isArray(response)) {
       comments.value = response;
