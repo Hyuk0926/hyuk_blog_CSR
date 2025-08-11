@@ -27,6 +27,12 @@ export function useAuth() {
       }
     } catch (error) {
       console.warn('사용자 정보를 가져올 수 없습니다:', error.message)
+      // 403, 401 오류는 로그인하지 않은 사용자이므로 조용히 처리
+      if (error.message && (error.message.includes('403') || error.message.includes('401'))) {
+        user.value = null
+        isAuthenticated.value = false
+        return null
+      }
       // 백엔드 서버가 없어도 로컬 스토리지의 정보로 로그인 상태 유지
       if (localStorage.getItem('jwtToken')) {
         const username = localStorage.getItem('username')
@@ -51,6 +57,11 @@ export function useAuth() {
   const login = async (credentials) => {
     try {
       const response = await apiService.login(credentials)
+      
+      // response가 undefined인 경우 처리
+      if (!response) {
+        throw new Error('로그인 응답이 없습니다.')
+      }
       
       // JWT 토큰을 로컬 스토리지에 저장
       localStorage.setItem('jwtToken', response.token)

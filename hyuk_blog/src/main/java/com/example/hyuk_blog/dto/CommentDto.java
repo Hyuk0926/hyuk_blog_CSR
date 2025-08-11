@@ -29,7 +29,13 @@ public class CommentDto {
         dto.setUserId(comment.getUser() != null ? comment.getUser().getId() : null);
         dto.setCreatedAt(comment.getCreatedAt());
         dto.setUpdatedAt(comment.getUpdatedAt());
-        dto.setEdited(!comment.getCreatedAt().equals(comment.getUpdatedAt()));
+        
+        // null 체크를 추가하여 안전하게 edited 상태 확인
+        if (comment.getCreatedAt() != null && comment.getUpdatedAt() != null) {
+            dto.setEdited(!comment.getCreatedAt().equals(comment.getUpdatedAt()));
+        } else {
+            dto.setEdited(false);
+        }
         
         // 게시글 타입에 따라 ID 설정
         if (comment.getPostType() == PostType.KR && comment.getPostKr() != null) {

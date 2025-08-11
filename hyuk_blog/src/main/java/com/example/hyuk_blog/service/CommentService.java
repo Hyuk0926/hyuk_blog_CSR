@@ -54,7 +54,10 @@ public class CommentService {
             }
             logger.info("Found {} comments", comments.size());
             // 서비스 내에서 DTO 변환을 완료하여 LazyInitializationException 방지
-            return comments.stream().map(this::convertToDto).collect(Collectors.toList());
+            return comments.stream()
+                .map(this::convertToDto)
+                .filter(dto -> dto != null) // null DTO 필터링
+                .collect(Collectors.toList());
         } catch (Exception e) {
             logger.error("Error getting comments for postId: {}, postType: {}", postId, postTypeStr, e);
             throw e;
@@ -182,10 +185,14 @@ public class CommentService {
     
     private CommentDto convertToDto(Comment comment) {
         try {
+            if (comment == null) {
+                logger.warn("Comment is null, skipping conversion");
+                return null;
+            }
             return CommentDto.fromEntity(comment);
         } catch (Exception e) {
-            logger.error("Error converting comment to DTO: {}", comment.getId(), e);
-            throw e;
+            logger.error("Error converting comment to DTO: {}", comment != null ? comment.getId() : "null", e);
+            return null; // null을 반환하여 스트림에서 필터링되도록 함
         }
     }
 } 

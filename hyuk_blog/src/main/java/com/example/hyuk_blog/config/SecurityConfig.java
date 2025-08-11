@@ -43,7 +43,6 @@ public class SecurityConfig {
                 .requestMatchers(HttpMethod.GET, "/api/posts/**").permitAll()
                 .requestMatchers(HttpMethod.GET, "/api/resume").permitAll()
                 .requestMatchers(HttpMethod.GET, "/api/posts/*/comments").permitAll()
-                .requestMatchers(HttpMethod.GET, "/api/user/info").permitAll()
                 .requestMatchers(HttpMethod.GET, "/api/test").permitAll() // 테스트용
                 
                 // --- 인증(로그인/회원가입) API 허용 ---

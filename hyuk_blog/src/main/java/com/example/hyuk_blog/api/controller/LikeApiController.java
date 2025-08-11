@@ -102,7 +102,7 @@ public class LikeApiController {
      * GET /api/posts/{postId}/like
      */
     @GetMapping("/posts/{postId}/like")
-    public ResponseEntity<LikeStatusDto> getLikeStatus(
+    public ResponseEntity<?> getLikeStatus(
             @PathVariable Long postId,
             @RequestParam(defaultValue = "KR") String postTypeStr,
             @AuthenticationPrincipal UserDetails userDetails) {
@@ -132,10 +132,20 @@ public class LikeApiController {
             LikeStatusDto likeStatus = new LikeStatusDto(postId, likeCount, isLiked);
             System.out.println("LikeStatus: " + likeStatus);
             return ResponseEntity.ok(likeStatus);
+        } catch (IllegalArgumentException e) {
+            // 잘못된 postType 같은 인자가 들어왔을 때 400 에러 반환
+            return ResponseEntity.status(400).body(Map.of(
+                "success", false,
+                "message", "잘못된 파라미터입니다: " + e.getMessage()
+            ));
         } catch (Exception e) {
             System.out.println("ERROR in getLikeStatus: " + e.getMessage());
             e.printStackTrace();
-            return ResponseEntity.status(500).body(new LikeStatusDto(postId, 0L, false));
+            // 기존 DTO 대신 일관된 오류 메시지 반환
+            return ResponseEntity.status(500).body(Map.of(
+                "success", false,
+                "message", "서버 내부 오류가 발생했습니다."
+            ));
         }
     }
 }

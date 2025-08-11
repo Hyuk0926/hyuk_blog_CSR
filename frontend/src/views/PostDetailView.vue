@@ -214,28 +214,28 @@ const loadPost = async () => {
 };
 
 const loadLikeStatus = async () => {
-  // if (!post.value.id) return;
-  
-  const lang = route.query.lang || locale.value;
-  const postType = post.value.postType || apiService.getPostTypeFromLang(lang);
-  const response = await apiService.getLikeStatus(post.value.id, postType);
-
-  console.log("postType ::::::::::::", postType);
-  console.log("좋아요 response ::::::::::::", response);
+  if (!post.value || !post.value.id) return;
 
   try {
     // URL 쿼리 파라미터의 언어 설정을 우선 사용, 없으면 현재 locale 사용
     const lang = route.query.lang || locale.value;
     const postType = post.value.postType || apiService.getPostTypeFromLang(lang);
-    const response = await apiService.getLikeStatus(post.value.id, postType);
     
+    console.log("Requesting like status with postId:", post.value.id, "and postType:", postType);
+    const response = await apiService.getLikeStatus(post.value.id, postType);
+    console.log("Like status response:", response);
+
     if (response) {
       likeCount.value = response.likeCount || 0;
       isLiked.value = response.isLiked || false;
+    } else {
+      // 응답이 비정상적일 경우 기본값으로 설정
+      likeCount.value = 0;
+      isLiked.value = false;
     }
   } catch (error) {
     console.error('좋아요 상태 로드 실패:', error);
-    // 에러가 발생해도 기본값으로 설정
+    // 에러가 발생해도 UI가 깨지지 않도록 기본값으로 설정
     likeCount.value = 0;
     isLiked.value = false;
   }

@@ -5,8 +5,7 @@
 class ApiService {
   constructor() {
     // 프록시 설정을 사용하므로 상대 경로 사용
-    
-    this.baseURL ='http://localhost:9090';
+    this.baseURL = '';
     console.log('API Service initialized with baseURL:', this.baseURL);
   }
 
@@ -23,7 +22,7 @@ class ApiService {
       headers: {
         'Content-Type': 'application/json',
       },
-      credentials: 'same-origin', // JWT 토큰 사용 시 same-origin으로 변경
+      credentials: 'same-origin', // 프록시 사용 시 same-origin으로 변경
     };
 
     // JWT 토큰이 있으면 Authorization 헤더에 추가
@@ -57,14 +56,8 @@ class ApiService {
       
       return await response.json();
     } catch (error) {
-      // 404 오류는 백엔드 서버가 없음을 의미하므로 조용히 처리
-      // if (error.message && error.message.includes('404')) {
-      //   console.warn('백엔드 서버에 연결할 수 없습니다. 오프라인 모드로 실행됩니다.');
-      //   throw error;
-      // }
-      
-      // console.error('API 요청 실패:', error);
-      // throw error;
+      console.error('API 요청 실패:', error);
+      throw error;
     }
   }
 
@@ -375,11 +368,12 @@ class ApiService {
         return null;
       }
       
-      console.error('Failed to get current user:', error);
-      // 토큰이 유효하지 않은 경우 로그아웃 처리
-      if (error.message && error.message.includes('401')) {
-        this.logout();
+      // 401, 403 오류는 로그인하지 않은 사용자이므로 조용히 처리
+      if (error.message && (error.message.includes('401') || error.message.includes('403'))) {
+        return null;
       }
+      
+      console.error('Failed to get current user:', error);
       return null;
     }
   }

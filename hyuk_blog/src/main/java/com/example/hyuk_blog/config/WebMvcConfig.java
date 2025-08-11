@@ -44,10 +44,10 @@ public class WebMvcConfig implements WebMvcConfigurer {
     @Override
     public void addCorsMappings(CorsRegistry registry) {
         registry.addMapping("/**")
-                .allowedOriginPatterns("*")  // 모든 origin 허용
+                .allowedOrigins("http://localhost:3000", "http://localhost:8080", "http://localhost:9090")
                 .allowedMethods("GET", "POST", "PUT", "DELETE", "OPTIONS")
                 .allowedHeaders("*")
-                .allowCredentials(false)  // credentials 비활성화
+                .allowCredentials(true)
                 .maxAge(3600);
     }
 

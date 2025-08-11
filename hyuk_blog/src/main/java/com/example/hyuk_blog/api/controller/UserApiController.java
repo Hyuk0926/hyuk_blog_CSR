@@ -29,9 +29,8 @@ public class UserApiController {
     public ResponseEntity<?> getCurrentUserInfo(@RequestHeader(value = "Authorization", required = false) String authHeader) {
         try {
             if (authHeader == null || !authHeader.startsWith("Bearer ")) {
-                Map<String, String> error = new HashMap<>();
-                error.put("error", "Authorization header is required");
-                return ResponseEntity.badRequest().body(error);
+                // 인증이 없는 경우 401 Unauthorized 반환
+                return ResponseEntity.status(401).build();
             }
             
             String token = authHeader.substring(7); // "Bearer " 제거
