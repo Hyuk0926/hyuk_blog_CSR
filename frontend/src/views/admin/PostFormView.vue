@@ -55,12 +55,23 @@
           <div class="meta-row">
             <div class="meta-item">
               <label class="meta-label">카테고리</label>
-              <select v-model="formData.category" class="meta-select" required>
-                <option value="">카테고리 선택</option>
-                <option v-for="category in categories" :key="category.value" :value="category.value">
-                  {{ category.displayName }}
-                </option>
-              </select>
+              <div class="category-input-group">
+                <select v-model="formData.category" class="meta-select" required>
+                  <option value="">카테고리 선택</option>
+                  <option v-for="category in categories" :key="category.value" :value="category.value">
+                    {{ category.displayName }}
+                  </option>
+                  <option value="custom">직접 입력</option>
+                </select>
+                <input 
+                  v-if="formData.category === 'custom'"
+                  v-model="customCategory" 
+                  type="text" 
+                  class="custom-category-input" 
+                  placeholder="새 카테고리명 입력..."
+                  @input="updateCustomCategory"
+                >
+              </div>
             </div>
             <div class="meta-item">
               <label class="meta-label">상태</label>
@@ -113,37 +124,39 @@
               ></textarea>
             </div>
             
-            <div class="content-editor">
-              <textarea 
-                v-if="activeLanguage === 'ko'"
-                v-model="formData.contentKo" 
-                class="content-input" 
-                placeholder="한국어 내용을 입력하세요..."
-                required
-              ></textarea>
-              <textarea 
-                v-if="activeLanguage === 'ja'"
-                v-model="formData.contentJa" 
-                class="content-input" 
-                placeholder="日本語の内容を入力してください..."
-                required
-              ></textarea>
-            </div>
+                         <div class="content-editor">
+               <Editor
+                 v-if="activeLanguage === 'ko'"
+                 :key="'ko-editor'"
+                 v-model="formData.contentKo"
+                 :init="editorConfig"
+                 :placeholder="'한국어 내용을 입력하세요...'"
+                 class="content-input"
+               />
+               <Editor
+                 v-if="activeLanguage === 'ja'"
+                 :key="'ja-editor'"
+                 v-model="formData.contentJa"
+                 :init="editorConfig"
+                 :placeholder="'日本語の内容を入力してください...'"
+                 class="content-input"
+               />
+             </div>
           </div>
 
           <div v-if="activeTab === 'preview'" class="preview-area">
             <div class="preview-content">
-              <h1 class="preview-title">{{ formData.titleKo || '제목 없음' }}</h1>
+              <h1 class="preview-title">{{ getDisplayTitle() }}</h1>
               <div class="preview-meta">
                 <span class="preview-category">{{ getCategoryName(formData.category) }}</span>
                 <span class="preview-status" :class="formData.published ? 'published' : 'draft'">
                   {{ formData.published ? '공개' : '임시저장' }}
                 </span>
               </div>
-              <div v-if="formData.summaryKo" class="preview-summary">
-                {{ formData.summaryKo }}
+              <div v-if="getDisplaySummary()" class="preview-summary">
+                {{ getDisplaySummary() }}
               </div>
-              <div class="preview-body" v-html="formData.contentKo"></div>
+              <div class="preview-body" v-html="getDisplayContent()"></div>
             </div>
           </div>
         </div>
@@ -173,35 +186,27 @@
           </div>
         </div>
 
-        <div class="sidebar-section">
-          <h3 class="sidebar-title">HTML 도움말</h3>
-          <div class="help-list">
-            <div class="help-item">
-              <code>&lt;h2&gt;</code> - 제목
-            </div>
-            <div class="help-item">
-              <code>&lt;p&gt;</code> - 단락
-            </div>
-            <div class="help-item">
-              <code>&lt;ul&gt;</code> - 순서없는 목록
-            </div>
-            <div class="help-item">
-              <code>&lt;ol&gt;</code> - 순서있는 목록
-            </div>
-            <div class="help-item">
-              <code>&lt;code&gt;</code> - 인라인 코드
-            </div>
-            <div class="help-item">
-              <code>&lt;pre&gt;</code> - 코드 블록
-            </div>
-            <div class="help-item">
-              <code>&lt;strong&gt;</code> - 굵은 글씨
-            </div>
-            <div class="help-item">
-              <code>&lt;em&gt;</code> - 기울임 글씨
-            </div>
-          </div>
-        </div>
+                 <div class="sidebar-section">
+           <h3 class="sidebar-title">빠른 가이드</h3>
+           <div class="help-list">
+             <div class="help-item">
+               <strong>서식</strong>
+               <p>굵게, 기울임, 색상</p>
+             </div>
+             <div class="help-item">
+               <strong>구조</strong>
+               <p>제목, 목록, 정렬</p>
+             </div>
+             <div class="help-item">
+               <strong>미디어</strong>
+               <p>링크, 이미지, 코드</p>
+             </div>
+             <div class="help-item">
+               <strong>미리보기</strong>
+               <p>실제 결과 확인</p>
+             </div>
+           </div>
+         </div>
       </div>
     </div>
 
@@ -218,9 +223,13 @@
 
 <script>
 import apiService from '@/services/api.js';
+import Editor from '@tinymce/tinymce-vue';
 
 export default {
   name: 'PostFormView',
+  components: {
+    Editor
+  },
   data() {
     return {
       isEdit: false,
@@ -229,6 +238,7 @@ export default {
       activeLanguage: 'ko', // 기본 언어 설정
       lang: 'ko', // API 요청용 언어 설정
       categories: [],
+      customCategory: '', // 사용자가 직접 입력한 카테고리 이름
       formData: {
         titleKo: '',
         titleJa: '',
@@ -240,6 +250,99 @@ export default {
         imageUrl: '',
         tags: '',
         published: false
+      },
+      editorConfig: {
+        height: 400,
+        language: 'ko_KR',
+        plugins: [
+          'advlist', 'autolink', 'lists', 'link', 'image', 'charmap', 'preview',
+          'anchor', 'searchreplace', 'visualblocks', 'code', 'fullscreen',
+          'insertdatetime', 'media', 'table', 'help', 'wordcount', 'paste'
+        ],
+        toolbar: [
+          'undo redo | formatselect | bold italic underline strikethrough | forecolor backcolor',
+          'alignleft aligncenter alignright alignjustify | bullist numlist outdent indent',
+          'link image table | code preview | removeformat help'
+        ].join(' | '),
+        content_style: `
+          body { 
+            font-family: 'Noto Sans KR', 'Noto Sans JP', 'Malgun Gothic', 'Hiragino Kaku Gothic ProN', sans-serif; 
+            font-size: 14px; 
+            line-height: 1.6; 
+            color: #2c3e50; 
+            margin: 0;
+            padding: 16px 20px;
+          }
+          .mce-content-body[data-mce-placeholder]:not(.mce-visualblocks)::before {
+            color: #adb5bd;
+            font-style: italic;
+          }
+          h1, h2, h3, h4, h5, h6 {
+            color: #2c3e50;
+            margin-top: 24px;
+            margin-bottom: 16px;
+          }
+          p {
+            margin-bottom: 16px;
+          }
+          code {
+            background: #f8f9fa;
+            padding: 2px 6px;
+            border-radius: 4px;
+            font-family: 'Courier New', monospace;
+            color: #e83e8c;
+          }
+          pre {
+            background: #f8f9fa;
+            padding: 16px;
+            border-radius: 8px;
+            overflow-x: auto;
+            border-left: 4px solid #007bff;
+          }
+          blockquote {
+            border-left: 4px solid #007bff;
+            padding-left: 16px;
+            margin: 16px 0;
+            color: #6c757d;
+            font-style: italic;
+          }
+          a {
+            color: #007bff;
+            text-decoration: none;
+          }
+          a:hover {
+            text-decoration: underline;
+          }
+        `,
+        placeholder: '내용을 입력하세요...',
+        menubar: false,
+        branding: false,
+        elementpath: false,
+        statusbar: false,
+        resize: false,
+        paste_as_text: false,
+        paste_enable_default_filters: true,
+        paste_word_valid_elements: 'b,strong,i,em,h1,h2,h3,h4,h5,h6',
+        paste_retain_style_properties: 'color background-color font-size font-family',
+        setup: (editor) => {
+          // 언어별 폰트 설정
+          editor.on('init', () => {
+            const currentLang = this.activeLanguage;
+            if (currentLang === 'ja') {
+              editor.dom.addStyle(`
+                body { 
+                  font-family: 'Noto Sans JP', 'Hiragino Kaku Gothic ProN', 'Yu Gothic', sans-serif !important; 
+                }
+              `);
+            } else {
+              editor.dom.addStyle(`
+                body { 
+                  font-family: 'Noto Sans KR', 'Malgun Gothic', sans-serif !important; 
+                }
+              `);
+            }
+          });
+        }
       }
     }
   },
@@ -249,6 +352,15 @@ export default {
     this.setLanguage();
     this.loadPostData();
   },
+     watch: {
+     activeLanguage() {
+       this.updateEditorConfig();
+     }
+   },
+   beforeUnmount() {
+     // 컴포넌트 언마운트 시 에디터 정리
+     this.cleanupEditors();
+   },
   methods: {
     async loadCategories() {
       try {
@@ -287,7 +399,113 @@ export default {
         }
       }
       console.log('PostFormView - Language set to:', this.lang);
+      this.updateEditorConfig();
     },
+    
+         updateEditorConfig() {
+       // 언어에 따른 에디터 설정 업데이트
+       const newConfig = {
+         ...this.editorConfig,
+         language: this.activeLanguage === 'ja' ? 'ja' : 'ko_KR',
+         placeholder: this.activeLanguage === 'ja' ? 
+           '内容を入力してください...' : '내용을 입력하세요...'
+       };
+       
+       // 에디터 설정을 완전히 새로 생성
+       this.editorConfig = {
+         height: 400,
+         language: newConfig.language,
+         plugins: [
+           'advlist', 'autolink', 'lists', 'link', 'image', 'charmap', 'preview',
+           'anchor', 'searchreplace', 'visualblocks', 'code', 'fullscreen',
+           'insertdatetime', 'media', 'table', 'help', 'wordcount', 'paste'
+         ],
+         toolbar: [
+           'undo redo | formatselect | bold italic underline strikethrough | forecolor backcolor',
+           'alignleft aligncenter alignright alignjustify | bullist numlist outdent indent',
+           'link image table | code preview | removeformat help'
+         ].join(' | '),
+         content_style: `
+           body { 
+             font-family: 'Noto Sans KR', 'Noto Sans JP', 'Malgun Gothic', 'Hiragino Kaku Gothic ProN', sans-serif; 
+             font-size: 14px; 
+             line-height: 1.6; 
+             color: #2c3e50; 
+             margin: 0;
+             padding: 16px 20px;
+           }
+           .mce-content-body[data-mce-placeholder]:not(.mce-visualblocks)::before {
+             color: #adb5bd;
+             font-style: italic;
+           }
+           h1, h2, h3, h4, h5, h6 {
+             color: #2c3e50;
+             margin-top: 24px;
+             margin-bottom: 16px;
+           }
+           p {
+             margin-bottom: 16px;
+           }
+           code {
+             background: #f8f9fa;
+             padding: 2px 6px;
+             border-radius: 4px;
+             font-family: 'Courier New', monospace;
+             color: #e83e8c;
+           }
+           pre {
+             background: #f8f9fa;
+             padding: 16px;
+             border-radius: 8px;
+             overflow-x: auto;
+             border-left: 4px solid #007bff;
+           }
+           blockquote {
+             border-left: 4px solid #007bff;
+             padding-left: 16px;
+             margin: 16px 0;
+             color: #6c757d;
+             font-style: italic;
+           }
+           a {
+             color: #007bff;
+             text-decoration: none;
+           }
+           a:hover {
+             text-decoration: underline;
+           }
+         `,
+         placeholder: newConfig.placeholder,
+         menubar: false,
+         branding: false,
+         elementpath: false,
+         statusbar: false,
+         resize: false,
+         paste_as_text: false,
+         paste_enable_default_filters: true,
+         paste_word_valid_elements: 'b,strong,i,em,h1,h2,h3,h4,h5,h6',
+         paste_retain_style_properties: 'color background-color font-size font-family',
+         setup: (editor) => {
+           // 언어별 폰트 설정
+           editor.on('init', () => {
+             const currentLang = this.activeLanguage;
+             if (currentLang === 'ja') {
+               editor.dom.addStyle(`
+                 body { 
+                   font-family: 'Noto Sans JP', 'Hiragino Kaku Gothic ProN', 'Yu Gothic', sans-serif !important; 
+                 }
+               `);
+             } else {
+               editor.dom.addStyle(`
+                 body { 
+                   font-family: 'Noto Sans KR', 'Malgun Gothic', sans-serif !important; 
+                 }
+               `);
+             }
+           });
+         }
+       };
+     },
     checkAuth() {
       const token = localStorage.getItem('jwtToken');
       const userRole = localStorage.getItem('userRole');
@@ -355,6 +573,36 @@ export default {
       const foundCategory = this.categories.find(cat => cat.value === category);
       return foundCategory ? foundCategory.displayName : category;
     },
+    updateCustomCategory() {
+      // 사용자가 직접 입력한 카테고리가 있으면 해당 값을 사용
+      if (this.customCategory.trim()) {
+        this.formData.category = this.customCategory.trim();
+      } else {
+        // 사용자가 입력을 취소하거나 비웠으면 기본 카테고리 선택 옵션으로 변경
+        this.formData.category = '';
+      }
+    },
+    getDisplayTitle() {
+      if (this.activeLanguage === 'ko') {
+        return this.formData.titleKo || '제목 없음';
+      } else {
+        return this.formData.titleJa || '제목 없음';
+      }
+    },
+    getDisplaySummary() {
+      if (this.activeLanguage === 'ko') {
+        return this.formData.summaryKo || '';
+      } else {
+        return this.formData.summaryJa || '';
+      }
+    },
+    getDisplayContent() {
+      if (this.activeLanguage === 'ko') {
+        return this.formData.contentKo || '';
+      } else {
+        return this.formData.contentJa || '';
+      }
+    },
 
     async submitForm() {
       // 현재 선택된 언어에 따라 필수 필드 검증
@@ -409,16 +657,33 @@ export default {
         this.isSubmitting = false;
       }
     },
-    goToDashboard() {
-      this.$router.push('/admin/dashboard');
-    },
-    logout() {
-      localStorage.removeItem('jwtToken');
-      localStorage.removeItem('userRole');
-      localStorage.removeItem('username');
-      localStorage.removeItem('adminToken');
-      this.$router.push('/admin/login');
-    }
+         goToDashboard() {
+       // 에디터 정리 후 대시보드로 이동
+       this.cleanupEditors();
+       this.$router.push('/admin/dashboard');
+     },
+         logout() {
+       // 에디터 정리 후 로그아웃
+       this.cleanupEditors();
+       localStorage.removeItem('jwtToken');
+       localStorage.removeItem('userRole');
+       localStorage.removeItem('username');
+       localStorage.removeItem('adminToken');
+       this.$router.push('/admin/login');
+     },
+     cleanupEditors() {
+       // TinyMCE 에디터 인스턴스 정리
+       try {
+         const editors = document.querySelectorAll('.tox-tinymce');
+         editors.forEach(editor => {
+           if (editor && editor._tinymce) {
+             editor._tinymce.destroy();
+           }
+         });
+       } catch (error) {
+         console.log('에디터 정리 중 오류:', error);
+       }
+     }
   }
 }
 </script>
@@ -498,24 +763,27 @@ export default {
 }
 
 .title-section {
-  padding: 32px;
+  padding: 20px 32px;
   border-bottom: 1px solid #e9ecef;
-  background: #f8f9fa;
+  background: #ffffff;
 }
 
 .title-input {
   width: 100%;
-  font-size: 2.25rem;
-  font-weight: 800;
-  border: none;
+  font-size: 1.5rem;
+  font-weight: 600;
+  border: 1px solid #e9ecef;
+  border-radius: 8px;
   outline: none;
   color: #2c3e50;
-  background: transparent;
+  background: #ffffff;
+  padding: 10px 14px;
   transition: all 0.3s ease;
 }
 
 .title-input:focus {
-  transform: translateY(-2px);
+  border-color: #007bff;
+  box-shadow: 0 0 0 3px rgba(0, 123, 255, 0.1);
 }
 
 .title-input::placeholder {
@@ -552,9 +820,9 @@ export default {
 }
 
 .meta-section {
-  padding: 20px 32px;
+  padding: 12px 32px;
   border-bottom: 1px solid #e9ecef;
-  background: #ffffff;
+  background: #f8f9fa;
 }
 
 .meta-row {
@@ -570,23 +838,45 @@ export default {
 }
 
 .meta-label {
-  font-size: 0.9rem;
+  font-size: 0.85rem;
   font-weight: 600;
   color: #495057;
   min-width: 60px;
 }
 
+.category-input-group {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
 .meta-select {
-  padding: 8px 16px;
+  padding: 6px 12px;
   border: 2px solid #e9ecef;
   border-radius: 8px;
-  font-size: 0.9rem;
+  font-size: 0.85rem;
   background: white;
   transition: all 0.3s ease;
   cursor: pointer;
 }
 
 .meta-select:focus {
+  outline: none;
+  border-color: #495057;
+  box-shadow: 0 0 0 3px rgba(73, 80, 87, 0.1);
+}
+
+.custom-category-input {
+  flex: 1;
+  padding: 6px 12px;
+  border: 2px solid #e9ecef;
+  border-radius: 8px;
+  font-size: 0.85rem;
+  background: white;
+  transition: all 0.3s ease;
+}
+
+.custom-category-input:focus {
   outline: none;
   border-color: #495057;
   box-shadow: 0 0 0 3px rgba(73, 80, 87, 0.1);
@@ -606,7 +896,7 @@ export default {
 }
 
 .publish-label {
-  font-size: 0.9rem;
+  font-size: 0.85rem;
   font-weight: 600;
   color: #495057;
   cursor: pointer;
@@ -675,19 +965,29 @@ export default {
 }
 
 .summary-section {
-  padding: 16px 24px;
+  padding: 12px 32px;
   border-bottom: 1px solid #e9ecef;
+  background: #ffffff;
 }
 
 .summary-input {
   width: 100%;
-  border: none;
+  border: 1px solid #e9ecef;
+  border-radius: 8px;
   outline: none;
   resize: none;
-  font-size: 1rem;
-  line-height: 1.5;
+  font-size: 0.9rem;
+  line-height: 1.4;
   color: #495057;
-  background: transparent;
+  background: #ffffff;
+  padding: 8px 12px;
+  transition: all 0.3s ease;
+  min-height: 60px;
+}
+
+.summary-input:focus {
+  border-color: #007bff;
+  box-shadow: 0 0 0 3px rgba(0, 123, 255, 0.1);
 }
 
 .summary-input::placeholder {
@@ -696,31 +996,90 @@ export default {
 
 .content-editor {
   flex: 1;
-  padding: 32px;
+  padding: 16px 32px;
+  background: #ffffff;
 }
 
 .content-input {
   width: 100%;
-  height: 100%;
-  min-height: 500px;
+  min-height: 400px;
   border: none;
   outline: none;
-  resize: none;
-  font-size: 1.1rem;
-  line-height: 1.8;
-  color: #2c3e50;
   background: transparent;
-  font-family: 'Noto Sans KR', sans-serif;
   transition: all 0.3s ease;
 }
 
-.content-input:focus {
-  transform: scale(1.01);
+/* TinyMCE 에디터 스타일 커스터마이징 */
+.content-input {
+  border: 1px solid #e9ecef !important;
+  border-radius: 8px !important;
+  overflow: hidden;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
 }
 
-.content-input::placeholder {
-  color: #adb5bd;
-  font-style: italic;
+.content-input .tox-tinymce {
+  border: none !important;
+  border-radius: 8px !important;
+}
+
+.content-input .tox-toolbar {
+  background: #ffffff !important;
+  border-bottom: 1px solid #e9ecef !important;
+  padding: 8px 12px !important;
+}
+
+.content-input .tox-toolbar__group {
+  border-right: 1px solid #e9ecef !important;
+  padding-right: 8px !important;
+  margin-right: 8px !important;
+}
+
+.content-input .tox-toolbar__group:last-child {
+  border-right: none !important;
+  margin-right: 0 !important;
+}
+
+.content-input .tox-tbtn {
+  border-radius: 4px !important;
+  transition: all 0.2s ease !important;
+}
+
+.content-input .tox-tbtn:hover {
+  background: #f8f9fa !important;
+  transform: translateY(-1px) !important;
+}
+
+.content-input .tox-tbtn--enabled {
+  background: #e9ecef !important;
+  color: #495057 !important;
+}
+
+.content-input .tox-edit-area {
+  background: #ffffff !important;
+  border-top: 1px solid #e9ecef !important;
+}
+
+.content-input .tox-edit-area__iframe {
+  background: #ffffff !important;
+  min-height: 350px !important;
+}
+
+.content-input .tox-edit-focus {
+  border-color: #007bff !important;
+  box-shadow: 0 0 0 3px rgba(0, 123, 255, 0.1) !important;
+}
+
+/* 에디터 내부 콘텐츠 스타일 */
+.content-input .mce-content-body {
+  padding: 16px 20px !important;
+  font-family: 'Noto Sans KR', 'Noto Sans JP', 'Malgun Gothic', 'Hiragino Kaku Gothic ProN', sans-serif !important;
+  font-size: 14px !important;
+  line-height: 1.6 !important;
+  color: #2c3e50 !important;
+}
+
+.content-input .mce-content-body:focus {
+  outline: none !important;
 }
 
 .preview-area {
@@ -831,6 +1190,48 @@ export default {
   padding: 0;
 }
 
+.preview-body code {
+  background: #f8f9fa;
+  padding: 2px 6px;
+  border-radius: 4px;
+  font-family: 'Courier New', monospace;
+  font-size: 0.9rem;
+  color: #e83e8c;
+}
+
+.preview-body pre {
+  background: #f8f9fa;
+  padding: 16px;
+  border-radius: 8px;
+  overflow-x: auto;
+  margin: 16px 0;
+  border-left: 4px solid #007bff;
+}
+
+.preview-body blockquote {
+  border-left: 4px solid #007bff;
+  padding-left: 16px;
+  margin: 16px 0;
+  color: #6c757d;
+  font-style: italic;
+}
+
+.preview-body a {
+  color: #007bff;
+  text-decoration: none;
+}
+
+.preview-body a:hover {
+  text-decoration: underline;
+}
+
+.preview-body hr {
+  border: none;
+  height: 1px;
+  background: #e9ecef;
+  margin: 24px 0;
+}
+
 .form-sidebar {
   width: 320px;
   display: flex;
@@ -898,14 +1299,29 @@ export default {
 .help-item {
   font-size: 0.85rem;
   color: #495057;
+  padding: 8px 12px;
+  border-radius: 4px;
+  background: #f8f9fa;
+  margin-bottom: 6px;
+  border-left: 2px solid #007bff;
 }
 
-.help-item code {
-  background: #f8f9fa;
-  padding: 2px 6px;
-  border-radius: 4px;
-  font-family: 'Courier New', monospace;
-  color: #e83e8c;
+.help-item:last-child {
+  margin-bottom: 0;
+}
+
+.help-item strong {
+  display: inline;
+  font-weight: 600;
+  color: #2c3e50;
+  margin-right: 8px;
+}
+
+.help-item p {
+  display: inline;
+  margin: 0;
+  color: #6c757d;
+  font-size: 0.8rem;
 }
 
 .form-footer {
@@ -1016,12 +1432,105 @@ export default {
   color: #a0aec0;
 }
 
-:global(body.dark-mode) .title-input,
-:global(body.dark-mode) .summary-input,
+:global(body.dark-mode) .title-input {
+  background: #2d3748;
+  color: #e2e8f0;
+  border-color: #4a5568;
+}
+
+:global(body.dark-mode) .title-input:focus {
+  border-color: #60a5fa;
+  box-shadow: 0 0 0 3px rgba(96, 165, 250, 0.2);
+}
+
+:global(body.dark-mode) .summary-input {
+  background: #2d3748;
+  color: #e2e8f0;
+  border-color: #4a5568;
+}
+
+:global(body.dark-mode) .summary-input:focus {
+  border-color: #60a5fa;
+  box-shadow: 0 0 0 3px rgba(96, 165, 250, 0.2);
+}
+
 :global(body.dark-mode) .content-input {
   background: #1a202c;
   color: #e2e8f0;
   border-color: #4a5568;
+}
+
+:global(body.dark-mode) .content-input {
+  border-color: #4a5568 !important;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2) !important;
+}
+
+:global(body.dark-mode) .content-input .tox-toolbar {
+  background: #2d3748 !important;
+  border-bottom-color: #4a5568 !important;
+}
+
+:global(body.dark-mode) .content-input .tox-toolbar__group {
+  border-right-color: #4a5568 !important;
+}
+
+:global(body.dark-mode) .content-input .tox-tbtn:hover {
+  background: #4a5568 !important;
+}
+
+:global(body.dark-mode) .content-input .tox-tbtn--enabled {
+  background: #4a5568 !important;
+  color: #e2e8f0 !important;
+}
+
+:global(body.dark-mode) .content-input .tox-edit-area {
+  background: #1a202c !important;
+  border-top-color: #4a5568 !important;
+}
+
+:global(body.dark-mode) .content-input .tox-edit-area__iframe {
+  background: #1a202c !important;
+}
+
+:global(body.dark-mode) .content-input .tox-edit-focus {
+  border-color: #60a5fa !important;
+  box-shadow: 0 0 0 3px rgba(96, 165, 250, 0.2) !important;
+}
+
+:global(body.dark-mode) .content-input .mce-content-body {
+  color: #e2e8f0 !important;
+}
+
+:global(body.dark-mode) .content-input .mce-content-body h1,
+:global(body.dark-mode) .content-input .mce-content-body h2,
+:global(body.dark-mode) .content-input .mce-content-body h3,
+:global(body.dark-mode) .content-input .mce-content-body h4,
+:global(body.dark-mode) .content-input .mce-content-body h5,
+:global(body.dark-mode) .content-input .mce-content-body h6 {
+  color: #f7fafc !important;
+}
+
+:global(body.dark-mode) .content-input .mce-content-body code {
+  background: #1a202c !important;
+  color: #fbb6ce !important;
+}
+
+:global(body.dark-mode) .content-input .mce-content-body pre {
+  background: #1a202c !important;
+  border-left-color: #60a5fa !important;
+}
+
+:global(body.dark-mode) .content-input .mce-content-body blockquote {
+  border-left-color: #60a5fa !important;
+  color: #a0aec0 !important;
+}
+
+:global(body.dark-mode) .content-input .mce-content-body a {
+  color: #60a5fa !important;
+}
+
+:global(body.dark-mode) .content-input .mce-content-body a:hover {
+  color: #93c5fd !important;
 }
 
 :global(body.dark-mode) .title-input::placeholder,
@@ -1059,6 +1568,17 @@ export default {
   box-shadow: 0 0 0 2px rgba(160,174,192,0.25);
 }
 
+:global(body.dark-mode) .custom-category-input {
+  background: #1a202c;
+  border-color: #4a5568;
+  color: #e2e8f0;
+}
+
+:global(body.dark-mode) .custom-category-input:focus {
+  border-color: #a0aec0;
+  box-shadow: 0 0 0 2px rgba(160,174,192,0.25);
+}
+
 :global(body.dark-mode) .tab-btn {
   background: #1a202c;
   color: #a0aec0;
@@ -1087,11 +1607,43 @@ export default {
 
 :global(body.dark-mode) .help-item {
   color: #e2e8f0;
+  background: #2d3748;
+  border-left-color: #60a5fa;
 }
 
-:global(body.dark-mode) .help-item code {
+:global(body.dark-mode) .help-item strong {
+  color: #f7fafc;
+}
+
+:global(body.dark-mode) .help-item p {
+  color: #a0aec0;
+}
+
+:global(body.dark-mode) .preview-body code {
   background: #1a202c;
   color: #fbb6ce;
+}
+
+:global(body.dark-mode) .preview-body pre {
+  background: #1a202c;
+  border-left-color: #a0aec0;
+}
+
+:global(body.dark-mode) .preview-body blockquote {
+  border-left-color: #a0aec0;
+  color: #a0aec0;
+}
+
+:global(body.dark-mode) .preview-body a {
+  color: #60a5fa;
+}
+
+:global(body.dark-mode) .preview-body a:hover {
+  color: #93c5fd;
+}
+
+:global(body.dark-mode) .preview-body hr {
+  background: #4a5568;
 }
 
 :global(body.dark-mode) .btn-secondary {

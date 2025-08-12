@@ -1,5 +1,5 @@
 <template>
-  <div class="post-card" @click="handleClick($event)">
+  <div class="post-card" :class="{ 'dark-mode': isDarkMode }" @click="handleClick($event)">
     <!-- 카테고리 배지 -->
     <div class="post-category">
       <span class="category-badge">{{ getCategoryDisplayName(post.category) }}</span>
@@ -81,6 +81,10 @@ export default {
     lang: {
       type: String,
       default: 'ko'
+    },
+    isDarkMode: {
+      type: Boolean,
+      default: false
     }
   },
   computed: {
@@ -150,6 +154,7 @@ export default {
         'PYTHON': 'Python',
         'BLOG_CODING': 'BlogBuild'
       };
+      // 매핑된 카테고리가 있으면 사용, 없으면 원본 카테고리명 반환
       return categoryMap[category] || category;
     },
     getTags(tagsString) {
@@ -166,7 +171,7 @@ export default {
   background: #ffffff;
   border-radius: 12px;
   overflow: hidden;
-  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.08);
+  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.02);
   transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
   cursor: pointer;
   display: flex;
@@ -177,7 +182,7 @@ export default {
 
 .post-card:hover {
   transform: translateY(-2px);
-  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.1);
+  box-shadow: 0 2px 12px rgba(0, 0, 0, 0.08);
   border-color: #e2e8f0;
 }
 
@@ -203,7 +208,7 @@ export default {
   font-weight: 600;
   border-radius: 20px;
   border: 1px solid rgba(255, 255, 255, 0.2);
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+  box-shadow: 0 1px 4px rgba(0, 0, 0, 0.02);
 }
 
 /* 이미지 영역 */
@@ -251,11 +256,12 @@ export default {
 
 /* 카드 내용 */
 .post-content {
-  padding: 20px;
+  padding: 32px 45px;
   display: flex;
   flex-direction: column;
   flex-grow: 1;
   gap: 12px;
+  min-width: 0; /* 텍스트 오버플로우 방지 */
 }
 
 .post-title {
@@ -349,22 +355,22 @@ export default {
 
 /* 다크모드 지원 */
 .post-card.dark-mode {
-  background: #1e293b;
-  border-color: #334155;
-  box-shadow: none;
+  background: #0f172a !important;
+  border-color: #1e293b !important;
+  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.1) !important;
 }
 
 .post-card.dark-mode:hover {
-  box-shadow: none;
-  border-color: #475569;
-  background: #334155;
+  box-shadow: 0 2px 12px rgba(0, 0, 0, 0.15) !important;
+  border-color: #334155 !important;
+  background: #1e293b !important;
 }
 
 .post-card.dark-mode .category-badge {
   background: rgba(30, 41, 59, 0.95);
   color: #cbd5e1;
   border-color: rgba(30, 41, 59, 0.3);
-  box-shadow: none;
+  box-shadow: 0 1px 4px rgba(0, 0, 0, 0.1);
 }
 
 .post-card.dark-mode .post-image-placeholder {
@@ -373,20 +379,20 @@ export default {
 }
 
 .post-card.dark-mode .post-title {
-  color: #f1f5f9;
+  color: #ffffff !important;
 }
 
 .post-card.dark-mode .post-summary {
-  color: #94a3b8;
+  color: #cbd5e1 !important;
 }
 
 .post-card.dark-mode .post-meta {
-  border-top-color: #334155;
+  border-top-color: #334155 !important;
 }
 
 .post-card.dark-mode .post-date,
 .post-card.dark-mode .post-stat {
-  color: #64748b;
+  color: #64748b !important;
 }
 
 .post-card.dark-mode .tag {
@@ -402,7 +408,7 @@ export default {
 /* 반응형 디자인 */
 @media (max-width: 768px) {
   .post-content {
-    padding: 16px;
+    padding: 28px 36px;
     gap: 10px;
   }
   
@@ -427,7 +433,7 @@ export default {
 
 @media (max-width: 480px) {
   .post-content {
-    padding: 12px;
+    padding: 24px 32px;
   }
   
   .post-title {

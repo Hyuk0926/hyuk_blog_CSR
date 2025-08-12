@@ -61,7 +61,7 @@
             <div v-else class="post-grid" id="post-grid">
               <PostCard
                 v-for="post in posts"
-                :key="post.id"
+                :key="`${post.id}-${isDarkMode}`"
                 :post="post"
                 :lang="lang"
                 :is-dark-mode="isDarkMode"
@@ -95,19 +95,21 @@ export default {
       error: null,
       searchQuery: '',
       selectedCategory: '',
-      lang: 'ko'
+      lang: 'ko',
+      isDarkMode: false,
+      observer: null
     };
-  },
-  computed: {
-    isDarkMode() {
-      return document.body.classList.contains('dark-mode');
-    }
   },
   async mounted() {
     this.setLanguage();
     await this.loadPosts();
-    
-    // 라우터 변경 감지
+
+    this.isDarkMode = document.body.classList.contains('dark-mode');
+    this.observer = new MutationObserver(() => {
+      this.isDarkMode = document.body.classList.contains('dark-mode');
+    });
+    this.observer.observe(document.body, { attributes: true, attributeFilter: ['class'] });
+
     this.$watch(
       () => this.$route.query.lang,
       async (newLang, oldLang) => {
@@ -117,6 +119,11 @@ export default {
         }
       }
     );
+  },
+  beforeUnmount() {
+    if (this.observer) {
+      this.observer.disconnect();
+    }
   },
   methods: {
     setLanguage() {

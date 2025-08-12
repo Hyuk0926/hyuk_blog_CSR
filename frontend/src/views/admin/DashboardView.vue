@@ -641,67 +641,7 @@ export default {
   box-shadow: 0 1px 3px rgba(0,0,0,0.05);
 }
 
-/* 다크모드 지원 */
-body.dark-mode .admin-container {
-  background: #1a202c;
-}
-
-body.dark-mode .admin-title,
-body.dark-mode .admin-name {
-  color: #f7fafc;
-}
-
-body.dark-mode .admin-welcome {
-  color: #a0aec0;
-}
-
-body.dark-mode .posts-table {
-  background: #2d3748;
-  box-shadow: 0 1px 3px rgba(0,0,0,0.2);
-}
-
-body.dark-mode .posts-table th {
-  background: #2d3748;
-  color: #f7fafc;
-  border-bottom: 1px solid #4a5568;
-}
-
-body.dark-mode .posts-table td {
-  border-bottom: 1px solid #4a5568;
-  color: #e2e8f0;
-}
-
-body.dark-mode .posts-table tr:hover {
-  background: #323c4e;
-}
-
-body.dark-mode .stat-card {
-  background: #2d3748;
-  border-color: #4a5568;
-}
-
-body.dark-mode .stat-number {
-  color: #f7fafc;
-}
-
-body.dark-mode .stat-label {
-  color: #a0aec0;
-}
-
-body.dark-mode .btn-secondary {
-  background: #2d3748;
-  border-color: #4a5568;
-  color: #f7fafc;
-}
-
-body.dark-mode .btn-secondary:hover {
-  background: #4a5568;
-}
-
-body.dark-mode .no-posts {
-  background: #2d3748;
-  color: #a0aec0;
-}
+/* 대시보드는 항상 밝은 테마로 통일 */
 
 /* 반응형 디자인 */
 @media (max-width: 768px) {
