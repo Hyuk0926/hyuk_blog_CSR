@@ -1,22 +1,12 @@
 [ {
   "id" : 1,
-  "name" : "유재언",
-  "email" : "qwerty1234@gmail.com",
-  "subject" : "문의가 작동을 안해요",
-  "message" : "진짜임",
-  "createdAt" : [ 2025, 7, 18, 18, 48, 23, 29486700 ]
-}, {
-  "id" : 2,
-  "name" : "유재언",
-  "email" : "qwerty1234@gmail.com",
-  "subject" : "문의가 작동을 안해요",
-  "message" : "진짜에요",
-  "createdAt" : [ 2025, 7, 18, 18, 53, 40, 464401700 ]
-}, {
-  "id" : 3,
-  "name" : "테스트",
-  "email" : "test123@gmail.com",
-  "subject" : "테스트용입니다!",
-  "message" : "문의 테스트",
-  "createdAt" : [ 2025, 8, 2, 9, 49, 33, 158079800 ]
+  "name" : "최은혁",
+  "email" : "chldmsgur09@gmail.com",
+  "subject" : "문의 드립니다.",
+  "message" : "회신 바랍니다. ",
+  "createdAt" : [ 2025, 8, 12, 11, 33, 52, 275309000 ],
+  "replied" : true,
+  "replyMessage" : "어떤게 궁금하신가요",
+  "repliedAt" : [ 2025, 8, 12, 11, 43, 8, 850003300 ],
+  "repliedBy" : "관리자"
 } ]

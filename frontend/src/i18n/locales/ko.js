@@ -22,7 +22,17 @@ export default {
   knowledge: {
     title: '지식모음',
     subtitle: '개발 관련 지식과 팁을 모아놓은 공간입니다.',
+    latestPosts: '최신 게시글',
+    postCount: '개',
+    searchPlaceholder: '게시글 검색...',
+    loading: '게시글을 불러오는 중...',
+    noPosts: '게시글이 없습니다.',
+    retry: '다시 시도',
+    loadError: '게시글을 불러오는데 실패했습니다.',
+    searchError: '검색에 실패했습니다.',
+    categoryError: '카테고리별 게시글을 불러오는데 실패했습니다.',
     categories: {
+      all: '전체보기',
       backend: '백엔드',
       frontend: '프론트엔드',
       database: '데이터베이스',
@@ -70,6 +80,7 @@ export default {
 
   // 이력서 관련
   resume: {
+    introduction: 'PROFILE',
     education: '학력',
     school: '학교명',
     degree: '전공/학위',
@@ -90,9 +101,11 @@ export default {
       name: '이름',
       email: '이메일',
       subject: '제목',
-      message: '메시지',
-      send: '보내기'
-    }
+      message: '문의 내용',
+      send: '문의 보내기'
+    },
+    success: '문의가 성공적으로 전송되었습니다. 감사합니다.',
+    error: '전송에 실패했습니다. 다시 시도해주세요.'
   },
 
   // 로그인 페이지

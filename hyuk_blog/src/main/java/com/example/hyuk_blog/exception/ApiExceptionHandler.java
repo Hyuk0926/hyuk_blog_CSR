@@ -56,6 +56,10 @@ public class ApiExceptionHandler {
     public ResponseEntity<ErrorResponse> handleException(Exception e) {
         // 어떤 종류의 예외인지, 어느 코드에서 발생했는지 정확히 알 수 있도록 전체 내용을 출력합니다.
         log.error("500 Internal Server Error: 서버 내부 오류가 발생했습니다.", e);
+        System.out.println("=== GLOBAL EXCEPTION HANDLER ===");
+        System.out.println("Exception type: " + e.getClass().getName());
+        System.out.println("Exception message: " + e.getMessage());
+        e.printStackTrace();
 
         ErrorResponse errorResponse = new ErrorResponse(
             "INTERNAL_SERVER_ERROR",

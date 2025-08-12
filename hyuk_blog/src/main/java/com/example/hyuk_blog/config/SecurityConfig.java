@@ -15,12 +15,17 @@ import org.springframework.security.config.annotation.web.configurers.AbstractHt
 import org.springframework.security.config.http.SessionCreationPolicy;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
+import org.springframework.security.crypto.password.DelegatingPasswordEncoder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
 import org.springframework.web.filter.OncePerRequestFilter;
 
 import java.io.IOException;
+import java.security.MessageDigest;
+import java.security.NoSuchAlgorithmException;
+import java.util.HashMap;
+import java.util.Map;
 
 @Configuration
 @EnableWebSecurity
@@ -47,6 +52,9 @@ public class SecurityConfig {
                 
                 // --- 인증(로그인/회원가입) API 허용 ---
                 .requestMatchers("/api/auth/**").permitAll()
+                
+                // --- 문의하기 API 허용 ---
+                .requestMatchers(HttpMethod.POST, "/api/contact").permitAll()
 
                 // --- 그 외 모든 요청은 인증 필요 ---
                 .anyRequest().authenticated()
@@ -61,6 +69,50 @@ public class SecurityConfig {
 
     @Bean
     public PasswordEncoder passwordEncoder() {
-        return new BCryptPasswordEncoder();
+        // 사용할 암호화 알고리즘 ID 정의
+        String idForEncode = "bcrypt";
+        
+        // 여러 암호화 방식을 담을 맵 생성
+        Map<String, PasswordEncoder> encoders = new HashMap<>();
+        encoders.put(idForEncode, new BCryptPasswordEncoder());
+        encoders.put("sha256", new Sha256PasswordEncoder());
+        
+        // DelegatingPasswordEncoder 생성. 기본 인코더는 BCrypt로 설정.
+        DelegatingPasswordEncoder passwordEncoder = new DelegatingPasswordEncoder(idForEncode, encoders);
+        
+        // 기존 비밀번호(접두사 없는)는 BCrypt로 처리하도록 설정
+        passwordEncoder.setDefaultPasswordEncoderForMatches(new BCryptPasswordEncoder());
+
+        return passwordEncoder;
+    }
+    
+    /**
+     * SHA-256 비밀번호 인코더
+     * 기존 SHA-256 해시를 지원하기 위한 커스텀 인코더
+     */
+    public static class Sha256PasswordEncoder implements PasswordEncoder {
+        
+        @Override
+        public String encode(CharSequence rawPassword) {
+            try {
+                MessageDigest digest = MessageDigest.getInstance("SHA-256");
+                byte[] hash = digest.digest(rawPassword.toString().getBytes("UTF-8"));
+                StringBuilder hexString = new StringBuilder();
+                for (byte b : hash) {
+                    String hex = Integer.toHexString(0xff & b);
+                    if (hex.length() == 1) hexString.append('0');
+                    hexString.append(hex);
+                }
+                return hexString.toString();
+            } catch (Exception e) {
+                throw new RuntimeException("SHA-256 인코딩 실패", e);
+            }
+        }
+        
+        @Override
+        public boolean matches(CharSequence rawPassword, String encodedPassword) {
+            String encodedRawPassword = encode(rawPassword);
+            return encodedRawPassword.equals(encodedPassword);
+        }
     }
 } 

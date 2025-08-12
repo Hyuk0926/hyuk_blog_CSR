@@ -42,24 +42,32 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
         
         try {
             String jwt = getJwtFromRequest(request);
-            if (StringUtils.hasText(jwt) && jwtUtil.validateToken(jwt, jwtUtil.extractUsername(jwt))) {
-                String username = jwtUtil.extractUsername(jwt);
-                
-                // UserDetails를 통해 User 객체 가져오기
-                UserDetails userDetails = customUserDetailsService.loadUserByUsername(username);
-                
-                UsernamePasswordAuthenticationToken authentication = 
-                    new UsernamePasswordAuthenticationToken(
-                        userDetails, 
-                        null, 
-                        userDetails.getAuthorities()
-                    );
-                
-                SecurityContextHolder.getContext().setAuthentication(authentication);
-                log.debug("JWT 인증 성공: {}", username);
+            if (StringUtils.hasText(jwt)) {
+                try {
+                    if (jwtUtil.validateToken(jwt, jwtUtil.extractUsername(jwt))) {
+                        String username = jwtUtil.extractUsername(jwt);
+                        
+                        // UserDetails를 통해 User 객체 가져오기
+                        UserDetails userDetails = customUserDetailsService.loadUserByUsername(username);
+                        
+                        UsernamePasswordAuthenticationToken authentication = 
+                            new UsernamePasswordAuthenticationToken(
+                                userDetails, 
+                                null, 
+                                userDetails.getAuthorities()
+                            );
+                        
+                        SecurityContextHolder.getContext().setAuthentication(authentication);
+                        log.debug("JWT 인증 성공: {}", username);
+                    }
+                } catch (Exception e) {
+                    log.warn("JWT 토큰 검증 실패: {}", e.getMessage());
+                    // 토큰이 유효하지 않아도 요청은 계속 진행
+                }
             }
         } catch (Exception e) {
-            log.error("JWT 인증 처리 중 오류 발생: {}", e.getMessage());
+            log.error("JWT 인증 처리 중 예상치 못한 오류 발생: {}", e.getMessage());
+            // 예상치 못한 오류가 발생해도 요청은 계속 진행
         }
         
         filterChain.doFilter(request, response);

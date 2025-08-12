@@ -115,6 +115,10 @@ export default {
           localStorage.setItem('username', response.username);
           localStorage.setItem('adminToken', response.token); // 기존 호환성 유지
           
+          // 관리자 이름 저장 (admin_jp는 일본어, admin은 한국어)
+          const adminName = response.username === 'admin_jp' ? 'admin_jp' : 'admin';
+          localStorage.setItem('adminName', adminName);
+          
           // 사용자 언어 정보 저장 (admin_jp는 일본어, admin은 한국어)
           const userLang = response.username === 'admin_jp' ? 'ja' : 'ko';
           localStorage.setItem('userLang', userLang);

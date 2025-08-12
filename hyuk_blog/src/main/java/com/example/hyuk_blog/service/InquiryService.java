@@ -13,6 +13,7 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 import java.util.concurrent.atomic.AtomicLong;
+import org.springframework.beans.factory.annotation.Autowired;
 
 @Service
 public class InquiryService {
@@ -21,6 +22,9 @@ public class InquiryService {
     private final AtomicLong idGenerator = new AtomicLong(1);
     private List<InquiryDto> inquiries;
     private int unreadCount = 0;
+    
+    @Autowired(required = false)
+    private EmailService emailService;
 
     public InquiryService() {
         objectMapper.registerModule(new JavaTimeModule());
@@ -33,6 +37,7 @@ public class InquiryService {
     public synchronized void addInquiry(InquiryDto inquiry) {
         inquiry.setId(idGenerator.getAndIncrement());
         inquiry.setCreatedAt(LocalDateTime.now());
+        inquiry.setReplied(false); // 기본적으로 답변하지 않은 상태
         inquiries.add(inquiry);
         unreadCount++;
         saveInquiries();
@@ -59,6 +64,50 @@ public class InquiryService {
             result.add(inquiries.get(i));
         }
         return result;
+    }
+
+    public synchronized boolean deleteInquiry(Long id) {
+        for (int i = 0; i < inquiries.size(); i++) {
+            if (inquiries.get(i).getId().equals(id)) {
+                inquiries.remove(i);
+                saveInquiries();
+                return true;
+            }
+        }
+        return false;
+    }
+
+    /**
+     * 문의에 답변을 등록합니다.
+     */
+    public synchronized boolean replyToInquiry(Long id, String replyMessage, String repliedBy) {
+        for (InquiryDto inquiry : inquiries) {
+            if (inquiry.getId().equals(id)) {
+                inquiry.setReplied(true);
+                inquiry.setReplyMessage(replyMessage);
+                inquiry.setRepliedAt(LocalDateTime.now());
+                inquiry.setRepliedBy(repliedBy != null ? repliedBy : "관리자");
+                saveInquiries();
+                
+                // 이메일 발송 (EmailService가 있을 때만)
+                if (emailService != null) {
+                    try {
+                        emailService.sendInquiryReplyEmail(
+                            inquiry.getEmail(),
+                            inquiry.getSubject(),
+                            replyMessage,
+                            repliedBy != null ? repliedBy : "관리자"
+                        );
+                    } catch (Exception e) {
+                        // 이메일 발송 실패 시에도 답변은 저장되도록 로그만 남김
+                        System.err.println("이메일 발송 실패: " + e.getMessage());
+                    }
+                }
+                
+                return true;
+            }
+        }
+        return false;
     }
 
     private List<InquiryDto> loadInquiries() {

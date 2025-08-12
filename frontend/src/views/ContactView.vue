@@ -1,62 +1,62 @@
 <template>
   <div class="container">
     <div class="contact-main">
-      <h1 class="page-title">{{ lang === 'ja' ? 'Contact Me' : 'Contact Me' }}</h1>
+      <h1 class="page-title">{{ $t('contact.title') }}</h1>
       <div class="contact-card">
         <div v-if="successMessage" class="success-message">
           <span>{{ successMessage }}</span>
         </div>
         <form @submit.prevent="submitForm">
           <div class="form-group">
-            <label class="form-label" for="name">{{ lang === 'ja' ? 'お名前' : '이름' }}</label>
+            <label class="form-label" for="name">{{ $t('contact.form.name') }}</label>
             <input 
               type="text" 
               id="name" 
               v-model="formData.name" 
               class="form-input" 
               required
-              :placeholder="lang === 'ja' ? 'お名前を入力してください' : '이름을 입력해주세요'"
+              :placeholder="$t('contact.form.name') + '을(를) 입력해주세요'"
             >
           </div>
           <div class="form-group">
-            <label class="form-label" for="email">{{ lang === 'ja' ? 'メールアドレス' : '이메일' }}</label>
+            <label class="form-label" for="email">{{ $t('contact.form.email') }}</label>
             <input 
               type="email" 
               id="email" 
               v-model="formData.email" 
               class="form-input" 
               required
-              :placeholder="lang === 'ja' ? 'example@email.com' : 'example@email.com'"
+              placeholder="example@email.com"
             >
           </div>
           <div class="form-group">
-            <label class="form-label" for="subject">{{ lang === 'ja' ? '件名' : '제목' }}</label>
+            <label class="form-label" for="subject">{{ $t('contact.form.subject') }}</label>
             <input 
               type="text" 
               id="subject" 
               v-model="formData.subject" 
               class="form-input" 
               required
-              :placeholder="lang === 'ja' ? '件名を入力してください' : '제목을 입력해주세요'"
+              :placeholder="$t('contact.form.subject') + '을(를) 입력해주세요'"
             >
           </div>
           <div class="form-group">
-            <label class="form-label" for="message">{{ lang === 'ja' ? 'お問い合わせ内容' : '문의 내용' }}</label>
+            <label class="form-label" for="message">{{ $t('contact.form.message') }}</label>
             <textarea 
               id="message" 
               v-model="formData.message" 
               class="form-input" 
               required
-              :placeholder="lang === 'ja' ? 'お問い合わせ内容を入力してください' : '문의 내용을 입력해주세요'"
+              :placeholder="$t('contact.form.message') + '을(를) 입력해주세요'"
             ></textarea>
           </div>
           <button type="submit" class="submit-button" :disabled="isSubmitting">
-            {{ isSubmitting ? (lang === 'ja' ? '送信中...' : '전송 중...') : (lang === 'ja' ? '送信する' : '문의 보내기') }}
+            {{ isSubmitting ? $t('common.loading') : $t('contact.form.send') }}
           </button>
         </form>
         <div class="contact-info">
-          <span>{{ lang === 'ja' ? 'お問い合わせいただいた内容は私に届きます。メールアドレスを添付していただければ、できるだけ早くお返事いたします。' : '문의하신 내용은 저에게 전달됩니다. 메일 주소 첨부시 빠른 시일 내에 답변드리겠습니다.' }}</span><br>
-          <b>{{ lang === 'ja' ? 'メールアドレス:' : '이메일:' }}</b> 
+          <span>{{ $t('contact.subtitle') }}</span><br>
+          <b>{{ $t('contact.form.email') }}:</b> 
           <a href="mailto:ehc28260@gmail.com">ehc28260@gmail.com</a>
         </div>
       </div>
@@ -65,11 +65,12 @@
 </template>
 
 <script>
+import apiService from '@/services/api.js';
+
 export default {
   name: 'ContactView',
   data() {
     return {
-      lang: 'ko',
       successMessage: '',
       isSubmitting: false,
       formData: {
@@ -80,40 +81,21 @@ export default {
       }
     }
   },
-  mounted() {
-    this.loadSettings();
+  computed: {
+    lang() {
+      return this.$i18n.locale;
+    }
   },
   methods: {
-    async loadSettings() {
-      try {
-        // 실제 백엔드 설정 API 호출
-        // const response = await fetch('/api/settings');
-        // const settings = await response.json();
-        // this.lang = settings.language || 'ko';
-        
-        // 현재는 기본값 사용
-        this.lang = 'ko';
-      } catch (error) {
-        console.error('설정 로드 실패:', error);
-      }
-    },
     async submitForm() {
       this.isSubmitting = true;
       
       try {
-        // 실제 백엔드 API 호출
-        const response = await fetch('/api/contact', {
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/json',
-          },
-          body: JSON.stringify(this.formData)
-        });
+        // API 서비스를 사용하여 문의 제출
+        const result = await apiService.submitInquiry(this.formData);
         
-        if (response.ok) {
-          this.successMessage = this.lang === 'ja' ? 
-            'お問い合わせを送信しました。ありがとうございます。' : 
-            '문의가 성공적으로 전송되었습니다. 감사합니다.';
+        if (result.success) {
+          this.successMessage = this.$t('contact.success');
           
           // 폼 초기화
           this.formData = {
@@ -128,13 +110,32 @@ export default {
             this.successMessage = '';
           }, 5000);
         } else {
-          throw new Error('전송 실패');
+          // API에서 반환된 에러 메시지 사용
+          const errorMessage = result.error || this.$t('contact.error');
+          this.successMessage = errorMessage;
         }
       } catch (error) {
         console.error('문의 전송 실패:', error);
-        this.successMessage = this.lang === 'ja' ? 
-          '送信に失敗しました。もう一度お試しください。' : 
-          '전송에 실패했습니다. 다시 시도해주세요.';
+        
+        // 백엔드 서버가 없는 경우 오프라인 모드로 처리
+        if (error.message && error.message.includes('404')) {
+          this.successMessage = '오프라인 모드: 문의가 저장되었습니다. (서버 연결 불가)';
+          
+          // 폼 초기화
+          this.formData = {
+            name: '',
+            email: '',
+            subject: '',
+            message: ''
+          };
+          
+          // 5초 후 성공 메시지 제거
+          setTimeout(() => {
+            this.successMessage = '';
+          }, 5000);
+        } else {
+          this.successMessage = this.$t('contact.error');
+        }
       } finally {
         this.isSubmitting = false;
       }

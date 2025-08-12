@@ -23,6 +23,7 @@ public class AuthApiController {
 
     private final JwtAuthService jwtAuthService;
     private final UserService userService;
+    private final org.springframework.security.crypto.password.PasswordEncoder passwordEncoder;
 
     /**
      * 통합 로그인 API (사용자/관리자)
@@ -174,6 +175,41 @@ public class AuthApiController {
             log.error("Email check error: {}", e.getMessage());
             Map<String, String> error = new HashMap<>();
             error.put("error", "이메일 확인 중 오류가 발생했습니다.");
+            return ResponseEntity.internalServerError().body(error);
+        }
+    }
+    
+    /**
+     * 비밀번호 인코더 테스트 API (개발용)
+     * POST /api/auth/test-password
+     */
+    @PostMapping("/test-password")
+    public ResponseEntity<?> testPassword(@RequestBody Map<String, String> request) {
+        try {
+            String rawPassword = request.get("password");
+            String encodedPassword = request.get("encodedPassword");
+            
+            if (rawPassword == null || encodedPassword == null) {
+                Map<String, String> error = new HashMap<>();
+                error.put("error", "password와 encodedPassword가 필요합니다.");
+                return ResponseEntity.badRequest().body(error);
+            }
+            
+            // 주입된 PasswordEncoder 사용
+            boolean matches = passwordEncoder.matches(rawPassword, encodedPassword);
+            String newEncoded = passwordEncoder.encode(rawPassword);
+            
+            Map<String, Object> response = new HashMap<>();
+            response.put("matches", matches);
+            response.put("newEncoded", newEncoded);
+            response.put("rawPassword", rawPassword);
+            response.put("originalEncoded", encodedPassword);
+            
+            return ResponseEntity.ok(response);
+        } catch (Exception e) {
+            log.error("Password test error: {}", e.getMessage());
+            Map<String, String> error = new HashMap<>();
+            error.put("error", "비밀번호 테스트 중 오류가 발생했습니다.");
             return ResponseEntity.internalServerError().body(error);
         }
     }

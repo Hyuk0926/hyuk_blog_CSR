@@ -119,18 +119,27 @@ public class PostService {
 
     // ID로 게시글 조회
     public Optional<PostDto> getPostById(Long id, String lang) {
+        System.out.println("=== POST SERVICE DEBUG ===");
+        System.out.println("[PostService] getPostById called with id: " + id + ", lang: " + lang);
+        
         if ("ja".equals(lang)) {
+            System.out.println("[PostService] Fetching Japanese post...");
             return postJpRepository.findById(id).map(post -> {
                 PostDto dto = PostDto.fromJpEntity(post);
                 dto.setLikeCount(likeService.getLikeCount(post.getId(), String.valueOf(com.example.hyuk_blog.entity.PostType.JP)));
                 dto.setCommentCount(commentService.getCommentCountByPostJpId(post.getId()));
+                dto.setLang("ja"); // 언어 정보 추가
+                System.out.println("[PostService] Japanese post found - ID: " + dto.getId() + ", titleJa: " + dto.getTitleJa());
                 return dto;
             });
         } else {
+            System.out.println("[PostService] Fetching Korean post...");
             return postKrRepository.findById(id).map(post -> {
                 PostDto dto = PostDto.fromKrEntity(post);
                 dto.setLikeCount(likeService.getLikeCount(post.getId(), String.valueOf(com.example.hyuk_blog.entity.PostType.KR)));
                 dto.setCommentCount(commentService.getCommentCountByPostKrId(post.getId()));
+                dto.setLang("ko"); // 언어 정보 추가
+                System.out.println("[PostService] Korean post found - ID: " + dto.getId() + ", titleKo: " + dto.getTitleKo());
                 return dto;
             });
         }

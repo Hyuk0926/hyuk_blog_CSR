@@ -74,25 +74,43 @@ public class PostApiController {
         System.out.println("=== POST DETAIL API DEBUG ===");
         System.out.println("[PostApiController] getPostById called with id: " + id + ", lang: " + lang);
         
-        Optional<PostDto> post = postService.getPostById(id, lang);
-        
         Map<String, Object> response = new HashMap<>();
         
-        if (post.isPresent()) {
-            PostDto postData = post.get();
-            System.out.println("[PostApiController] Post found - ID: " + postData.getId() + 
-                             ", titleKo: " + (postData.getTitleKo() != null ? "있음" : "없음") + 
-                             ", titleJa: " + (postData.getTitleJa() != null ? "있음" : "없음"));
+        try {
+            Optional<PostDto> post = postService.getPostById(id, lang);
             
-            response.put("success", true);
-            response.put("data", postData);
-            response.put("message", "게시글을 성공적으로 조회했습니다.");
-            return ResponseEntity.ok(response);
-        } else {
-            System.out.println("[PostApiController] Post not found for ID: " + id + ", lang: " + lang);
+            if (post.isPresent()) {
+                PostDto postData = post.get();
+                System.out.println("[PostApiController] Post found - ID: " + postData.getId() + 
+                                 ", titleKo: " + (postData.getTitleKo() != null ? "있음" : "없음") + 
+                                 ", titleJa: " + (postData.getTitleJa() != null ? "있음" : "없음") +
+                                 ", lang: " + postData.getLang());
+                
+                // 언어별 제목, 요약, 내용 설정
+                String title = postData.getTitle(lang);
+                String summary = postData.getSummary(lang);
+                String content = postData.getContent(lang);
+                
+                System.out.println("[PostApiController] Processed data - title: " + title + 
+                                 ", summary: " + (summary != null ? "있음" : "없음") + 
+                                 ", content: " + (content != null ? "있음" : "없음"));
+                
+                response.put("success", true);
+                response.put("data", postData);
+                response.put("message", "게시글을 성공적으로 조회했습니다.");
+                return ResponseEntity.ok(response);
+            } else {
+                System.out.println("[PostApiController] Post not found for ID: " + id + ", lang: " + lang);
+                response.put("success", false);
+                response.put("message", "게시글을 찾을 수 없습니다.");
+                return ResponseEntity.status(HttpStatus.NOT_FOUND).body(response);
+            }
+        } catch (Exception e) {
+            System.err.println("[PostApiController] Exception occurred: " + e.getMessage());
+            e.printStackTrace();
             response.put("success", false);
-            response.put("message", "게시글을 찾을 수 없습니다.");
-            return ResponseEntity.status(HttpStatus.NOT_FOUND).body(response);
+            response.put("message", "게시글 조회 중 오류가 발생했습니다: " + e.getMessage());
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(response);
         }
     }
 

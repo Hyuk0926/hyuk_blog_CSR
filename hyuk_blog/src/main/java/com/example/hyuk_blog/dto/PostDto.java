@@ -88,24 +88,41 @@ public class PostDto {
     // 현재 언어에 맞는 제목 반환
     public String getTitle() {
         String lang = LocaleContextHolder.getLocale().getLanguage();
+        return getTitle(lang);
+    }
+    
+    // 언어 파라미터를 받는 제목 반환 메소드
+    public String getTitle(String lang) {
         if ("ja".equals(lang)) {
             return titleJa;
         } else {
             return titleKo;
         }
     }
+    
     // 현재 언어에 맞는 요약 반환
     public String getSummary() {
         String lang = LocaleContextHolder.getLocale().getLanguage();
+        return getSummary(lang);
+    }
+    
+    // 언어 파라미터를 받는 요약 반환 메소드
+    public String getSummary(String lang) {
         if ("ja".equals(lang)) {
             return summaryJa;
         } else {
             return summaryKo;
         }
     }
+    
     // 현재 언어에 맞는 내용 반환
     public String getContent() {
         String lang = LocaleContextHolder.getLocale().getLanguage();
+        return getContent(lang);
+    }
+    
+    // 언어 파라미터를 받는 내용 반환 메소드
+    public String getContent(String lang) {
         if ("ja".equals(lang)) {
             return contentJa;
         } else {

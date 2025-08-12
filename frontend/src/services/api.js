@@ -42,6 +42,8 @@ class ApiService {
 
     try {
       const response = await fetch(url, config);
+      console.log('API Response status:', response.status);
+      console.log('API Response headers:', response.headers);
       
       if (!response.ok) {
         // 401 Unauthorized 에러 시 토큰 제거
@@ -51,12 +53,39 @@ class ApiService {
           localStorage.removeItem('username');
           localStorage.removeItem('adminToken');
         }
-        throw new Error(`HTTP error! status: ${response.status}`);
+        
+        // 응답 본문을 읽어서 더 자세한 에러 정보 제공
+        let errorMessage = `HTTP error! status: ${response.status}`;
+        try {
+          const errorBody = await response.text();
+          console.error('API Error response body:', errorBody);
+          if (errorBody) {
+            try {
+              const errorJson = JSON.parse(errorBody);
+              errorMessage = errorJson.message || errorJson.error || errorMessage;
+            } catch (e) {
+              errorMessage = errorBody || errorMessage;
+            }
+          }
+        } catch (e) {
+          console.error('Failed to read error response body:', e);
+        }
+        
+        throw new Error(errorMessage);
       }
       
-      return await response.json();
+      const data = await response.json();
+      console.log('API Response data:', data);
+      return data;
     } catch (error) {
-      console.error('API 요청 실패:', error);
+      console.error('API Request failed:', error);
+      console.error('Request details:', {
+        url,
+        endpoint,
+        options: config,
+        error: error.message,
+        stack: error.stack
+      });
       throw error;
     }
   }
@@ -326,6 +355,8 @@ class ApiService {
     localStorage.removeItem('userRole');
     localStorage.removeItem('username');
     localStorage.removeItem('adminToken');
+    localStorage.removeItem('adminName');
+    localStorage.removeItem('userNickname');
   }
 
   /**
@@ -347,15 +378,50 @@ class ApiService {
    */
   async getCurrentUser() {
     try {
+      // 현재 로그인한 사용자의 역할 확인
+      const userRole = localStorage.getItem('userRole');
+      const username = localStorage.getItem('username');
+      console.log('Current user role:', userRole);
+      console.log('Current username:', username);
+      console.log('All localStorage items:', {
+        jwtToken: localStorage.getItem('jwtToken') ? 'exists' : 'null',
+        userRole: userRole,
+        username: username,
+        adminName: localStorage.getItem('adminName'),
+        userNickname: localStorage.getItem('userNickname')
+      });
+      
       // 관리자인 경우 관리자 정보 API 호출
-      if (this.isAdmin()) {
+      if (userRole === 'ROLE_ADMIN') {
+        console.log('Fetching admin profile...');
         const response = await this.request('/api/admin/auth/profile');
         if (response.success && response.data) {
-          return response.data;
+          // 관리자 정보에 nickname 필드 추가 (name 필드를 사용)
+          const adminData = response.data;
+          if (adminData.name && !adminData.nickname) {
+            adminData.nickname = adminData.name;
+          }
+          return adminData;
         }
         return null;
       }
+      
+      // userRole이 null이거나 다른 값인 경우, username으로 판단
+      if (username === 'admin' || username === 'admin_jp') {
+        console.log('Username indicates admin, fetching admin profile...');
+        const response = await this.request('/api/admin/auth/profile');
+        if (response.success && response.data) {
+          const adminData = response.data;
+          if (adminData.name && !adminData.nickname) {
+            adminData.nickname = adminData.name;
+          }
+          return adminData;
+        }
+        return null;
+      }
+      
       // 일반 사용자인 경우 사용자 정보 API 호출
+      console.log('Fetching user profile...');
       const response = await this.request('/api/user/info');
       if (response && response.username) {
         return response;
@@ -413,6 +479,58 @@ class ApiService {
     });
   }
 
+  /**
+   * 관리자 문의 목록 조회
+   */
+  async getAdminInquiries() {
+    return this.request('/api/admin/inquiries');
+  }
+
+  /**
+   * 최근 문의 조회
+   */
+  async getRecentInquiries(count = 5) {
+    return this.request(`/api/admin/inquiries/recent?count=${count}`);
+  }
+
+  /**
+   * 문의 읽음 처리
+   */
+  async markInquiriesRead() {
+    return this.request('/api/admin/inquiries/read', {
+      method: 'POST',
+    });
+  }
+
+  /**
+   * 문의 삭제
+   */
+  async deleteInquiry(id) {
+    return this.request(`/api/admin/inquiries/${id}`, {
+      method: 'DELETE',
+    });
+  }
+
+  /**
+   * 문의 답변
+   */
+  async replyToInquiry(id, replyData) {
+    return this.request(`/api/admin/inquiries/${id}/reply`, {
+      method: 'POST',
+      body: JSON.stringify(replyData),
+    });
+  }
+
+  /**
+   * 이메일 발송 테스트
+   */
+  async testEmail(toEmail) {
+    return this.request('/api/admin/email/test', {
+      method: 'POST',
+      body: JSON.stringify({ toEmail }),
+    });
+  }
+
   // ==================== 이력서 관련 API ====================
 
   /**
@@ -425,8 +543,8 @@ class ApiService {
   /**
    * 이력서 수정 (관리자용)
    */
-  async updateResume(resumeData) {
-    return this.request('/api/resume', {
+  async updateResume(resumeData, lang = 'ko') {
+    return this.request(`/api/resume?lang=${lang}`, {
       method: 'PUT',
       body: JSON.stringify(resumeData),
     });

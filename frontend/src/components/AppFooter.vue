@@ -22,24 +22,38 @@
       <div style="color:#aaa; font-size:0.95rem; margin-bottom: 35px;">
         <span>{{ currentYear }}</span> <span>© {{ $i18n.locale === 'ja' ? '高原優輝' : 'Takahara Yuuki' }}. All rights reserved.</span>
       </div>
-      <div class="admin-link" style="margin-top: 16px;">
-        <router-link to="/admin/login" class="admin-button">{{ $i18n.locale === 'ja' ? '管理者ログイン' : '관리자 로그인' }}</router-link>
-      </div>
+             <!-- 관리자 로그인 버튼은 관리자가 로그인한 상태에서만 표시 -->
+       <div v-if="isAdminLoggedIn" class="admin-link" style="margin-top: 16px;">
+         <router-link to="/admin/dashboard" class="admin-button">{{ $i18n.locale === 'ja' ? '管理者ダッシュボード' : '관리자 대시보드' }}</router-link>
+       </div>
     </div>
   </footer>
 </template>
 
 <script>
+import { inject } from 'vue'
+
 export default {
   name: 'AppFooter',
-  data() {
+  setup() {
+    const auth = inject('auth')
     return {
-      isAdmin: false // 실제로는 사용자 상태에 따라 결정
+      auth
     }
   },
   computed: {
     currentYear() {
       return new Date().getFullYear();
+    },
+    isAdminLoggedIn() {
+      // 관리자 권한 확인
+      const userRole = localStorage.getItem('userRole')
+      const username = localStorage.getItem('username')
+      
+      // userRole이 ROLE_ADMIN이거나 username이 admin/admin_jp인 경우 관리자로 판단
+      // null 체크를 추가하여 로그인되지 않은 상태에서는 false 반환
+      return (userRole === 'ROLE_ADMIN' || username === 'admin' || username === 'admin_jp') && 
+             userRole !== null && username !== null
     }
   }
 }

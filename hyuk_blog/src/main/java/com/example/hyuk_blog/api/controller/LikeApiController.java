@@ -18,7 +18,6 @@ import java.util.Optional;
 
 @RestController
 @RequestMapping("/api")
-@CrossOrigin(origins = "*")
 public class LikeApiController {
 
     @Autowired
@@ -52,7 +51,10 @@ public class LikeApiController {
         System.out.println("UserDetails: " + (userDetails != null ? userDetails.getUsername() : "null"));
         
         if (userDetails == null) {
-            return ResponseEntity.status(401).body("로그인이 필요합니다.");
+            return ResponseEntity.status(401).body(Map.of(
+                "success", false,
+                "message", "로그인이 필요합니다."
+            ));
         }
 
         try {
@@ -90,6 +92,8 @@ public class LikeApiController {
                 "message", e.getMessage()
             ));
         } catch (Exception e) {
+            System.err.println("Error in toggleLike: " + e.getMessage());
+            e.printStackTrace();
             return ResponseEntity.status(500).body(Map.of(
                 "success", false,
                 "message", "좋아요 처리 중 오류가 발생했습니다: " + e.getMessage()
@@ -104,47 +108,71 @@ public class LikeApiController {
     @GetMapping("/posts/{postId}/like")
     public ResponseEntity<?> getLikeStatus(
             @PathVariable Long postId,
-            @RequestParam(defaultValue = "KR") String postTypeStr,
-            @AuthenticationPrincipal UserDetails userDetails) {
+            @RequestParam("postType") String postTypeStr) {
         
         System.out.println("=== GET LIKE STATUS METHOD ENTERED ===");
         System.out.println("PostId: " + postId);
         System.out.println("PostType: " + postTypeStr);
-        System.out.println("UserDetails: " + (userDetails != null ? userDetails.getUsername() : "null"));
+        
+        // 파라미터 검증
+        if (postId == null) {
+            System.out.println("ERROR: postId is null");
+            return ResponseEntity.badRequest().body(Map.of("error", "postId is required"));
+        }
+        if (postTypeStr == null || postTypeStr.trim().isEmpty()) {
+            System.out.println("ERROR: postType is null or empty");
+            return ResponseEntity.badRequest().body(Map.of("error", "postType is required"));
+        }
+        
+        // SecurityContextHolder에서 UserDetails 가져오기
+        UserDetails userDetails = null;
+        try {
+            userDetails = (UserDetails) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
+            System.out.println("UserDetails from SecurityContext: " + (userDetails != null ? userDetails.getUsername() : "null"));
+        } catch (Exception e) {
+            System.out.println("No authentication found in SecurityContext");
+        }
         
         try {
+            System.out.println("Calling likeService.getLikeCount...");
             Long likeCount = likeService.getLikeCount(postId, postTypeStr);
+            System.out.println("Like count: " + likeCount);
+            
             boolean isLiked = false;
 
             // 로그인한 사용자인 경우 좋아요 여부 확인
-            if (userDetails != null) {
+            if (userDetails != null && userDetails.getUsername() != null) {
                 try {
+                    System.out.println("Looking up user: " + userDetails.getUsername());
                     // userDetails에서 username을 가져와 User 엔티티를 조회합니다.
                     User user = userService.findUserEntityByUsername(userDetails.getUsername())
-                            .orElseThrow(() -> new IllegalArgumentException("User not found"));
-                    isLiked = likeService.isLikedByUser(postId, postTypeStr, user.getId());
+                            .orElse(null);
+                    if (user != null) {
+                        System.out.println("User found, checking if liked...");
+                        isLiked = likeService.isLikedByUser(postId, postTypeStr, user.getId());
+                        System.out.println("Is liked: " + isLiked);
+                    } else {
+                        System.out.println("User not found in database");
+                    }
                 } catch (Exception e) {
-                    // 사용자 정보를 찾을 수 없는 경우 isLiked는 false로 유지
-                    isLiked = false;
+                    System.err.println("Error checking if user liked: " + e.getMessage());
+                    e.printStackTrace();
                 }
             }
-
-            LikeStatusDto likeStatus = new LikeStatusDto(postId, likeCount, isLiked);
-            System.out.println("LikeStatus: " + likeStatus);
-            return ResponseEntity.ok(likeStatus);
-        } catch (IllegalArgumentException e) {
-            // 잘못된 postType 같은 인자가 들어왔을 때 400 에러 반환
-            return ResponseEntity.status(400).body(Map.of(
-                "success", false,
-                "message", "잘못된 파라미터입니다: " + e.getMessage()
-            ));
+            
+            LikeStatusDto response = new LikeStatusDto();
+            response.setLiked(isLiked);
+            response.setLikeCount(likeCount);
+            
+            System.out.println("Returning response: " + response);
+            return ResponseEntity.ok(response);
+            
         } catch (Exception e) {
-            System.out.println("ERROR in getLikeStatus: " + e.getMessage());
+            System.err.println("ERROR in getLikeStatus: " + e.getMessage());
             e.printStackTrace();
-            // 기존 DTO 대신 일관된 오류 메시지 반환
             return ResponseEntity.status(500).body(Map.of(
                 "success", false,
-                "message", "서버 내부 오류가 발생했습니다."
+                "message", "좋아요 상태 조회 중 오류가 발생했습니다: " + e.getMessage()
             ));
         }
     }

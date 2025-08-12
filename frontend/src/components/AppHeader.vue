@@ -13,7 +13,7 @@
           </nav>
           <div class="header-controls">
             <div v-if="user" class="auth-controls">
-              <span class="user-info">{{ user.nickname }}{{ $i18n.locale === 'ja' ? 'さん' : '님' }}</span>
+              <span class="user-info">{{ getUserDisplayName() }}{{ $i18n.locale === 'ja' ? 'さん' : '님' }}</span>
               <a @click.prevent="handleLogout" href="#" class="auth-btn logout-btn">{{ $t('nav.logout') }}</a>
             </div>
             <div v-else class="auth-controls">
@@ -28,7 +28,7 @@
                 <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="5"></circle><line x1="12" y1="1" x2="12" y2="3"></line><line x1="12" y1="21" x2="12" y2="23"></line><line x1="4.22" y1="4.22" x2="5.64" y2="5.64"></line><line x1="18.36" y1="18.36" x2="19.78" y2="19.78"></line><line x1="1" y1="12" x2="3" y2="12"></line><line x1="21" y1="12" x2="23" y2="12"></line><line x1="4.22" y1="19.78" x2="5.64" y2="18.36"></line><line x1="18.36" y1="5.64" x2="19.78" y2="4.22"></line></svg>
               </span>
             </button>
-            <div id="langToggle" class="lang-toggle">
+            <div id="langToggle" class="lang-toggle" :class="{ disabled: isLanguageChanging }">
               <a @click.prevent="setLang('ko')" href="#" class="lang-btn" :class="{ active: $i18n.locale === 'ko' }">KO</a>
               <span class="lang-separator">|</span>
               <a @click.prevent="setLang('ja')" href="#" class="lang-btn" :class="{ active: $i18n.locale === 'ja' }">JP</a>
@@ -52,7 +52,8 @@ export default {
       user: auth.user,
       isAuthenticated: auth.isAuthenticated,
       isDarkMode,
-      logout: auth.logout
+      logout: auth.logout,
+      isLanguageChanging: false
     }
   },
     computed: {
@@ -73,14 +74,21 @@ export default {
       },
       toggleDarkMode() {
         this.setDarkMode(!this.isDarkMode);
+        window.dispatchEvent(new CustomEvent('dark-mode-toggled', { detail: { isDarkMode: this.isDarkMode } }));
       },
       setLang(language) {
         this.$i18n.locale = language;
         localStorage.setItem('language', language);
-        console.log(`Language set to: ${language}`);
         
-        // 언어 변경 이벤트 발생
-        this.$emit('language-changed', language);
+        // 현재 URL의 쿼리 파라미터를 업데이트
+        const currentRoute = this.$router.currentRoute.value;
+        const query = { ...currentRoute.query, lang: language };
+        
+        // 같은 페이지에서 언어만 변경하는 경우
+        this.$router.push({ 
+          path: currentRoute.path, 
+          query: query 
+        });
       },
       getLink(path) {
         return `${path}?lang=${this.$i18n.locale}`;
@@ -93,14 +101,36 @@ export default {
           console.error('Logout error:', error);
         }
       },
+      getUserDisplayName() {
+        if (!this.user) return '';
+        
+        // 관리자인 경우 name 필드를 우선 사용
+        if (this.user.name) {
+          return this.user.name;
+        }
+        
+        // nickname이 있으면 사용
+        if (this.user.nickname) {
+          return this.user.nickname;
+        }
+        
+        // 마지막으로 username 사용
+        return this.user.username || '';
+      },
       // 사용자 정보는 전역 상태에서 관리되므로 별도 메서드 불필요
-      // 사용자 정보는 전역 상태에서 관리되므로 별도 메서드 불필요
+      handleLanguageChangeStatus(event) {
+        this.isLanguageChanging = event.detail.isLanguageChanging;
+      },
     },
     mounted() {
       const darkModeSaved = localStorage.getItem('darkMode');
       this.setDarkMode(darkModeSaved === 'true');
+      window.addEventListener('language-change-status', this.handleLanguageChangeStatus);
     },
     // 인터벌이 없으므로 정리 불필요
+    beforeUnmount() {
+      window.removeEventListener('language-change-status', this.handleLanguageChangeStatus);
+    },
     // 전역 상태에서 관리되므로 라우터 변경 시 별도 처리 불필요
   }
   </script>
@@ -135,6 +165,7 @@ export default {
   .lang-btn { padding: 4px 10px; border-radius: 16px; cursor: pointer; transition: all 0.2s ease; color: #4a5568; text-decoration: none; }
   .lang-btn.active { background: #ffffff; color: #1a202c; box-shadow: 0 1px 3px rgba(0,0,0,0.1); }
   .lang-separator { color: #cbd5e1; margin: 0 2px; }
+  .lang-toggle.disabled { pointer-events: none; opacity: 0.5; }
   @media (max-width: 768px) {
     .navbar .container { flex-direction: column; height: auto; padding: 12px 20px; }
     .header-right { flex-direction: column; align-items: center; gap: 16px; width: 100%; margin-top: 12px; }

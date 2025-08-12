@@ -96,7 +96,7 @@
               <tr 
                 v-for="inquiry in filteredInquiries" 
                 :key="inquiry.id"
-                :class="{ 'new-inquiry': !inquiry.replied }"
+                :class="{ 'new-inquiry': !(inquiry.replied || false) }"
                 @click="viewInquiry(inquiry)"
               >
                 <td>{{ inquiry.id }}</td>
@@ -106,8 +106,8 @@
                 <td class="message-cell">{{ truncateText(inquiry.message, 50) }}</td>
                 <td>{{ formatDate(inquiry.createdAt) }}</td>
                 <td>
-                  <span :class="['status-badge', inquiry.replied ? 'status-replied' : 'status-new']">
-                    {{ inquiry.replied ? '답변완료' : '새문의' }}
+                  <span :class="['status-badge', (inquiry.replied || false) ? 'status-replied' : 'status-new']">
+                    {{ (inquiry.replied || false) ? '답변완료' : '새문의' }}
                   </span>
                 </td>
                 <td class="action-cell">
@@ -119,7 +119,7 @@
                     <i class="fas fa-eye"></i>
                   </button>
                   <button 
-                    @click.stop="replyInquiry(inquiry)" 
+                    @click.stop="showReplyModal(inquiry)" 
                     class="action-btn reply-btn"
                     title="답변하기"
                   >
@@ -175,10 +175,26 @@
               <label>날짜:</label>
               <span>{{ formatDate(selectedInquiry.createdAt) }}</span>
             </div>
+            
+            <!-- 답변 정보 표시 -->
+            <div v-if="selectedInquiry.replied" class="reply-section">
+              <div class="detail-row">
+                <label>답변:</label>
+                <div class="reply-content">{{ selectedInquiry.replyMessage }}</div>
+              </div>
+              <div class="detail-row">
+                <label>답변자:</label>
+                <span>{{ selectedInquiry.repliedBy }}</span>
+              </div>
+              <div class="detail-row">
+                <label>답변일:</label>
+                <span>{{ formatDate(selectedInquiry.repliedAt) }}</span>
+              </div>
+            </div>
           </div>
         </div>
         <div class="modal-footer">
-          <button @click="replyInquiry(selectedInquiry)" class="btn-reply">
+          <button v-if="!selectedInquiry.replied" @click="showReplyModal(selectedInquiry)" class="btn-reply">
             <i class="fas fa-reply"></i>
             답변하기
           </button>
@@ -189,10 +205,56 @@
         </div>
       </div>
     </div>
+
+    <!-- 답변 작성 모달 -->
+    <div v-if="showReplyForm" class="modal-overlay" @click="closeReplyModal">
+      <div class="modal-content reply-modal" @click.stop>
+        <div class="modal-header">
+          <h3>답변 작성</h3>
+          <button @click="closeReplyModal" class="close-btn">
+            <i class="fas fa-times"></i>
+          </button>
+        </div>
+        <div class="modal-body">
+          <div class="reply-form">
+            <div class="form-group">
+              <label>문의 내용:</label>
+              <div class="inquiry-summary">
+                <strong>{{ replyTarget.name }}</strong>님의 문의<br>
+                <strong>제목:</strong> {{ replyTarget.subject }}<br>
+                <strong>내용:</strong> {{ replyTarget.message }}
+              </div>
+            </div>
+            <div class="form-group">
+              <label for="replyMessage">답변 내용:</label>
+              <textarea 
+                id="replyMessage"
+                v-model="replyForm.replyMessage" 
+                placeholder="답변 내용을 입력하세요..."
+                rows="8"
+                class="reply-textarea"
+              ></textarea>
+            </div>
+          </div>
+        </div>
+        <div class="modal-footer">
+          <button @click="submitReply" class="btn-reply" :disabled="!replyForm.replyMessage.trim()">
+            <i class="fas fa-paper-plane"></i>
+            답변 전송
+          </button>
+          <button @click="closeReplyModal" class="btn-cancel">
+            <i class="fas fa-times"></i>
+            취소
+          </button>
+        </div>
+      </div>
+    </div>
   </div>
 </template>
 
 <script>
+import apiService from '@/services/api.js'
+
 export default {
   name: 'InquiryView',
   data() {
@@ -205,7 +267,12 @@ export default {
         newInquiries: 0,
         repliedInquiries: 0
       },
-      inquiries: []
+      inquiries: [],
+      showReplyForm: false,
+      replyTarget: {},
+      replyForm: {
+        replyMessage: ''
+      }
     }
   },
   computed: {
@@ -214,9 +281,9 @@ export default {
 
       // 필터 적용
       if (this.currentFilter === 'new') {
-        filtered = filtered.filter(inquiry => !inquiry.replied)
+        filtered = filtered.filter(inquiry => !(inquiry.replied || false))
       } else if (this.currentFilter === 'replied') {
-        filtered = filtered.filter(inquiry => inquiry.replied)
+        filtered = filtered.filter(inquiry => inquiry.replied || false)
       }
 
       // 검색 적용
@@ -234,72 +301,35 @@ export default {
     }
   },
   mounted() {
-    // 페이지 진입 시 배경 스타일 설정
-    document.body.style.background = 'linear-gradient(135deg, #1a1a1a 0%, #2d2d2d 25%, #404040 50%, #2d2d2d 75%, #1a1a1a 100%)';
-    document.body.style.minHeight = '100vh';
-    document.body.style.margin = '0';
-    document.body.style.padding = '0';
-    document.body.style.fontFamily = "'Noto Sans KR', sans-serif";
-    
     this.loadInquiries()
-  },
-  beforeUnmount() {
-    // 페이지 나갈 때 배경 스타일 초기화
-    document.body.style.background = '';
-    document.body.style.minHeight = '';
-    document.body.style.margin = '';
-    document.body.style.padding = '';
-    document.body.style.fontFamily = '';
   },
   methods: {
     async loadInquiries() {
       try {
-        // TODO: API 호출로 문의 데이터 로드
-        // const response = await this.$http.get('/api/admin/inquiries')
-        // this.inquiries = response.data.inquiries
-        // this.stats = response.data.stats
+        console.log('문의 데이터 로드 시작...')
+        const response = await apiService.getAdminInquiries()
         
-        // 샘플 데이터
-        this.inquiries = [
-          {
-            id: 1,
-            name: '김철수',
-            email: 'kim@example.com',
-            subject: '웹사이트 문의',
-            message: '안녕하세요. 웹사이트에 대해 문의드립니다. 어떤 기술 스택을 사용하셨나요?',
-            createdAt: '2024-01-15T10:30:00',
-            replied: false
-          },
-          {
-            id: 2,
-            name: '이영희',
-            email: 'lee@example.com',
-            subject: '프로젝트 협업 제안',
-            message: '프로젝트 협업에 관심이 있습니다. 연락처를 알려주세요.',
-            createdAt: '2024-01-14T15:20:00',
-            replied: true
-          },
-          {
-            id: 3,
-            name: '박민수',
-            email: 'park@example.com',
-            subject: '기술 질문',
-            message: 'Vue.js와 React의 차이점에 대해 궁금합니다.',
-            createdAt: '2024-01-13T09:15:00',
-            replied: false
-          }
-        ]
+        if (response && response.success) {
+          this.inquiries = response.data || []
+          console.log('문의 데이터 로드 성공:', this.inquiries.length, '개')
+        } else {
+          console.warn('문의 데이터 응답이 올바르지 않습니다:', response)
+          this.inquiries = []
+        }
         
         this.updateStats()
       } catch (error) {
         console.error('문의 로드 실패:', error)
+        // 오프라인 모드나 API 오류 시 빈 배열로 설정
+        this.inquiries = []
+        this.updateStats()
       }
     },
     
     updateStats() {
       this.stats.totalInquiries = this.inquiries.length
-      this.stats.newInquiries = this.inquiries.filter(inquiry => !inquiry.replied).length
-      this.stats.repliedInquiries = this.inquiries.filter(inquiry => inquiry.replied).length
+      this.stats.newInquiries = this.inquiries.filter(inquiry => !(inquiry.replied || false)).length
+      this.stats.repliedInquiries = this.inquiries.filter(inquiry => inquiry.replied || false).length
     },
     
     setFilter(filter) {
@@ -314,21 +344,60 @@ export default {
       this.selectedInquiry = null
     },
     
-    replyInquiry(inquiry) {
-      // TODO: 답변 기능 구현
-      console.log('답변하기:', inquiry)
-      alert('답변 기능은 추후 구현 예정입니다.')
+    showReplyModal(inquiry) {
+      this.replyTarget = inquiry
+      this.replyForm.replyMessage = ''
+      this.showReplyForm = true
+    },
+    
+    closeReplyModal() {
+      this.showReplyForm = false
+      this.replyTarget = {}
+      this.replyForm.replyMessage = ''
+    },
+    
+    async submitReply() {
+      if (!this.replyForm.replyMessage.trim()) {
+        alert('답변 내용을 입력해주세요.')
+        return
+      }
+      
+      try {
+        const response = await apiService.replyToInquiry(this.replyTarget.id, {
+          replyMessage: this.replyForm.replyMessage,
+          repliedBy: '관리자' // TODO: 실제 로그인한 관리자 정보 사용
+        })
+        
+        if (response && response.success) {
+          // 문의 목록 새로고침
+          await this.loadInquiries()
+          
+          // 모달 닫기
+          this.closeReplyModal()
+          this.closeModal()
+          
+          alert('답변이 성공적으로 등록되었습니다.')
+        } else {
+          alert('답변 등록에 실패했습니다.')
+        }
+      } catch (error) {
+        console.error('답변 등록 실패:', error)
+        alert('답변 등록에 실패했습니다.')
+      }
     },
     
     async deleteInquiry(id) {
       if (confirm('정말로 이 문의를 삭제하시겠습니까?')) {
         try {
-          // TODO: API 호출로 문의 삭제
-          // await this.$http.delete(`/api/admin/inquiries/${id}`)
+          const response = await apiService.deleteInquiry(id)
           
-          this.inquiries = this.inquiries.filter(inquiry => inquiry.id !== id)
-          this.updateStats()
-          alert('문의가 삭제되었습니다.')
+          if (response && response.success) {
+            this.inquiries = this.inquiries.filter(inquiry => inquiry.id !== id)
+            this.updateStats()
+            alert('문의가 삭제되었습니다.')
+          } else {
+            alert('삭제에 실패했습니다.')
+          }
         } catch (error) {
           console.error('문의 삭제 실패:', error)
           alert('삭제에 실패했습니다.')
@@ -357,36 +426,37 @@ export default {
 
 <style scoped>
 .inquiry-container {
-  min-height: 100vh;
   padding: 20px;
   display: flex;
   align-items: flex-start;
   justify-content: center;
   overflow-x: hidden;
+  background: #f8f9fa;
+  min-height: 100vh;
 }
 
 .inquiry-form-container {
   max-width: 1400px;
   width: 100%;
   margin: 0 auto;
-  background: rgba(45, 45, 45, 0.95);
-  border-radius: 16px;
-  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.5);
+  background: white;
+  border-radius: 12px;
+  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
   overflow: hidden;
-  border: 1px solid rgba(255, 255, 255, 0.1);
+  border: 1px solid #e9ecef;
 }
 
 .inquiry-form-title {
-  background: linear-gradient(135deg, #333333 0%, #555555 100%);
+  background: #495057;
   color: white;
   margin: 0;
-  padding: 30px;
-  font-size: 2rem;
+  padding: 24px 30px;
+  font-size: 1.75rem;
   font-weight: 600;
   display: flex;
   align-items: center;
   gap: 15px;
-  border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+  border-bottom: 1px solid #dee2e6;
 }
 
 .inquiry-content {
@@ -402,26 +472,28 @@ export default {
 }
 
 .stat-card {
-  background: rgba(60, 60, 60, 0.3);
-  border: 1px solid rgba(255, 255, 255, 0.1);
-  border-radius: 12px;
+  background: white;
+  border: 1px solid #e9ecef;
+  border-radius: 8px;
   padding: 20px;
   display: flex;
   align-items: center;
   gap: 15px;
   transition: all 0.3s ease;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
 }
 
 .stat-card:hover {
-  background: rgba(70, 70, 70, 0.4);
+  background: #f8f9fa;
   transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
 }
 
 .stat-icon {
   width: 50px;
   height: 50px;
-  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-  border-radius: 12px;
+  background: #495057;
+  border-radius: 8px;
   display: flex;
   align-items: center;
   justify-content: center;
@@ -436,12 +508,12 @@ export default {
 .stat-number {
   font-size: 2rem;
   font-weight: bold;
-  color: white;
+  color: #495057;
   margin-bottom: 5px;
 }
 
 .stat-label {
-  color: #aaaaaa;
+  color: #6c757d;
   font-size: 0.9rem;
 }
 
@@ -472,22 +544,23 @@ export default {
 .search-input {
   width: 100%;
   padding: 12px 16px 12px 45px;
-  border: 2px solid #555555;
-  border-radius: 8px;
-  background: rgba(60, 60, 60, 0.8);
-  color: white;
+  border: 1px solid #dee2e6;
+  border-radius: 6px;
+  background: white;
+  color: #495057;
   font-size: 1rem;
   transition: all 0.3s ease;
 }
 
 .search-input:focus {
   outline: none;
-  border-color: #888888;
-  background: rgba(70, 70, 70, 0.9);
+  border-color: #495057;
+  background: white;
+  box-shadow: 0 0 0 3px rgba(73, 80, 87, 0.1);
 }
 
 .search-input::placeholder {
-  color: #aaaaaa;
+  color: #6c757d;
 }
 
 .filter-buttons {
@@ -497,31 +570,33 @@ export default {
 
 .filter-btn {
   padding: 10px 20px;
-  border: 2px solid #555555;
-  border-radius: 8px;
-  background: rgba(60, 60, 60, 0.8);
-  color: white;
+  border: 1px solid #dee2e6;
+  border-radius: 6px;
+  background: white;
+  color: #495057;
   cursor: pointer;
   transition: all 0.3s ease;
   font-size: 0.9rem;
 }
 
 .filter-btn:hover {
-  background: rgba(70, 70, 70, 0.9);
-  border-color: #888888;
+  background: #f8f9fa;
+  border-color: #495057;
 }
 
 .filter-btn.active {
-  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-  border-color: #667eea;
+  background: #495057;
+  border-color: #495057;
+  color: white;
 }
 
 /* 테이블 */
 .inquiry-table-container {
-  background: rgba(45, 45, 45, 0.8);
-  border-radius: 12px;
+  background: white;
+  border-radius: 8px;
   overflow: hidden;
-  border: 1px solid rgba(255, 255, 255, 0.1);
+  border: 1px solid #e9ecef;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
 }
 
 .inquiry-table {
@@ -531,18 +606,18 @@ export default {
 }
 
 .inquiry-table th {
-  background: linear-gradient(135deg, #333333 0%, #555555 100%);
+  background: #495057;
   color: white;
   padding: 15px 12px;
   font-weight: 600;
   text-align: left;
-  border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+  border-bottom: 1px solid #dee2e6;
 }
 
 .inquiry-table td {
   padding: 12px;
-  border-bottom: 1px solid rgba(255, 255, 255, 0.1);
-  color: white;
+  border-bottom: 1px solid #e9ecef;
+  color: #495057;
 }
 
 .inquiry-table tr {
@@ -551,7 +626,7 @@ export default {
 }
 
 .inquiry-table tr:hover {
-  background: rgba(100, 100, 100, 0.3);
+  background: #f8f9fa;
 }
 
 .inquiry-table tr.new-inquiry {
@@ -584,15 +659,15 @@ export default {
 }
 
 .status-new {
-  background: rgba(255, 193, 7, 0.2);
-  color: #ffc107;
-  border: 1px solid rgba(255, 193, 7, 0.3);
+  background: #fff3cd;
+  color: #856404;
+  border: 1px solid #ffeaa7;
 }
 
 .status-replied {
-  background: rgba(40, 167, 69, 0.2);
-  color: #28a745;
-  border: 1px solid rgba(40, 167, 69, 0.3);
+  background: #d4edda;
+  color: #155724;
+  border: 1px solid #c3e6cb;
 }
 
 .action-cell {
@@ -615,32 +690,32 @@ export default {
 }
 
 .view-btn {
-  background: rgba(102, 126, 234, 0.2);
-  color: #667eea;
+  background: #e3f2fd;
+  color: #1976d2;
 }
 
 .view-btn:hover {
-  background: rgba(102, 126, 234, 0.3);
+  background: #bbdefb;
   transform: scale(1.05);
 }
 
 .reply-btn {
-  background: rgba(40, 167, 69, 0.2);
-  color: #28a745;
+  background: #e8f5e8;
+  color: #2e7d32;
 }
 
 .reply-btn:hover {
-  background: rgba(40, 167, 69, 0.3);
+  background: #c8e6c9;
   transform: scale(1.05);
 }
 
 .delete-btn {
-  background: rgba(220, 53, 69, 0.2);
-  color: #dc3545;
+  background: #ffebee;
+  color: #c62828;
 }
 
 .delete-btn:hover {
-  background: rgba(220, 53, 69, 0.3);
+  background: #ffcdd2;
   transform: scale(1.05);
 }
 
@@ -648,18 +723,19 @@ export default {
 .no-inquiry {
   text-align: center;
   padding: 60px 20px;
-  color: #aaaaaa;
+  color: #6c757d;
 }
 
 .no-inquiry i {
   font-size: 3rem;
   margin-bottom: 20px;
   opacity: 0.5;
+  color: #dee2e6;
 }
 
 .no-inquiry h3 {
   margin-bottom: 10px;
-  color: #cccccc;
+  color: #495057;
 }
 
 /* 모달 */
@@ -669,7 +745,7 @@ export default {
   left: 0;
   right: 0;
   bottom: 0;
-  background: rgba(0, 0, 0, 0.7);
+  background: rgba(0, 0, 0, 0.5);
   display: flex;
   align-items: center;
   justify-content: center;
@@ -678,23 +754,24 @@ export default {
 }
 
 .modal-content {
-  background: rgba(45, 45, 45, 0.95);
-  border-radius: 16px;
+  background: white;
+  border-radius: 12px;
   max-width: 600px;
   width: 100%;
   max-height: 80vh;
   overflow: hidden;
-  border: 1px solid rgba(255, 255, 255, 0.1);
+  border: 1px solid #e9ecef;
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3);
 }
 
 .modal-header {
-  background: linear-gradient(135deg, #333333 0%, #555555 100%);
+  background: #495057;
   color: white;
   padding: 20px;
   display: flex;
   justify-content: space-between;
   align-items: center;
-  border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+  border-bottom: 1px solid #dee2e6;
 }
 
 .modal-header h3 {
@@ -723,7 +800,7 @@ export default {
 }
 
 .inquiry-detail {
-  color: white;
+  color: #495057;
 }
 
 .detail-row {
@@ -735,16 +812,17 @@ export default {
 .detail-row label {
   font-weight: 600;
   min-width: 80px;
-  color: #cccccc;
+  color: #6c757d;
 }
 
 .message-content {
-  background: rgba(60, 60, 60, 0.3);
+  background: #f8f9fa;
   padding: 15px;
   border-radius: 8px;
   margin-top: 10px;
   white-space: pre-wrap;
   line-height: 1.5;
+  border: 1px solid #e9ecef;
 }
 
 .modal-footer {
@@ -752,7 +830,7 @@ export default {
   display: flex;
   gap: 10px;
   justify-content: flex-end;
-  border-top: 1px solid rgba(255, 255, 255, 0.1);
+  border-top: 1px solid #e9ecef;
 }
 
 .btn-reply, .btn-cancel {
@@ -768,22 +846,93 @@ export default {
 }
 
 .btn-reply {
-  background: linear-gradient(135deg, #28a745 0%, #20c997 100%);
+  background: #28a745;
   color: white;
 }
 
 .btn-reply:hover {
+  background: #218838;
   transform: translateY(-2px);
   box-shadow: 0 4px 12px rgba(40, 167, 69, 0.3);
 }
 
 .btn-cancel {
-  background: rgba(108, 117, 125, 0.8);
+  background: #6c757d;
   color: white;
 }
 
 .btn-cancel:hover {
-  background: rgba(108, 117, 125, 1);
+  background: #5a6268;
+}
+
+/* 답변 섹션 */
+.reply-section {
+  margin-top: 20px;
+  padding-top: 20px;
+  border-top: 1px solid #e9ecef;
+}
+
+.reply-content {
+  background: #e8f5e8;
+  padding: 15px;
+  border-radius: 8px;
+  margin-top: 10px;
+  white-space: pre-wrap;
+  line-height: 1.5;
+  border: 1px solid #c3e6cb;
+  color: #155724;
+}
+
+/* 답변 모달 */
+.reply-modal {
+  max-width: 700px;
+}
+
+.reply-form {
+  color: #495057;
+}
+
+.form-group {
+  margin-bottom: 20px;
+}
+
+.form-group label {
+  display: block;
+  font-weight: 600;
+  margin-bottom: 8px;
+  color: #495057;
+}
+
+.inquiry-summary {
+  background: #f8f9fa;
+  padding: 15px;
+  border-radius: 8px;
+  border: 1px solid #e9ecef;
+  line-height: 1.6;
+  color: #495057;
+}
+
+.reply-textarea {
+  width: 100%;
+  padding: 12px;
+  border: 1px solid #dee2e6;
+  border-radius: 6px;
+  background: white;
+  color: #495057;
+  font-size: 1rem;
+  font-family: inherit;
+  resize: vertical;
+  transition: all 0.3s ease;
+}
+
+.reply-textarea:focus {
+  outline: none;
+  border-color: #495057;
+  box-shadow: 0 0 0 3px rgba(73, 80, 87, 0.1);
+}
+
+.reply-textarea::placeholder {
+  color: #6c757d;
 }
 
 /* 반응형 디자인 */

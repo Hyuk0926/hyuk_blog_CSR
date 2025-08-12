@@ -44,21 +44,30 @@ public class CommentService {
     @Transactional(readOnly = true)
     public List<CommentDto> getCommentsByPost(Long postId, String postTypeStr) {
         try {
+            System.out.println("CommentService.getCommentsByPost - postId: " + postId + ", postTypeStr: " + postTypeStr);
             PostType postType = PostType.valueOf(postTypeStr.toUpperCase()); // 서비스 내부에서 변환
+            System.out.println("CommentService.getCommentsByPost - converted postType: " + postType);
             logger.info("Getting comments for postId: {}, postType: {}", postId, postType);
             List<Comment> comments;
             if (postType == PostType.KR) {
+                System.out.println("CommentService.getCommentsByPost - calling findByPostKrIdOrderByCreatedAtAsc");
                 comments = commentRepository.findByPostKrIdOrderByCreatedAtAsc(postId);
             } else {
+                System.out.println("CommentService.getCommentsByPost - calling findByPostJpIdOrderByCreatedAtAsc");
                 comments = commentRepository.findByPostJpIdOrderByCreatedAtAsc(postId);
             }
+            System.out.println("CommentService.getCommentsByPost - comments.size: " + comments.size());
             logger.info("Found {} comments", comments.size());
             // 서비스 내에서 DTO 변환을 완료하여 LazyInitializationException 방지
-            return comments.stream()
+            List<CommentDto> result = comments.stream()
                 .map(this::convertToDto)
                 .filter(dto -> dto != null) // null DTO 필터링
                 .collect(Collectors.toList());
+            System.out.println("CommentService.getCommentsByPost - result.size: " + result.size());
+            return result;
         } catch (Exception e) {
+            System.out.println("CommentService.getCommentsByPost - ERROR: " + e.getMessage());
+            e.printStackTrace();
             logger.error("Error getting comments for postId: {}, postType: {}", postId, postTypeStr, e);
             throw e;
         }

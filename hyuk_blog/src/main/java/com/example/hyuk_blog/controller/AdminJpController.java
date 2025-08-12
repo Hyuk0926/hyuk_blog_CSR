@@ -131,14 +131,14 @@ public class AdminJpController {
     public String resumeJpForm(Model model, HttpSession session) {
         AdminDto admin = (AdminDto) session.getAttribute("admin");
         model.addAttribute("admin", admin);
-        model.addAttribute("resume", resumeService.loadResume());
+        model.addAttribute("resume", resumeService.loadResume("ja"));
         return "admin/resume-form-jp";
     }
 
     // 일본어 이력서 저장 (POST)
     @PostMapping("/resume")
     public String saveJpResume(@ModelAttribute com.example.hyuk_blog.entity.Resume resume, RedirectAttributes redirectAttributes) {
-        resumeService.saveResume(resume);
+        resumeService.saveResume(resume, "ja");
         redirectAttributes.addFlashAttribute("message", "履歴書が保存されました！");
         return "redirect:/admin_jp";
     }

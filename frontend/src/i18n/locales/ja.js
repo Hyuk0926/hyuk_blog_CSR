@@ -22,7 +22,17 @@ export default {
   knowledge: {
     title: '知識集',
     subtitle: '開発関連の知識とコツを集めたスペースです。',
+    latestPosts: '最新記事',
+    postCount: '件',
+    searchPlaceholder: '記事を検索...',
+    loading: '記事を読み込み中...',
+    noPosts: '記事がありません。',
+    retry: '再試行',
+    loadError: '記事の読み込みに失敗しました。',
+    searchError: '検索に失敗しました。',
+    categoryError: 'カテゴリ別記事の読み込みに失敗しました。',
     categories: {
+      all: 'すべて表示',
       backend: 'バックエンド',
       frontend: 'フロントエンド',
       database: 'データベース',
@@ -70,6 +80,7 @@ export default {
 
   // 履歴書関連
   resume: {
+    introduction: 'プロフィール',
     education: '学歴',
     school: '学校名',
     degree: '専攻/学位',
@@ -90,9 +101,11 @@ export default {
       name: 'お名前',
       email: 'メールアドレス',
       subject: '件名',
-      message: 'メッセージ',
-      send: '送信'
-    }
+      message: 'お問い合わせ内容',
+      send: '送信する'
+    },
+    success: 'お問い合わせを送信しました。ありがとうございます。',
+    error: '送信に失敗しました。もう一度お試しください。'
   },
 
   // ログインページ

@@ -6,6 +6,7 @@
   border-radius: 14px;
   box-shadow: 0 2px 12px rgba(0,0,0,0.07);
   padding: 40px 36px 36px 36px;
+  transition: background 0.5s ease, color 0.5s ease, box-shadow 0.5s ease;
 }
 @media (max-width: 900px) {
   .post-content {
@@ -22,6 +23,7 @@
   margin-bottom: 0.7em;
   font-weight: 700;
   color: #1a237e;
+  transition: color 0.5s ease;
 }
 .post-content h2 {
   font-size: 1.4rem;
@@ -29,12 +31,14 @@
   margin-bottom: 0.5em;
   font-weight: 600;
   color: #222;
+  transition: color 0.5s ease;
 }
 .post-content p {
   font-size: 1.08rem;
   line-height: 1.7;
   margin-bottom: 1em;
   color: #222;
+  transition: color 0.5s ease;
 }
 .post-content ul, .post-content ol {
   margin-left: 24px;
@@ -44,15 +48,176 @@
 .post-content li {
   margin-bottom: 0.5em;
   font-size: 1.05rem;
+  color: #222;
+  transition: color 0.5s ease;
 }
 .post-content table {
   width: 100%;
   border-collapse: collapse;
   margin-bottom: 1.5em;
   font-size: 1.02rem;
+  transition: background 0.5s ease, border-color 0.5s ease;
 }
 .post-content th, .post-content td {
   border: 1px solid #ccc;
   padding: 8px 12px;
   text-align: left;
+  transition: background 0.5s ease, color 0.5s ease, border-color 0.5s ease;
+}
+
+/* 코드 블록 기본 스타일 */
+.post-content pre {
+  background: #23272a;
+  color: #ffe082;
+  border: 1px solid #444;
+  transition: background 0.5s ease, color 0.5s ease, border-color 0.5s ease;
+}
+
+.post-content code {
+  background: #23272a;
+  color: #ffe082;
+  border: 1px solid #444;
+  transition: background 0.5s ease, color 0.5s ease, border-color 0.5s ease;
+}
+
+/* 다크모드 스타일 */
+body.dark-mode .post-content {
+  background: #1e293b;
+  box-shadow: none;
+  color: #e2e8f0;
+  border: 1px solid #334155;
+}
+
+body.dark-mode .post-content h1 {
+  color: #f7fafc;
+}
+
+body.dark-mode .post-content h2 {
+  color: #f7fafc;
+}
+
+body.dark-mode .post-content p {
+  color: #e2e8f0;
+}
+
+body.dark-mode .post-content li {
+  color: #e2e8f0;
+}
+
+body.dark-mode .post-content table {
+  background: #1a202c;
+}
+
+body.dark-mode .post-content th,
+body.dark-mode .post-content td {
+  border-color: #4a5568;
+  color: #e2e8f0;
+  background: #1a202c;
+}
+
+body.dark-mode .post-content th {
+  background: #4a5568;
+  color: #f7fafc;
+}
+
+/* 코드 블록 다크모드 스타일 */
+body.dark-mode .post-content pre {
+  background: #1a202c;
+  color: #e2e8f0;
+  border: 1px solid #4a5568;
+}
+
+body.dark-mode .post-content code {
+  background: #1a202c;
+  color: #90cdf4;
+  border: 1px solid #4a5568;
+}
+
+/* Prism.js 코드 하이라이팅 다크모드 스타일 */
+body.dark-mode .post-content .token.comment,
+body.dark-mode .post-content .token.prolog,
+body.dark-mode .post-content .token.doctype,
+body.dark-mode .post-content .token.cdata {
+  color: #6b7280;
+}
+
+body.dark-mode .post-content .token.punctuation {
+  color: #e5e7eb;
+}
+
+body.dark-mode .post-content .token.namespace {
+  opacity: 0.7;
+}
+
+body.dark-mode .post-content .token.property,
+body.dark-mode .post-content .token.tag,
+body.dark-mode .post-content .token.boolean,
+body.dark-mode .post-content .token.number,
+body.dark-mode .post-content .token.constant,
+body.dark-mode .post-content .token.symbol,
+body.dark-mode .post-content .token.deleted {
+  color: #f87171;
+}
+
+body.dark-mode .post-content .token.selector,
+body.dark-mode .post-content .token.attr-name,
+body.dark-mode .post-content .token.string,
+body.dark-mode .post-content .token.char,
+body.dark-mode .post-content .token.builtin,
+body.dark-mode .post-content .token.inserted {
+  color: #34d399;
+}
+
+body.dark-mode .post-content .token.operator,
+body.dark-mode .post-content .token.entity,
+body.dark-mode .post-content .token.url,
+body.dark-mode .post-content .language-css .token.string,
+body.dark-mode .post-content .style .token.string {
+  color: #fbbf24;
+}
+
+body.dark-mode .post-content .token.atrule,
+body.dark-mode .post-content .token.attr-value,
+body.dark-mode .post-content .token.keyword {
+  color: #60a5fa;
+}
+
+body.dark-mode .post-content .token.function,
+body.dark-mode .post-content .token.class-name {
+  color: #a78bfa;
+}
+
+body.dark-mode .post-content .token.regex,
+body.dark-mode .post-content .token.important,
+body.dark-mode .post-content .token.variable {
+  color: #f472b6;
+}
+
+body.dark-mode .post-content .token.important,
+body.dark-mode .post-content .token.bold {
+  font-weight: bold;
+}
+
+body.dark-mode .post-content .token.italic {
+  font-style: italic;
+}
+
+body.dark-mode .post-content .token.entity {
+  cursor: help;
+}
+
+/* 링크 다크모드 스타일 */
+body.dark-mode .post-content a {
+  color: #63b3ed;
+}
+
+body.dark-mode .post-content a:hover {
+  color: #90cdf4;
+}
+
+/* 인용구 다크모드 스타일 */
+body.dark-mode .post-content blockquote {
+  border-left-color: #4a5568;
+  background: #1a202c;
+  color: #a0aec0;
 } 

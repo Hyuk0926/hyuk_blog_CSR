@@ -12,6 +12,15 @@ export function useAuth() {
       if (apiService.isLoggedIn()) {
         const userData = await apiService.getCurrentUser()
         if (userData) {
+          // 관리자인 경우 name 필드를 nickname으로 매핑
+          const userRole = localStorage.getItem('userRole')
+          if (userRole === 'ROLE_ADMIN' && userData.name && !userData.nickname) {
+            userData.nickname = userData.name
+          }
+          // nickname이 없는 경우 username을 사용
+          if (!userData.nickname) {
+            userData.nickname = userData.username
+          }
           user.value = userData
           isAuthenticated.value = true
           return userData
@@ -37,10 +46,13 @@ export function useAuth() {
       if (localStorage.getItem('jwtToken')) {
         const username = localStorage.getItem('username')
         const role = localStorage.getItem('userRole')
+        const adminName = localStorage.getItem('adminName')
+        const userNickname = localStorage.getItem('userNickname')
         if (username) {
           user.value = {
             username: username,
-            nickname: username, // 기본값으로 username 사용
+            nickname: role === 'ROLE_ADMIN' ? (adminName || username) : (userNickname || username), // 관리자는 adminName, 일반 사용자는 userNickname 사용
+            name: role === 'ROLE_ADMIN' ? (adminName || username) : undefined, // 관리자 name 필드 추가
             role: role || 'USER'
           }
           isAuthenticated.value = true
@@ -67,6 +79,11 @@ export function useAuth() {
       localStorage.setItem('jwtToken', response.token)
       localStorage.setItem('userRole', response.role === 'USER' ? 'ROLE_USER' : response.role)
       localStorage.setItem('username', response.username)
+      
+      // 일반 사용자인 경우 사용자 정보도 저장
+      if (response.role === 'USER' && response.username) {
+        localStorage.setItem('userNickname', response.username) // 기본값으로 username 사용
+      }
       
       // 사용자 정보 업데이트
       await fetchUserInfo()
@@ -98,10 +115,13 @@ export function useAuth() {
       if (localStorage.getItem('jwtToken')) {
         const username = localStorage.getItem('username')
         const role = localStorage.getItem('userRole')
+        const adminName = localStorage.getItem('adminName')
+        const userNickname = localStorage.getItem('userNickname')
         if (username) {
           user.value = {
             username: username,
-            nickname: username, // 기본값으로 username 사용
+            nickname: role === 'ROLE_ADMIN' ? (adminName || username) : (userNickname || username), // 관리자는 adminName, 일반 사용자는 userNickname 사용
+            name: role === 'ROLE_ADMIN' ? (adminName || username) : undefined, // 관리자 name 필드 추가
             role: role || 'USER'
           }
           isAuthenticated.value = true

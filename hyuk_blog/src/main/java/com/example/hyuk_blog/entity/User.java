@@ -49,6 +49,15 @@ public class User implements UserDetails {
         updatedAt = LocalDateTime.now();
     }
     
+    /**
+     * 비밀번호 업데이트 메소드
+     * DelegatingPasswordEncoder의 upgradeEncoding 기능을 위해 사용
+     */
+    public void updatePassword(String newPassword) {
+        this.password = newPassword;
+        this.updatedAt = LocalDateTime.now();
+    }
+    
     // UserDetails 인터페이스 구현
     @Override
     public Collection<? extends GrantedAuthority> getAuthorities() {

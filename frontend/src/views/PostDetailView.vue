@@ -1,5 +1,5 @@
 <template>
-  <div class="post-detail-container">
+  <div class="post-detail-container" :class="{ 'dark-mode': isDarkMode }">
     <!-- 알림 메시지 컨테이너 -->
     <div id="notification-container" class="notification-container" style="display: none;">
       <div class="notification-message">
@@ -39,14 +39,14 @@
     <!-- 게시글 내용 -->
     <div v-else>
       <div class="post-header">
-        <h1>{{ post.title }}</h1>
+        <h1>{{ currentTitle }}</h1>
         <div class="post-meta" style="text-align: right;">
           <span>{{ formatDate(post.createdAt) }}</span>
         </div>
       </div>
     
-    <div class="post-summary" v-if="post.summary">
-      <p>{{ post.summary }}</p>
+    <div class="post-summary" v-if="currentSummary">
+      <p>{{ currentSummary }}</p>
     </div>
     
     <div class="post-image-container" v-if="post.imageUrl">
@@ -54,7 +54,7 @@
     </div>
     
     <div class="post-content" id="post-content">
-      <div v-html="post.content"></div>
+      <div v-html="currentContent"></div>
     </div>
     
     <!-- 미리보기 모드 표시 -->
@@ -90,9 +90,20 @@
                 <span v-if="comment.isEdited" class="edited-badge">(수정됨)</span>
               </div>
             </div>
-            <div class="comment-actions" v-if="isAuthenticated && user && comment.userId === user.id">
-              <button v-if="editingCommentId !== comment.id" class="comment-action-btn" @click="startEditComment(comment)">수정</button>
-              <button class="comment-action-btn delete" @click="deleteComment(comment.id)">삭제</button>
+            <div class="comment-actions" v-if="isAuthenticated && user && canEditComment(comment)">
+              <button v-if="editingCommentId !== comment.id" class="comment-action-btn edit-btn" @click="startEditComment(comment)" title="댓글 수정">
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                  <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"></path>
+                  <path d="m18.5 2.5 3 3L12 15l-4 1 1-4 9.5-9.5z"></path>
+                </svg>
+              </button>
+              <button class="comment-action-btn delete-btn" @click="confirmDeleteComment(comment.id)" title="댓글 삭제">
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                  <path d="M3 6h18"></path>
+                  <path d="M19 6v14c0 1-1 2-2 2H7c-1 0-2-1-2-2V6"></path>
+                  <path d="M8 6V4c0-1 1-2 2-2h4c1 0 2 1 2 2v2"></path>
+                </svg>
+              </button>
             </div>
           </div>
           
@@ -105,6 +116,7 @@
               v-model="editingContent"
               class="comment-edit-textarea"
               placeholder="댓글을 수정하세요..."
+              @keydown="handleEditCommentKeydown"
             ></textarea>
             <div class="comment-edit-actions">
               <button class="comment-action-btn" @click="updateComment(comment.id)">저장</button>
@@ -122,6 +134,7 @@
             placeholder="댓글을 입력하세요..." 
             class="comment-textarea"
             v-model="newComment"
+            @keydown="handleCommentKeydown"
           ></textarea>
           <button id="comment-submit" class="comment-submit-btn" @click="submitComment">댓글 작성</button>
         </div>
@@ -137,11 +150,12 @@
 </template>
 
 <script setup>
-import { ref, onMounted, nextTick, watch } from 'vue';
+import { ref, onMounted, nextTick, watch, computed } from 'vue';
 import { useRoute, useRouter } from 'vue-router';
 import { useI18n } from 'vue-i18n';
 import apiService from '@/services/api.js';
 import { useAuth } from '@/composables/useAuth.js';
+import '/public/css/post.css';
 
 // Composables
 const route = useRoute();
@@ -158,7 +172,14 @@ const post = ref({
   imageUrl: '',
   createdAt: null,
   category: null,
-  postType: null
+  postType: null,
+  titleKo: '',
+  titleJa: '',
+  summaryKo: '',
+  summaryJa: '',
+  contentKo: '',
+  contentJa: '',
+  lang: 'ko'
 });
 
 const isLiked = ref(false);
@@ -169,22 +190,65 @@ const newComment = ref('');
 const loading = ref(false);
 const error = ref(null);
 
+const isDarkMode = computed(() => {
+  return document.body.classList.contains('dark-mode');
+});
+
+// Computed properties for safe data access
+const currentTitle = computed(() => {
+  const lang = route.query.lang || locale.value;
+  if (lang === 'ja' && post.value.titleJa) {
+    return post.value.titleJa;
+  }
+  return post.value.titleKo || post.value.title || '제목 없음';
+});
+
+const currentSummary = computed(() => {
+  const lang = route.query.lang || locale.value;
+  if (lang === 'ja' && post.value.summaryJa) {
+    return post.value.summaryJa;
+  }
+  return post.value.summaryKo || post.value.summary || '';
+});
+
+const currentContent = computed(() => {
+  const lang = route.query.lang || locale.value;
+  if (lang === 'ja' && post.value.contentJa) {
+    return post.value.contentJa;
+  }
+  return post.value.contentKo || post.value.content || '<p>내용이 없습니다.</p>';
+});
+
 // Methods
 const loadPost = async () => {
   const postId = route.params.id;
   loading.value = true;
   error.value = null;
   
+  console.log("=== POST DETAIL VIEW DEBUG ===");
+  console.log("Loading post with ID:", postId);
+  console.log("Current route params:", route.params);
+  console.log("Current route query:", route.query);
+  
   try {
     // URL 쿼리 파라미터의 언어 설정을 우선 사용, 없으면 현재 locale 사용
     const lang = route.query.lang || locale.value;
-    const response = await apiService.getPost(postId, lang);
+    console.log("Using language:", lang);
     
-    console.log("post response ::::::::::::", response);
+    const response = await apiService.getPost(postId, lang);
+    console.log("API response:", response);
 
     if (response.success) {
       post.value = response.data;
+      console.log("Post data loaded:", post.value);
+      
+      // 언어별 데이터 확인
+      console.log("Post title (ko):", post.value.titleKo);
+      console.log("Post title (ja):", post.value.titleJa);
+      console.log("Post content (ko):", post.value.contentKo);
+      console.log("Post content (ja):", post.value.contentJa);
     } else {
+      console.error("API response not successful:", response);
       error.value = response.message || '게시글을 찾을 수 없습니다.';
       post.value = {
         id: postId,
@@ -198,7 +262,12 @@ const loadPost = async () => {
     }
   } catch (error) {
     console.error('포스트 로드 실패:', error);
-    error.value = '게시글을 불러오는데 실패했습니다.';
+    console.error('Error details:', {
+      message: error.message,
+      stack: error.stack,
+      name: error.name
+    });
+    error.value = '게시글을 불러오는데 실패했습니다: ' + error.message;
     post.value = {
       id: postId,
       title: '게시글을 찾을 수 없습니다',
@@ -213,60 +282,85 @@ const loadPost = async () => {
   }
 };
 
+// 좋아요 상태 로드
 const loadLikeStatus = async () => {
-  if (!post.value || !post.value.id) return;
-
   try {
+    console.log("=== LOAD LIKE STATUS DEBUG ===");
+    console.log("Loading like status for post ID:", post.value.id);
+    
     // URL 쿼리 파라미터의 언어 설정을 우선 사용, 없으면 현재 locale 사용
     const lang = route.query.lang || locale.value;
     const postType = post.value.postType || apiService.getPostTypeFromLang(lang);
     
-    console.log("Requesting like status with postId:", post.value.id, "and postType:", postType);
+    console.log("Using postType:", postType);
+    console.log("User authenticated:", isAuthenticated.value);
+    
     const response = await apiService.getLikeStatus(post.value.id, postType);
-    console.log("Like status response:", response);
-
-    if (response) {
-      likeCount.value = response.likeCount || 0;
-      isLiked.value = response.isLiked || false;
+    console.log("Like status API response:", response);
+    
+    if (response && typeof response.likeCount !== 'undefined') {
+      likeCount.value = response.likeCount;
+      isLiked.value = response.liked || false;
+      console.log("Like status loaded - count:", likeCount.value, "isLiked:", isLiked.value);
     } else {
-      // 응답이 비정상적일 경우 기본값으로 설정
+      console.warn("Unexpected like status response format:", response);
       likeCount.value = 0;
       isLiked.value = false;
     }
   } catch (error) {
     console.error('좋아요 상태 로드 실패:', error);
-    // 에러가 발생해도 UI가 깨지지 않도록 기본값으로 설정
+    console.error('Error details:', {
+      message: error.message,
+      stack: error.stack,
+      name: error.name
+    });
     likeCount.value = 0;
     isLiked.value = false;
   }
 };
 
+// 댓글 로드
 const loadComments = async () => {
-  if (!post.value.id) return;
-  
-  const lang = route.query.lang || locale.value;
-  const postType = post.value.postType || apiService.getPostTypeFromLang(lang);
-   const response = await apiService.getComments(post.value.id, postType);
-
-  console.log("response ::::::::::::", response);
-
   try {
+    console.log("=== LOAD COMMENTS DEBUG ===");
+    console.log("Loading comments for post ID:", post.value.id);
+    
     // URL 쿼리 파라미터의 언어 설정을 우선 사용, 없으면 현재 locale 사용
     const lang = route.query.lang || locale.value;
     const postType = post.value.postType || apiService.getPostTypeFromLang(lang);
-    const response = await apiService.getComments(post.value.id, postType);
-
-    console.log("response ::::::::::::", response);
     
-    if (response && Array.isArray(response)) {
+    console.log("Using postType:", postType);
+    console.log("User authenticated:", isAuthenticated.value);
+    
+    const response = await apiService.getComments(post.value.id, postType);
+    console.log("Comments API response:", response);
+    
+    if (response && response.success && Array.isArray(response.data)) {
+      comments.value = response.data;
+      console.log("Comments loaded:", comments.value.length, "comments");
+      console.log("Comments data:", comments.value);
+      console.log("Current user:", user.value);
+      console.log("User authenticated:", isAuthenticated.value);
+    } else if (Array.isArray(response)) {
+      // 직접 배열로 반환되는 경우 (하위 호환성)
       comments.value = response;
+      console.log("Comments loaded (legacy format):", comments.value.length, "comments");
+    } else if (response && response.data && Array.isArray(response.data)) {
+      // success 필드가 없지만 data 필드가 있는 경우
+      comments.value = response.data;
+      console.log("Comments loaded (data format):", comments.value.length, "comments");
     } else {
-      console.error('댓글 로드 실패:', response);
+      console.warn("Unexpected comments response format:", response);
       comments.value = [];
     }
   } catch (error) {
     console.error('댓글 로드 실패:', error);
-    comments.value = [];
+    console.error('Error details:', {
+      message: error.message,
+      stack: error.stack,
+      name: error.name
+    });
+    comments.value = []; // 에러 발생 시 빈 배열로 초기화
   }
 };
 
@@ -277,7 +371,12 @@ const formatDate = (date) => {
 };
 
 const handleLikeToggle = async () => {
+  console.log("=== LIKE TOGGLE DEBUG ===");
+  console.log("Like toggle clicked for post ID:", post.value.id);
+  console.log("User authenticated:", isAuthenticated.value);
+  
   if (!isAuthenticated.value) {
+    console.log("User not authenticated, showing login modal");
     showLoginModal();
     return;
   }
@@ -286,49 +385,59 @@ const handleLikeToggle = async () => {
     // URL 쿼리 파라미터의 언어 설정을 우선 사용, 없으면 현재 locale 사용
     const lang = route.query.lang || locale.value;
     const postType = post.value.postType || apiService.getPostTypeFromLang(lang);
-    const response = await apiService.toggleLike(post.value.id, postType);
     
-    if (response.success) {
+    console.log("Using postType:", postType);
+    console.log("Current like state - isLiked:", isLiked.value, "count:", likeCount.value);
+    
+    const response = await apiService.toggleLike(post.value.id, postType);
+    console.log("Toggle like API response:", response);
+    
+    if (response && response.success) {
       // 즉각적인 사용자 경험을 위해 로컬 상태를 직접 업데이트
-      isLiked.value = !isLiked.value;
-      if (isLiked.value) {
+      isLiked.value = response.isLiked;
+      if (response.isLiked) {
         likeCount.value++;
       } else {
         likeCount.value--;
       }
-      showNotification(isLiked.value ? '좋아요를 눌렀습니다!' : '좋아요를 취소했습니다.');
+      console.log("Like state updated - isLiked:", isLiked.value, "count:", likeCount.value);
+      showNotification(response.isLiked ? '좋아요를 눌렀습니다!' : '좋아요를 취소했습니다.');
     } else {
-      showNotification(response.message || '좋아요 처리 중 오류가 발생했습니다.');
+      console.warn("Toggle like response not successful:", response);
+      showNotification(response?.message || '좋아요 처리 중 오류가 발생했습니다.');
     }
   } catch (error) {
     console.error('좋아요 토글 실패:', error);
+    console.error('Error details:', {
+      message: error.message,
+      stack: error.stack,
+      name: error.name
+    });
     showNotification('좋아요 처리 중 오류가 발생했습니다.');
   }
 };
 
 const submitComment = async () => {
+  console.log("=== SUBMIT COMMENT DEBUG ===");
+  console.log("Submitting comment for post ID:", post.value.id);
+  console.log("Comment content:", newComment.value);
+  console.log("User authenticated:", isAuthenticated.value);
+  
   if (!newComment.value.trim()) {
+    console.log("Comment content is empty");
     showNotification('댓글 내용을 입력해주세요.');
     return;
   }
-  
-  // 로그인 상태 확인
+
   if (!isAuthenticated.value) {
-    showNotification('댓글을 작성하려면 로그인이 필요합니다.');
+    console.log("User not authenticated, showing login modal");
+    showLoginModal();
     return;
   }
-  
-  // JWT 토큰 확인
+
   const token = localStorage.getItem('jwtToken');
-  if (!token) {
-    showNotification('인증 토큰이 없습니다. 다시 로그인해주세요.');
-    return;
-  }
-  
-  console.log('댓글 작성 시도:', {
-    postId: post.value.id,
-    postType: post.value.postType || apiService.getPostTypeFromLang(locale.value),
-    isAuthenticated: isAuthenticated.value,
+  console.log("JWT token exists:", !!token);
+  console.log("User info:", {
     hasToken: !!token,
     user: user.value
   });
@@ -337,24 +446,39 @@ const submitComment = async () => {
     // URL 쿼리 파라미터의 언어 설정을 우선 사용, 없으면 현재 locale 사용
     const lang = route.query.lang || locale.value;
     const postType = post.value.postType || apiService.getPostTypeFromLang(lang);
+    
+    console.log("Using postType:", postType);
+    
     const commentData = {
       content: newComment.value
     };
+    console.log("Comment data to send:", commentData);
     
     const response = await apiService.addComment(post.value.id, postType, commentData);
+    console.log("Add comment API response:", response);
     
-    if (response) {
-      // 새 댓글을 목록에 추가
-      comments.value.unshift(response);
+    if (response && (response.success || response.id)) {
+      // 새 댓글을 목록에 추가 (최신 댓글이 아래에 오도록)
+      const newCommentData = response.data || response;
+      comments.value.push(newCommentData);
       newComment.value = '';
+      console.log("Comment added successfully, total comments:", comments.value.length);
       showNotification('댓글이 작성되었습니다.');
     } else {
-      showNotification('댓글 작성 중 오류가 발생했습니다.');
+      console.warn("Add comment response not successful:", response);
+      showNotification(response?.message || '댓글 작성 중 오류가 발생했습니다.');
     }
   } catch (error) {
     console.error('댓글 작성 실패:', error);
+    console.error('Error details:', {
+      message: error.message,
+      stack: error.stack,
+      name: error.name
+    });
+    
     if (error.message && error.message.includes('401')) {
       showNotification('인증이 만료되었습니다. 다시 로그인해주세요.');
+      router.push('/user/login');
     } else {
       showNotification('댓글 작성 중 오류가 발생했습니다.');
     }
@@ -388,7 +512,7 @@ const updateComment = async (commentId) => {
     
     const response = await apiService.updateComment(commentId, commentData);
     
-    if (response) {
+    if (response && (response.success || response.id)) {
       // 로컬 상태에서 댓글 업데이트
       const commentIndex = comments.value.findIndex(c => c.id === commentId);
       if (commentIndex !== -1) {
@@ -404,34 +528,152 @@ const updateComment = async (commentId) => {
       editingContent.value = '';
       showNotification('댓글이 수정되었습니다.');
     } else {
-      showNotification('댓글 수정 중 오류가 발생했습니다.');
+      showNotification(response?.message || '댓글 수정 중 오류가 발생했습니다.');
     }
   } catch (error) {
     console.error('댓글 수정 실패:', error);
-    showNotification('댓글 수정 중 오류가 발생했습니다.');
+    
+    if (error.message && error.message.includes('401')) {
+      showNotification('인증이 만료되었습니다. 다시 로그인해주세요.');
+      router.push('/user/login');
+    } else if (error.message && error.message.includes('403')) {
+      showNotification('댓글을 수정할 권한이 없습니다.');
+    } else {
+      showNotification('댓글 수정 중 오류가 발생했습니다.');
+    }
   }
 };
 
-const deleteComment = async (commentId) => {
-  if (confirm('댓글을 삭제하시겠습니까?')) {
-    try {
-      await apiService.deleteComment(commentId);
+// 댓글 작성 키보드 이벤트 처리
+const handleCommentKeydown = (event) => {
+  if (event.key === 'Enter' && !event.shiftKey) {
+    event.preventDefault();
+    submitComment();
+  }
+};
+
+// 댓글 수정 키보드 이벤트 처리
+const handleEditCommentKeydown = (event) => {
+  if (event.key === 'Enter' && !event.shiftKey) {
+    event.preventDefault();
+    updateComment(editingCommentId.value);
+  }
+};
+
+// 댓글 편집 권한 확인 함수
+const canEditComment = (comment) => {
+  if (!user.value) return false;
+  
+  // 다양한 사용자 ID 필드명에 대응
+  const commentUserId = comment.userId || comment.user_id || comment.user?.id;
+  const commentUsername = comment.username || comment.user?.username;
+  const commentNickname = comment.nickname || comment.user?.nickname;
+  
+  // 현재 사용자 정보와 비교
+  return (
+    commentUserId === user.value.id ||
+    commentUsername === user.value.username ||
+    commentNickname === user.value.nickname
+  );
+};
+
+const deleteCommentDirectly = async (commentId) => {
+  try {
+    console.log('=== DELETE COMMENT DEBUG ===');
+    console.log('Deleting comment ID:', commentId);
+    console.log('User authenticated:', isAuthenticated.value);
+    console.log('User info:', user.value);
+    console.log('JWT token exists:', !!localStorage.getItem('jwtToken'));
+    
+    const response = await apiService.deleteComment(commentId);
+    console.log('Delete API response:', response);
+    
+    if (response && (response.success || response === true || response.message)) {
       // 로컬 상태에서 댓글 제거
       comments.value = comments.value.filter(c => c.id !== commentId);
       showNotification('댓글이 삭제되었습니다.');
-    } catch (error) {
-      console.error('댓글 삭제 실패:', error);
+    } else {
+      showNotification(response?.message || '댓글 삭제 중 오류가 발생했습니다.');
+    }
+  } catch (error) {
+    console.error('댓글 삭제 실패:', error);
+    console.error('Error details:', {
+      message: error.message,
+      stack: error.stack,
+      name: error.name
+    });
+    
+    if (error.message && error.message.includes('401')) {
+      console.log('401 Unauthorized error - redirecting to login');
+      showNotification('인증이 만료되었습니다. 다시 로그인해주세요.');
+      // 로그인 페이지로 리다이렉트
+      router.push('/user/login');
+    } else if (error.message && error.message.includes('403')) {
+      showNotification('댓글을 삭제할 권한이 없습니다.');
+    } else {
       showNotification('댓글 삭제 중 오류가 발생했습니다.');
     }
   }
 };
 
+const confirmDeleteComment = (commentId) => {
+  // 커스텀 확인 모달 표시
+  const comment = comments.value.find(c => c.id === commentId);
+  const commentText = comment ? comment.content.substring(0, 50) + (comment.content.length > 50 ? '...' : '') : '';
+  
+  nextTick(() => {
+    // 모달 요소들 확인
+    const modalTitle = document.getElementById('modal-title');
+    const modalMessage = document.getElementById('modal-message');
+    const modal = document.getElementById('login-confirm-modal');
+    const confirmBtn = document.querySelector('.modal-btn.confirm');
+    
+    if (!modalTitle || !modalMessage || !modal || !confirmBtn) {
+      console.error('Modal elements not found');
+      // 대안으로 confirm 사용
+      if (confirm(`정말로 이 댓글을 삭제하시겠습니까?\n\n"${commentText}"\n\n삭제된 댓글은 복구할 수 없습니다.`)) {
+        deleteCommentDirectly(commentId);
+      }
+      return;
+    }
+    
+    // 모달 제목과 메시지 설정
+    modalTitle.textContent = '댓글 삭제';
+    modalMessage.innerHTML = `정말로 이 댓글을 삭제하시겠습니까?<br><br><em>"${commentText}"</em><br><br>삭제된 댓글은 복구할 수 없습니다.`;
+    
+    // 모달 표시
+    modal.style.display = 'flex';
+    
+    // 확인 버튼에 삭제 이벤트 연결
+    const originalOnClick = confirmBtn.onclick;
+    
+    confirmBtn.onclick = async () => {
+      await deleteCommentDirectly(commentId);
+      closeLoginModal();
+      // 원래 이벤트 복원
+      confirmBtn.onclick = originalOnClick;
+    };
+  });
+};
+
+
+
 const showLoginModal = () => {
-  document.getElementById('login-confirm-modal').style.display = 'flex';
+  nextTick(() => {
+    const modal = document.getElementById('login-confirm-modal');
+    if (modal) {
+      modal.style.display = 'flex';
+    }
+  });
 };
 
 const closeLoginModal = () => {
-  document.getElementById('login-confirm-modal').style.display = 'none';
+  nextTick(() => {
+    const modal = document.getElementById('login-confirm-modal');
+    if (modal) {
+      modal.style.display = 'none';
+    }
+  });
 };
 
 const confirmLogin = () => {
@@ -440,19 +682,34 @@ const confirmLogin = () => {
 };
 
 const showNotification = (message) => {
-  const container = document.getElementById('notification-container');
-  const text = document.getElementById('notification-text');
-  
-  text.textContent = message;
-  container.style.display = 'block';
-  
-  setTimeout(() => {
-    closeNotification();
-  }, 3000);
+  nextTick(() => {
+    const container = document.getElementById('notification-container');
+    const text = document.getElementById('notification-text');
+    
+    if (!container || !text) {
+      console.error('Notification elements not found');
+      // 대안으로 alert 사용
+      alert(message);
+      return;
+    }
+    
+    text.textContent = message;
+    container.style.display = 'block';
+    
+    // 3초 후 자동으로 닫기
+    setTimeout(() => {
+      closeNotification();
+    }, 3000);
+  });
 };
 
 const closeNotification = () => {
-  document.getElementById('notification-container').style.display = 'none';
+  nextTick(() => {
+    const container = document.getElementById('notification-container');
+    if (container) {
+      container.style.display = 'none';
+    }
+  });
 };
 
 const setupCodeCopy = () => {
@@ -492,15 +749,12 @@ const copyCode = (block, btn) => {
 
 const setupPrism = () => {
   nextTick(() => {
-    // Prism.js가 로드될 때까지 대기
-    const checkPrism = () => {
-      if (window.Prism) {
-        window.Prism.highlightAll();
-      } else {
-        setTimeout(checkPrism, 100);
-      }
-    };
-    checkPrism();
+    if (window.Prism) {
+      const codeBlocks = document.querySelectorAll('#post-content pre code');
+      codeBlocks.forEach((block) => {
+        window.Prism.highlightElement(block);
+      });
+    }
   });
 };
 
@@ -523,10 +777,10 @@ onMounted(async () => {
 });
 </script>
 
-<style scoped>
+<style>
 /* 제공된 CSS 스타일을 여기에 포함 */
 .post-detail-container {
-  max-width: 800px;
+  max-width: 1000px;
   margin: 0 auto;
   padding: 40px 20px;
 }
@@ -589,27 +843,13 @@ onMounted(async () => {
   box-shadow: 0 4px 24px rgba(0,0,0,0.07);
 }
 
+/* post.css에서 기본 스타일을 제공하므로 여기서는 추가 스타일만 정의 */
 .post-content {
   margin-bottom: 64px;
-  line-height: 1.8;
-  font-size: 1.1rem;
-  color: #2d3748;
 }
 
-.post-content h1,
-.post-content h2,
-.post-content h3,
-.post-content h4,
-.post-content h5,
-.post-content h6 {
-  color: #1a202c;
-  font-weight: 600;
-  margin-top: 2rem;
-  margin-bottom: 1rem;
-}
-
+/* post.css에서 기본 스타일을 제공하므로 여기서는 추가 스타일만 정의 */
 .post-content h2 {
-  font-size: 1.8rem;
   border-bottom: 2px solid #e2e8f0;
   padding-bottom: 0.5rem;
 }
@@ -618,23 +858,13 @@ onMounted(async () => {
   font-size: 1.5rem;
 }
 
-.post-content p {
-  margin-bottom: 1.5rem;
-}
-
 .post-content ul,
 .post-content ol {
-  margin-bottom: 1.5rem;
   padding-left: 2rem;
 }
 
-.post-content li {
-  margin-bottom: 0.5rem;
-}
-
+/* post.css에서 기본 코드 스타일을 제공하므로 여기서는 추가 스타일만 정의 */
 .post-content pre {
-  background: #23272a;
-  color: #ffe082;
   padding: 16px;
   border-radius: 8px;
   font-size: 1rem;
@@ -642,7 +872,6 @@ onMounted(async () => {
   overflow-x: auto;
   margin: 16px 0;
   box-shadow: 0 2px 12px rgba(0,0,0,0.10);
-  border: 1px solid #444;
   position: relative;
   transition: all 0.3s ease;
 }
@@ -662,8 +891,6 @@ onMounted(async () => {
 }
 
 .post-content code {
-  background: #23272a;
-  color: #ffe082;
   padding: 2px 6px;
   border-radius: 4px;
   font-size: 0.98em;
@@ -945,42 +1172,58 @@ onMounted(async () => {
 
 .comment-actions {
   display: flex;
-  gap: 10px;
+  gap: 6px;
+  opacity: 0;
+  transition: opacity 0.2s ease;
+}
+
+.comment-item:hover .comment-actions {
+  opacity: 1;
 }
 
 .comment-action-btn {
-  padding: 4px 8px;
-  border: 1px solid #e2e8f0;
-  background: transparent;
+  width: 28px;
+  height: 28px;
+  border: none;
+  background: rgba(255, 255, 255, 0.1);
+  backdrop-filter: blur(8px);
   color: #718096;
-  border-radius: 4px;
-  font-size: 0.75rem;
-  font-weight: 500;
+  border-radius: 6px;
   cursor: pointer;
   transition: all 0.2s ease;
   font-family: inherit;
-  text-decoration: none;
-  display: inline-flex;
+  display: flex;
   align-items: center;
-  gap: 4px;
+  justify-content: center;
+  position: relative;
+  border: 1px solid rgba(226, 232, 240, 0.3);
 }
 
 .comment-action-btn:hover {
-  background: #f7fafc;
-  border-color: #007bff;
+  background: rgba(0, 123, 255, 0.1);
+  border-color: rgba(0, 123, 255, 0.3);
   color: #007bff;
   transform: translateY(-1px);
+  box-shadow: 0 2px 8px rgba(0, 123, 255, 0.15);
 }
 
-.comment-action-btn.delete {
-  color: #e53e3e;
-  border-color: #fed7d7;
+.comment-action-btn.edit-btn:hover {
+  background: rgba(34, 197, 94, 0.1);
+  border-color: rgba(34, 197, 94, 0.3);
+  color: #22c55e;
+  box-shadow: 0 2px 8px rgba(34, 197, 94, 0.15);
 }
 
-.comment-action-btn.delete:hover {
-  background: #fed7d7;
-  border-color: #e53e3e;
-  color: #c53030;
+.comment-action-btn.delete-btn:hover {
+  background: rgba(239, 68, 68, 0.1);
+  border-color: rgba(239, 68, 68, 0.3);
+  color: #ef4444;
+  box-shadow: 0 2px 8px rgba(239, 68, 68, 0.15);
+}
+
+.comment-action-btn:active {
+  transform: translateY(0);
+  transition: all 0.1s ease;
 }
 
 .comment-action-btn.cancel {
@@ -1203,250 +1446,222 @@ onMounted(async () => {
   border-color: #0056b3;
 }
 
-/* 다크모드 스타일 */
-:global(body.dark-mode) .post-detail-container {
+/* post.css에서 다크모드 스타일을 제공하므로 여기서는 추가 스타일만 정의 */
+.post-detail-container.dark-mode .post-detail-container {
   background: #1a202c;
 }
 
-:global(body.dark-mode) .post-header h1 {
+.post-detail-container.dark-mode .post-header h1 {
   color: #f7fafc;
 }
 
-:global(body.dark-mode) .post-content,
-:global(body.dark-mode) .post-content p,
-:global(body.dark-mode) .post-content li,
-:global(body.dark-mode) .post-content ul,
-:global(body.dark-mode) .post-content ol,
-:global(body.dark-mode) .post-content h1,
-:global(body.dark-mode) .post-content h2,
-:global(body.dark-mode) .post-content h3,
-:global(body.dark-mode) .post-content h4,
-:global(body.dark-mode) .post-content h5,
-:global(body.dark-mode) .post-content h6,
-:global(body.dark-mode) .post-content th,
-:global(body.dark-mode) .post-content td,
-:global(body.dark-mode) .post-content span,
-:global(body.dark-mode) .post-content strong,
-:global(body.dark-mode) .post-content em,
-:global(body.dark-mode) .post-content table {
-  color: #f7fafc !important;
-  background: transparent !important;
+.post-detail-container.dark-mode .post-content {
+  color: #e2e8f0;
 }
 
-:global(body.dark-mode) .post-content table {
-  background: #23272a !important;
-  border-color: #444 !important;
-}
+/* post.css에서 다크모드 스타일을 제공하므로 여기서는 추가 스타일만 정의 */
 
-:global(body.dark-mode) .post-content th, 
-:global(body.dark-mode) .post-content td {
-  border-color: #444 !important;
-}
-
-:global(body.dark-mode) .post-content code, 
-:global(body.dark-mode) .post-content pre {
-  color: #ffe082 !important;
-  background: #23272a !important;
-}
-
-:global(body.dark-mode) .post-content pre code {
-  background: none !important;
-  color: inherit !important;
-}
-
-:global(body.dark-mode) .post-header {
+.post-detail-container.dark-mode .post-header {
   border-bottom-color: #4a5568;
 }
 
-:global(body.dark-mode) .post-meta {
-  color: #a0aec0;
-}
-
-:global(body.dark-mode) .post-summary {
-  background: #2d3748;
-  color: #e2e8f0;
-  border-left-color: #4a5568;
-}
-
-:global(body.dark-mode) .like-button {
+/* 좋아요 버튼 다크모드 */
+.post-detail-container.dark-mode .like-button {
   background: #2d3748;
   border-color: #4a5568;
   color: #e2e8f0;
 }
 
-:global(body.dark-mode) .like-button:hover {
+.post-detail-container.dark-mode .like-button:hover {
   background: #4a5568;
 }
 
-:global(body.dark-mode) .heart-icon {
+.post-detail-container.dark-mode .heart-icon {
   color: #a0aec0;
 }
 
-:global(body.dark-mode) .heart-icon.liked {
+.post-detail-container.dark-mode .heart-icon.liked {
   color: #fc8181;
 }
 
-:global(body.dark-mode) .like-count {
+.post-detail-container.dark-mode .like-count {
   color: #e2e8f0;
 }
 
-:global(body.dark-mode) .back-button {
-  background: #2d3748;
-  color: #e2e8f0;
-  border-color: #4a5568;
-}
-
-:global(body.dark-mode) .back-button:hover {
-  background: #4a5568;
-}
-
-:global(body.dark-mode) .preview-notice {
-  background: #742a2a;
-  border: 1px solid #f56565;
-  color: #fed7d7;
-}
-
-:global(body.dark-mode) .comment-title {
+/* 댓글 시스템 다크모드 */
+.post-detail-container.dark-mode .comment-title {
   color: #f7fafc;
 }
 
-:global(body.dark-mode) .comment-form {
+.post-detail-container.dark-mode .comment-form {
   background: #2d3748;
   border-color: #4a5568;
 }
 
-:global(body.dark-mode) .comment-login-message {
+.post-detail-container.dark-mode .comment-login-message {
   background: #742a2a;
   border: 1px solid #f56565;
   color: #fed7d7;
 }
 
-:global(body.dark-mode) .comment-login-message .login-link {
+.post-detail-container.dark-mode .comment-login-message .login-link {
   color: #90cdf4;
 }
 
-:global(body.dark-mode) .comment-login-message .login-link:hover {
+.post-detail-container.dark-mode .comment-login-message .login-link:hover {
   color: #63b3ed;
 }
 
-:global(body.dark-mode) .comment-item {
+.post-detail-container.dark-mode .comment-item {
   background: #2d3748;
   border-color: #4a5568;
 }
 
-:global(body.dark-mode) .comment-item:hover {
+.post-detail-container.dark-mode .comment-item:hover {
   background: #4a5568;
 }
 
-:global(body.dark-mode) .comment-textarea {
+.post-detail-container.dark-mode .comment-textarea {
   background: #1a202c;
   border-color: #4a5568;
   color: #e2e8f0;
 }
 
-:global(body.dark-mode) .comment-textarea:focus {
+.post-detail-container.dark-mode .comment-textarea:focus {
   border-color: #ffe082;
   box-shadow: 0 0 0 3px rgba(255, 224, 130, 0.1);
 }
 
-:global(body.dark-mode) .comment-nickname {
+.post-detail-container.dark-mode .comment-nickname {
   color: #f7fafc;
 }
 
-:global(body.dark-mode) .comment-content {
+.post-detail-container.dark-mode .comment-content {
   color: #e2e8f0;
   background: #1a202c;
   border-left-color: #ffe082;
 }
 
-:global(body.dark-mode) .comment-action-btn {
-  background: transparent;
-  border-color: #4a5568;
+.post-detail-container.dark-mode .comment-action-btn {
+  background: rgba(45, 55, 72, 0.3);
+  border-color: rgba(74, 85, 104, 0.4);
   color: #a0aec0;
 }
 
-:global(body.dark-mode) .comment-action-btn:hover {
-  background: #4a5568;
-  border-color: #ffe082;
+.post-detail-container.dark-mode .comment-action-btn:hover {
+  background: rgba(74, 85, 104, 0.6);
+  border-color: rgba(255, 224, 130, 0.4);
   color: #ffe082;
+  box-shadow: 0 2px 8px rgba(255, 224, 130, 0.2);
 }
 
-:global(body.dark-mode) .comment-action-btn.delete {
-  color: #fc8181;
-  border-color: #742a2a;
+.post-detail-container.dark-mode .comment-action-btn.edit-btn:hover {
+  background: rgba(34, 197, 94, 0.2);
+  border-color: rgba(34, 197, 94, 0.4);
+  color: #4ade80;
+  box-shadow: 0 2px 8px rgba(34, 197, 94, 0.2);
 }
 
-:global(body.dark-mode) .comment-action-btn.delete:hover {
-  background: #742a2a;
-  border-color: #fc8181;
-  color: #fed7d7;
+.post-detail-container.dark-mode .comment-action-btn.delete-btn:hover {
+  background: rgba(239, 68, 68, 0.2);
+  border-color: rgba(239, 68, 68, 0.4);
+  color: #f87171;
+  box-shadow: 0 2px 8px rgba(239, 68, 68, 0.2);
 }
 
-:global(body.dark-mode) .comment-action-btn.cancel {
+.post-detail-container.dark-mode .comment-action-btn.cancel {
   color: #a0aec0;
   border-color: #4a5568;
 }
 
-:global(body.dark-mode) .comment-action-btn.cancel:hover {
+.post-detail-container.dark-mode .comment-action-btn.cancel:hover {
   background: #4a5568;
   border-color: #a0aec0;
   color: #e2e8f0;
 }
 
-:global(body.dark-mode) .edited-badge {
+.post-detail-container.dark-mode .edited-badge {
   color: #a0aec0;
 }
 
-:global(body.dark-mode) .comment-edit-textarea {
+.post-detail-container.dark-mode .comment-edit-textarea {
   background: #1a202c;
   border-color: #4a5568;
   color: #e2e8f0;
 }
 
-:global(body.dark-mode) .comment-edit-textarea:focus {
+.post-detail-container.dark-mode .comment-edit-textarea:focus {
   border-color: #ffe082;
   box-shadow: 0 0 0 3px rgba(255, 224, 130, 0.1);
 }
 
-:global(body.dark-mode) .notification-message {
+/* 뒤로가기 버튼 다크모드 */
+.post-detail-container.dark-mode .back-button {
   background: #2d3748;
-  border-color: #4a5568;
   color: #e2e8f0;
+  border-color: #4a5568;
 }
 
-:global(body.dark-mode) .notification-close {
+.post-detail-container.dark-mode .back-button:hover {
+  background: #4a5568;
+}
+
+/* 미리보기 알림 다크모드 */
+.post-detail-container.dark-mode .preview-notice {
+  background: #742a2a;
+  border: 1px solid #f56565;
+  color: #fed7d7;
+}
+
+.post-detail-container.dark-mode .post-meta {
   color: #a0aec0;
 }
 
-:global(body.dark-mode) .notification-close:hover {
+.post-detail-container.dark-mode .post-summary {
+  background: #2d3748;
+  color: #e2e8f0;
+  border-left-color: #4a5568;
+}
+
+.post-detail-container.dark-mode .notification-message {
+  background: #2d3748;
+  border-color: #4a5568;
+  color: #e2e8f0;
+}
+
+.post-detail-container.dark-mode .notification-close {
+  color: #a0aec0;
+}
+
+.post-detail-container.dark-mode .notification-close:hover {
   background: #4a5568;
   color: #e2e8f0;
 }
 
-:global(body.dark-mode) .modal-content {
+.post-detail-container.dark-mode .modal-content {
   background: #2d3748;
   border-color: #4a5568;
 }
 
-:global(body.dark-mode) .modal-header {
+.post-detail-container.dark-mode .modal-header {
   border-bottom-color: #4a5568;
 }
 
-:global(body.dark-mode) .modal-title {
+.post-detail-container.dark-mode .modal-title {
   color: #f7fafc;
 }
 
-:global(body.dark-mode) .modal-body p {
+.post-detail-container.dark-mode .modal-body p {
   color: #e2e8f0;
 }
 
-:global(body.dark-mode) .modal-btn.cancel {
+.post-detail-container.dark-mode .modal-btn.cancel {
   background: #4a5568;
   color: #e2e8f0;
   border-color: #4a5568;
 }
 
-:global(body.dark-mode) .modal-btn.cancel:hover {
+.post-detail-container.dark-mode .modal-btn.cancel:hover {
   background: #718096;
   border-color: #718096;
 }
@@ -1506,7 +1721,8 @@ onMounted(async () => {
   background: #0056b3;
 }
 
-/* 반응형 디자인 */
+/* post.css에서 반응형 스타일을 제공하므로 여기서는 추가 스타일만 정의 */
+
 @media (max-width: 768px) {
   .post-detail-container {
     padding: 20px 15px;

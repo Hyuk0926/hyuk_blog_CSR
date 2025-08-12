@@ -49,12 +49,17 @@ public class LikeService {
     
     public long getLikeCount(Long postId, String postTypeStr) {
         try {
+            System.out.println("LikeService.getLikeCount - postId: " + postId + ", postTypeStr: " + postTypeStr);
             PostType postType = PostType.valueOf(postTypeStr.toUpperCase()); // 서비스 내부에서 변환
+            System.out.println("LikeService.getLikeCount - converted postType: " + postType);
             logger.info("Getting like count for postId: {}, postType: {}", postId, postType);
             long count = likeRepository.countByPostIdAndPostType(postId, postType);
+            System.out.println("LikeService.getLikeCount - count: " + count);
             logger.info("Like count: {}", count);
             return count;
         } catch (Exception e) {
+            System.out.println("LikeService.getLikeCount - ERROR: " + e.getMessage());
+            e.printStackTrace();
             logger.error("Error getting like count for postId: {}, postType: {}", postId, postTypeStr, e);
             throw e;
         }

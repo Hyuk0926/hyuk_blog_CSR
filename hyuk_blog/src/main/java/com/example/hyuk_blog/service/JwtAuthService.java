@@ -12,10 +12,12 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.security.authentication.BadCredentialsException;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 @Slf4j
 @Service
 @RequiredArgsConstructor
+@Transactional
 public class JwtAuthService {
 
     private final JwtUtil jwtUtil;
@@ -41,6 +43,13 @@ public class JwtAuthService {
         if (!passwordEncoder.matches(loginRequest.getPassword(), admin.getPassword())) {
             log.error("비밀번호 불일치: {}", loginRequest.getUsername());
             throw new BadCredentialsException("Invalid username or password");
+        }
+
+        // 비밀번호 업그레이드 확인 및 처리
+        if (passwordEncoder.upgradeEncoding(admin.getPassword())) {
+            admin.setPassword(passwordEncoder.encode(loginRequest.getPassword()));
+            adminRepository.save(admin);
+            log.info("관리자 '{}'의 비밀번호를 새로운 방식으로 업그레이드했습니다.", admin.getUsername());
         }
 
         log.info("관리자 로그인 성공: {}", admin.getUsername());
@@ -82,6 +91,13 @@ public class JwtAuthService {
                 throw new BadCredentialsException("Invalid username or password");
             }
             
+            // 비밀번호 업그레이드 확인 및 처리
+            if (passwordEncoder.upgradeEncoding(admin.getPassword())) {
+                admin.setPassword(passwordEncoder.encode(loginRequest.getPassword()));
+                adminRepository.save(admin);
+                log.info("관리자 '{}'의 비밀번호를 새로운 방식으로 업그레이드했습니다.", admin.getUsername());
+            }
+            
             log.info("Admin 로그인 성공: {}", admin.getUsername());
             String token = jwtUtil.generateToken(admin.getUsername(), "ROLE_ADMIN");
             return new JwtResponseDto(token, admin.getUsername(), "ADMIN", "관리자 로그인 성공");
@@ -90,61 +106,17 @@ public class JwtAuthService {
         log.info("사용자 계정 찾음: {}", user.getUsername());
         log.debug("비밀번호 검증 진행 중...");
 
-        // 기존 사용자 계정들의 비밀번호 검증 (다양한 암호화 방식 지원)
-        boolean passwordValid = false;
-        
-        // 1. BCrypt 검증 시도
-        try {
-            if (passwordEncoder.matches(loginRequest.getPassword(), user.getPassword())) {
-                passwordValid = true;
-            }
-        } catch (Exception e) {
-            log.debug("BCrypt 검증 실패, 다른 방식 시도: {}", e.getMessage());
-        }
-        
-        // 2. SHA-256 검증 (기존 사용자 계정들)
-        if (!passwordValid && user.getPassword().length() == 64) { // SHA-256 해시 길이
-            try {
-                java.security.MessageDigest digest = java.security.MessageDigest.getInstance("SHA-256");
-                byte[] hash = digest.digest(loginRequest.getPassword().getBytes("UTF-8"));
-                StringBuilder hexString = new StringBuilder();
-                for (byte b : hash) {
-                    String hex = Integer.toHexString(0xff & b);
-                    if (hex.length() == 1) hexString.append('0');
-                    hexString.append(hex);
-                }
-                String hashedInput = hexString.toString();
-                log.debug("SHA-256 해시 비교: 입력={}, 저장={}", hashedInput, user.getPassword());
-                if (user.getPassword().equals(hashedInput)) {
-                    passwordValid = true;
-                    log.info("SHA-256 비밀번호 검증 성공: {}", user.getUsername());
-                }
-            } catch (Exception e) {
-                log.debug("SHA-256 검증 실패: {}", e.getMessage());
-            }
-        }
-        
-        // 3. BCrypt 검증 (기존 사용자 계정들)
-        if (!passwordValid && user.getPassword().startsWith("$2a$")) { // BCrypt로 암호화된 경우
-            try {
-                if (passwordEncoder.matches(loginRequest.getPassword(), user.getPassword())) {
-                    passwordValid = true;
-                    log.info("BCrypt 비밀번호 검증 성공: {}", user.getUsername());
-                }
-            } catch (Exception e) {
-                log.debug("BCrypt 검증 실패: {}", e.getMessage());
-            }
-        }
-        
-        // 3. 평문 비교 (임시, 보안상 위험)
-        if (!passwordValid && user.getPassword().equals(loginRequest.getPassword())) {
-            passwordValid = true;
-            log.warn("평문 비밀번호 사용 중: {}", user.getUsername());
-        }
-
-        if (!passwordValid) {
+        // DelegatingPasswordEncoder를 사용한 통합 비밀번호 검증
+        if (!passwordEncoder.matches(loginRequest.getPassword(), user.getPassword())) {
             log.error("비밀번호 불일치: {}", loginRequest.getUsername());
             throw new BadCredentialsException("Invalid username or password");
+        }
+
+        // 비밀번호 업그레이드 확인 및 처리
+        if (passwordEncoder.upgradeEncoding(user.getPassword())) {
+            user.updatePassword(passwordEncoder.encode(loginRequest.getPassword()));
+            userRepository.save(user);
+            log.info("사용자 '{}'의 비밀번호를 새로운 방식으로 업그레이드했습니다.", user.getUsername());
         }
 
         log.info("사용자 로그인 성공: {}", user.getUsername());
