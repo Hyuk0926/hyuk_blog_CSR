@@ -2,8 +2,8 @@
     <div class="home-container">
       <div class="home-title">{{ $i18n.locale === 'ja' ? '高原のブログ' : 'Takahara\'s Blog' }}</div>
       <div class="home-subtitle">{{ $i18n.locale === 'ja' ? '不可能はない。' : 'Nothing is Impossible' }}</div>
-        <div class="home-footer">{{ $i18n.locale === 'ja' ? '© 2025 高原優輝. All rights reserved.' : '© 2025 Takahara Yuuki. All rights reserved.' }}</div>
-      </div>
+      <div class="home-footer">{{ $i18n.locale === 'ja' ? '© 2025 高原優輝. All rights reserved.' : '© 2025 Takahara Yuuki. All rights reserved.' }}</div>
+    </div>
   </template>
   
   <script>

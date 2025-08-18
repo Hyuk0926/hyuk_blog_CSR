@@ -102,7 +102,13 @@ export default {
       email: 'メールアドレス',
       subject: '件名',
       message: 'お問い合わせ内容',
-      send: '送信する'
+      send: '送信する',
+      placeholder: {
+        name: 'お名前を入力してください',
+        email: 'example@email.com',
+        subject: '件名を入力してください',
+        message: 'お問い合わせ内容を入力してください'
+      }
     },
     success: 'お問い合わせを送信しました。ありがとうございます。',
     error: '送信に失敗しました。もう一度お試しください。'

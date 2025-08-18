@@ -102,7 +102,13 @@ export default {
       email: '이메일',
       subject: '제목',
       message: '문의 내용',
-      send: '문의 보내기'
+      send: '문의 보내기',
+      placeholder: {
+        name: '이름을 입력해주세요',
+        email: 'example@email.com',
+        subject: '제목을 입력해주세요',
+        message: '문의 내용을 입력해주세요'
+      }
     },
     success: '문의가 성공적으로 전송되었습니다. 감사합니다.',
     error: '전송에 실패했습니다. 다시 시도해주세요.'

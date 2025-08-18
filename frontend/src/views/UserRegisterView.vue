@@ -1,186 +1,186 @@
 <template>
-  <div class="register-page">
-    <div class="register-container">
-    <div class="register-header">
-      <h1 class="register-title">{{ $t('register.title') }}</h1>
-      <p class="register-subtitle">{{ $t('register.subtitle') }}</p>
-    </div>
-    
-    <div v-if="error" class="error-message">
-      {{ error }}
-    </div>
-    
-    <form @submit.prevent="handleRegister" id="registerForm">
-      <div class="form-group">
-        <label for="username" class="form-label">{{ $t('register.username') }} <span class="required">{{ $t('register.required') }}</span></label>
-        <div class="input-group">
-          <input 
-            type="text" 
-            id="username" 
-            v-model="formData.username" 
-            class="form-input" 
-            required 
-            pattern="[a-zA-Z0-9_]{4,20}" 
-            title="4-20자의 영문, 숫자, 언더스코어만 사용 가능합니다"
-            placeholder="4-20자의 영문, 숫자, 언더스코어"
-            @blur="validateUsername"
-          >
-          <button 
-            type="button" 
-            class="check-button" 
-            id="username-check-btn" 
-            @click="checkUsernameDuplicate"
-            :disabled="!formData.username || usernameChecked"
-          >
-            {{ usernameChecked ? $t('register.checkComplete') : $t('register.duplicateCheck') }}
-          </button>
-        </div>
-        <div id="username-validation" class="validation-message" :class="usernameValidation.type">
-          {{ usernameValidation.message }}
-        </div>
+  <div class="min-h-screen flex items-center justify-center p-5 font-['Noto_Sans_KR',sans-serif] bg-gradient-to-br from-[#1a1a1a] via-[#2d2d2d] via-[#404040] via-[#2d2d2d] to-[#1a1a1a]">
+    <div class="bg-[rgba(45,45,45,0.95)] backdrop-blur-[10px] rounded-2xl shadow-[0_8px_32px_rgba(0,0,0,0.3)] p-10 w-full max-w-[500px] border border-[rgba(255,255,255,0.2)]">
+      <div class="text-center mb-8">
+        <h1 class="text-[1.75rem] text-white mb-2 font-bold font-['Montserrat',sans-serif]">{{ $t('register.title') }}</h1>
+        <p class="text-[#b0b0b0] text-[0.95rem] font-medium">{{ $t('register.subtitle') }}</p>
       </div>
       
-      <div class="form-group">
-        <label for="password" class="form-label">{{ $t('register.password') }} <span class="required">{{ $t('register.required') }}</span></label>
-        <div class="input-group" style="position: relative;">
-          <input 
-            :type="showPassword ? 'text' : 'password'" 
-            id="password" 
-            v-model="formData.password" 
-            class="form-input" 
-            required 
-            minlength="6" 
-            title="최소 6자 이상 입력해주세요"
-            placeholder="최소 6자 이상"
-            @blur="validatePassword"
-          >
-                  <span 
-          @click="showPassword = !showPassword" 
-          :title="$t('login.passwordToggle')" 
-          style="position:absolute; right:12px; top:50%; transform:translateY(-50%); cursor:pointer; font-size:1.3rem; color:#888;"
-        >
-          {{ showPassword ? '👁️' : '𝄐' }}
-        </span>
-          <div 
-            class="capslock-warning" 
-            id="password-capslock" 
-            :class="{ show: capsLockOn }"
-          >
-            Caps Lock이 켜져 있습니다
+      <div v-if="error" class="bg-[rgba(197,48,48,0.2)] text-[#ff6b6b] p-4 rounded-xl mb-5 text-center font-medium border border-[rgba(197,48,48,0.3)]">
+        {{ error }}
+      </div>
+      
+      <form @submit.prevent="handleRegister" id="registerForm">
+        <div class="mb-5">
+          <label for="username" class="block mb-2 font-semibold text-[#e0e0e0] text-[0.9rem]">{{ $t('register.username') }} <span class="text-[#ff6b6b]">{{ $t('register.required') }}</span></label>
+          <div class="relative flex items-center">
+                         <input 
+               type="text" 
+               id="username" 
+               v-model="formData.username" 
+               class="flex-1 p-[14px] px-4 border-2 border-[#555555] rounded-xl rounded-r-none text-[0.95rem] transition-all duration-300 ease-in-out box-border bg-[rgba(60,60,60,0.8)] font-inherit text-white focus:outline-none focus:border-[#888888] focus:shadow-[0_0_0_3px_rgba(136,136,136,0.2)] focus:-translate-y-[1px] focus:bg-[rgba(70,70,70,0.9)" 
+               required 
+               pattern="[a-zA-Z0-9_]{4,20}" 
+               :title="$t('register.validation.username.format')"
+               :placeholder="$t('register.validation.username.format')"
+               @blur="validateUsername"
+             >
+            <button 
+              type="button" 
+              class="p-[14px] px-4 bg-gradient-to-br from-[#666666] to-[#444444] text-white border-2 border-[#555555] border-l-0 rounded-xl rounded-l-none text-[0.9rem] font-semibold cursor-pointer transition-all duration-300 ease-in-out whitespace-nowrap min-w-[80px] hover:bg-gradient-to-br hover:from-[#777777] hover:to-[#555555] hover:-translate-y-[1px] disabled:bg-gradient-to-br disabled:from-[#555555] disabled:to-[#333333] disabled:cursor-not-allowed disabled:opacity-60" 
+              id="username-check-btn" 
+              @click="checkUsernameDuplicate"
+              :disabled="!formData.username || usernameChecked"
+            >
+              {{ usernameChecked ? $t('register.checkComplete') : $t('register.duplicateCheck') }}
+            </button>
+          </div>
+          <div id="username-validation" class="text-[0.875rem] mt-2 font-medium" :class="usernameValidation.type === 'error' ? 'text-[#ff6b6b]' : usernameValidation.type === 'success' ? 'text-[#68d391]' : ''">
+            {{ usernameValidation.message }}
           </div>
         </div>
-        <div id="password-validation" class="validation-message" :class="passwordValidation.type">
-          {{ passwordValidation.message }}
-        </div>
-      </div>
-      
-      <div class="form-group">
-        <label for="confirmPassword" class="form-label">{{ $t('register.confirmPassword') }} <span class="required">{{ $t('register.required') }}</span></label>
-        <div class="input-group" style="position: relative;">
-          <input 
-            :type="showConfirmPassword ? 'text' : 'password'" 
-            id="confirmPassword" 
-            v-model="formData.confirmPassword" 
-            class="form-input" 
-            required
-            placeholder="비밀번호를 다시 입력해주세요"
-            @blur="validateConfirmPassword"
-          >
-                  <span 
-          @click="showConfirmPassword = !showConfirmPassword" 
-          :title="$t('login.passwordToggle')" 
-          style="position:absolute; right:12px; top:50%; transform:translateY(-50%); cursor:pointer; font-size:1.3rem; color:#888;"
-        >
-          {{ showConfirmPassword ? '👁️' : '𝄐' }}
-        </span>
-          <div 
-            class="capslock-warning" 
-            id="confirmPassword-capslock" 
-            :class="{ show: capsLockOn }"
-          >
-            Caps Lock이 켜져 있습니다
+        
+        <div class="mb-5">
+          <label for="password" class="block mb-2 font-semibold text-[#e0e0e0] text-[0.9rem]">{{ $t('register.password') }} <span class="text-[#ff6b6b]">{{ $t('register.required') }}</span></label>
+          <div class="relative">
+                         <input 
+               :type="showPassword ? 'text' : 'password'" 
+               id="password" 
+               v-model="formData.password" 
+               class="w-full p-[14px] px-4 pr-10 border-2 border-[#555555] rounded-xl text-[0.95rem] transition-all duration-300 ease-in-out box-border bg-[rgba(60,60,60,0.8)] font-inherit text-white focus:outline-none focus:border-[#888888] focus:shadow-[0_0_0_3px_rgba(136,136,136,0.2)] focus:-translate-y-[1px] focus:bg-[rgba(70,70,70,0.9)" 
+               required 
+               minlength="6" 
+               :title="$t('register.validation.password.minLength')"
+               :placeholder="$t('register.validation.password.minLength')"
+               @blur="validatePassword"
+             >
+            <span 
+              @click="showPassword = !showPassword" 
+              :title="$t('login.passwordToggle')" 
+              class="absolute right-3 top-1/2 -translate-y-1/2 cursor-pointer text-[1.3rem] text-[#888] hover:text-white hover:scale-110 transition-all duration-200 ease-in-out"
+            >
+              {{ showPassword ? '👁️' : '𝄐' }}
+            </span>
+                         <div 
+               class="absolute -top-[25px] right-0 bg-[rgba(255,193,7,0.9)] text-[#856404] p-1 px-2 rounded text-[0.8rem] font-medium hidden z-10" 
+               id="password-capslock" 
+               :class="{ 'block': capsLockOn }"
+             >
+               {{ $t('login.capsLock') }}
+             </div>
+          </div>
+          <div id="password-validation" class="text-[0.875rem] mt-2 font-medium" :class="passwordValidation.type === 'error' ? 'text-[#ff6b6b]' : passwordValidation.type === 'success' ? 'text-[#68d391]' : ''">
+            {{ passwordValidation.message }}
           </div>
         </div>
-        <div id="confirmPassword-validation" class="validation-message" :class="confirmPasswordValidation.type">
-          {{ confirmPasswordValidation.message }}
+        
+        <div class="mb-5">
+          <label for="confirmPassword" class="block mb-2 font-semibold text-[#e0e0e0] text-[0.9rem]">{{ $t('register.confirmPassword') }} <span class="text-[#ff6b6b]">{{ $t('register.required') }}</span></label>
+          <div class="relative">
+                         <input 
+               :type="showConfirmPassword ? 'text' : 'password'" 
+               id="confirmPassword" 
+               v-model="formData.confirmPassword" 
+               class="w-full p-[14px] px-4 pr-10 border-2 border-[#555555] rounded-xl text-[0.95rem] transition-all duration-300 ease-in-out box-border bg-[rgba(60,60,60,0.8)] font-inherit text-white focus:outline-none focus:border-[#888888] focus:shadow-[0_0_0_3px_rgba(136,136,136,0.2)] focus:-translate-y-[1px] focus:bg-[rgba(70,70,70,0.9)" 
+               required
+               :placeholder="$t('register.validation.confirmPassword.required')"
+               @blur="validateConfirmPassword"
+             >
+            <span 
+              @click="showConfirmPassword = !showConfirmPassword" 
+              :title="$t('login.passwordToggle')" 
+              class="absolute right-3 top-1/2 -translate-y-1/2 cursor-pointer text-[1.3rem] text-[#888] hover:text-white hover:scale-110 transition-all duration-200 ease-in-out"
+            >
+              {{ showConfirmPassword ? '👁️' : '𝄐' }}
+            </span>
+                         <div 
+               class="absolute -top-[25px] right-0 bg-[rgba(255,193,7,0.9)] text-[#856404] p-1 px-2 rounded text-[0.8rem] font-medium hidden z-10" 
+               id="confirmPassword-capslock" 
+               :class="{ 'block': capsLockOn }"
+             >
+               {{ $t('login.capsLock') }}
+             </div>
+          </div>
+          <div id="confirmPassword-validation" class="text-[0.875rem] mt-2 font-medium" :class="confirmPasswordValidation.type === 'error' ? 'text-[#ff6b6b]' : confirmPasswordValidation.type === 'success' ? 'text-[#68d391]' : ''">
+            {{ confirmPasswordValidation.message }}
+          </div>
         </div>
+        
+        <div class="mb-5">
+          <label for="nickname" class="block mb-2 font-semibold text-[#e0e0e0] text-[0.9rem]">{{ $t('register.nickname') }} <span class="text-[#ff6b6b]">{{ $t('register.required') }}</span></label>
+          <div class="relative flex items-center">
+                         <input 
+               type="text" 
+               id="nickname" 
+               v-model="formData.nickname" 
+               class="flex-1 p-[14px] px-4 border-2 border-[#555555] rounded-xl rounded-r-none text-[0.95rem] transition-all duration-300 ease-in-out box-border bg-[rgba(60,60,60,0.8)] font-inherit text-white focus:outline-none focus:border-[#888888] focus:shadow-[0_0_0_3px_rgba(136,136,136,0.2)] focus:-translate-y-[1px] focus:bg-[rgba(70,70,70,0.9)" 
+               required 
+               minlength="2" 
+               maxlength="20" 
+               :title="$t('register.validation.nickname.length')"
+               :placeholder="$t('register.validation.nickname.length')"
+               @blur="validateNickname"
+             >
+            <button 
+              type="button" 
+              class="p-[14px] px-4 bg-gradient-to-br from-[#666666] to-[#444444] text-white border-2 border-[#555555] border-l-0 rounded-xl rounded-l-none text-[0.9rem] font-semibold cursor-pointer transition-all duration-300 ease-in-out whitespace-nowrap min-w-[80px] hover:bg-gradient-to-br hover:from-[#777777] hover:to-[#555555] hover:-translate-y-[1px] disabled:bg-gradient-to-br disabled:from-[#555555] disabled:to-[#333333] disabled:cursor-not-allowed disabled:opacity-60" 
+              id="nickname-check-btn" 
+              @click="checkNicknameDuplicate"
+              :disabled="!formData.nickname || nicknameChecked"
+            >
+              {{ nicknameChecked ? $t('register.checkComplete') : $t('register.duplicateCheck') }}
+            </button>
+          </div>
+          <div id="nickname-validation" class="text-[0.875rem] mt-2 font-medium" :class="nicknameValidation.type === 'error' ? 'text-[#ff6b6b]' : nicknameValidation.type === 'success' ? 'text-[#68d391]' : ''">
+            {{ nicknameValidation.message }}
+          </div>
+        </div>
+        
+        <div class="mb-5">
+          <label for="email" class="block mb-2 font-semibold text-[#e0e0e0] text-[0.9rem]">{{ $t('register.email') }}</label>
+          <div class="relative flex items-center">
+                         <input 
+               type="email" 
+               id="email" 
+               v-model="formData.email" 
+               class="flex-1 p-[14px] px-4 border-2 border-[#555555] rounded-xl rounded-r-none text-[0.95rem] transition-all duration-300 ease-in-out box-border bg-[rgba(60,60,60,0.8)] font-inherit text-white focus:outline-none focus:border-[#888888] focus:shadow-[0_0_0_3px_rgba(136,136,136,0.2)] focus:-translate-y-[1px] focus:bg-[rgba(70,70,70,0.9)" 
+               :title="$t('register.validation.email.format')"
+               placeholder="example@email.com"
+               @blur="validateEmail"
+             >
+            <button 
+              type="button" 
+              class="p-[14px] px-4 bg-gradient-to-br from-[#666666] to-[#444444] text-white border-2 border-[#555555] border-l-0 rounded-xl rounded-l-none text-[0.9rem] font-semibold cursor-pointer transition-all duration-300 ease-in-out whitespace-nowrap min-w-[80px] hover:bg-gradient-to-br hover:from-[#777777] hover:to-[#555555] hover:-translate-y-[1px] disabled:bg-gradient-to-br disabled:from-[#555555] disabled:to-[#333333] disabled:cursor-not-allowed disabled:opacity-60" 
+              id="email-check-btn" 
+              @click="checkEmailDuplicate"
+              :disabled="!formData.email || emailChecked"
+            >
+              {{ emailChecked ? $t('register.checkComplete') : $t('register.duplicateCheck') }}
+            </button>
+          </div>
+          <div id="email-validation" class="text-[0.875rem] mt-2 font-medium" :class="emailValidation.type === 'error' ? 'text-[#ff6b6b]' : emailValidation.type === 'success' ? 'text-[#68d391]' : ''">
+            {{ emailValidation.message }}
+          </div>
+        </div>
+        
+        <button 
+          type="submit" 
+          class="w-full p-[14px] bg-gradient-to-br from-[#666666] to-[#444444] text-white border-none rounded-xl text-[0.95rem] font-semibold cursor-pointer transition-all duration-300 ease-[cubic-bezier(0.4,0,0.2,1)] font-['Montserrat',sans-serif] shadow-[0_4px_12px_rgba(0,0,0,0.3)] hover:-translate-y-[2px] hover:shadow-[0_6px_20px_rgba(0,0,0,0.4)] hover:bg-gradient-to-br hover:from-[#777777] hover:to-[#555555] active:translate-y-0 disabled:bg-gradient-to-br disabled:from-[#555555] disabled:to-[#333333] disabled:cursor-not-allowed disabled:transform-none disabled:opacity-60" 
+          id="submitBtn" 
+          :disabled="!isFormValid || loading"
+        >
+          {{ loading ? $t('register.loading') : $t('register.registerButton') }}
+        </button>
+      </form>
+      
+      <div class="text-center mt-6 pt-5 border-t border-[rgba(255,255,255,0.1)]">
+        <p class="text-[#cccccc]">{{ $t('register.hasAccount') }} <router-link to="/user/login" class="text-[#cccccc] no-underline font-semibold transition-colors duration-300 ease-in-out hover:text-white hover:underline">{{ $t('register.login') }}</router-link></p>
       </div>
       
-      <div class="form-group">
-        <label for="nickname" class="form-label">{{ $t('register.nickname') }} <span class="required">{{ $t('register.required') }}</span></label>
-        <div class="input-group">
-          <input 
-            type="text" 
-            id="nickname" 
-            v-model="formData.nickname" 
-            class="form-input" 
-            required 
-            minlength="2" 
-            maxlength="20" 
-            title="2-20자의 닉네임을 입력해주세요"
-            placeholder="2-20자의 닉네임"
-            @blur="validateNickname"
-          >
-          <button 
-            type="button" 
-            class="check-button" 
-            id="nickname-check-btn" 
-            @click="checkNicknameDuplicate"
-            :disabled="!formData.nickname || nicknameChecked"
-          >
-            {{ nicknameChecked ? $t('register.checkComplete') : $t('register.duplicateCheck') }}
-          </button>
-        </div>
-        <div id="nickname-validation" class="validation-message" :class="nicknameValidation.type">
-          {{ nicknameValidation.message }}
-        </div>
+      <div class="text-center mt-4">
+        <router-link to="/" class="text-[#aaaaaa] no-underline text-[0.9rem] transition-colors duration-300 ease-in-out hover:text-[#cccccc] hover:underline">{{ $t('login.backToHome') }}</router-link>
       </div>
-      
-      <div class="form-group">
-        <label for="email" class="form-label">{{ $t('register.email') }}</label>
-        <div class="input-group">
-          <input 
-            type="email" 
-            id="email" 
-            v-model="formData.email" 
-            class="form-input" 
-            title="올바른 이메일 형식을 입력해주세요"
-            placeholder="example@email.com"
-            @blur="validateEmail"
-          >
-          <button 
-            type="button" 
-            class="check-button" 
-            id="email-check-btn" 
-            @click="checkEmailDuplicate"
-            :disabled="!formData.email || emailChecked"
-          >
-            {{ emailChecked ? $t('register.checkComplete') : $t('register.duplicateCheck') }}
-          </button>
-        </div>
-        <div id="email-validation" class="validation-message" :class="emailValidation.type">
-          {{ emailValidation.message }}
-        </div>
-      </div>
-      
-      <button 
-        type="submit" 
-        class="register-button" 
-        id="submitBtn" 
-        :disabled="!isFormValid || loading"
-      >
-        {{ loading ? $t('register.loading') : $t('register.registerButton') }}
-      </button>
-    </form>
-    
-    <div class="login-link">
-      <p>{{ $t('register.hasAccount') }} <router-link to="/user/login">{{ $t('register.login') }}</router-link></p>
     </div>
-    
-    <div class="back-link">
-      <router-link to="/">{{ $t('login.backToHome') }}</router-link>
-    </div>
-  </div>
   </div>
 </template>
 
@@ -418,245 +418,7 @@ export default {
 </script>
 
 <style scoped>
-.register-page {
-  background: linear-gradient(135deg, #1a1a1a 0%, #2d2d2d 25%, #404040 50%, #2d2d2d 75%, #1a1a1a 100%);
-  min-height: 100vh;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  margin: 0;
-  padding: 20px;
-  font-family: 'Noto Sans KR', sans-serif;
-}
-
-.register-container {
-  background: rgba(45, 45, 45, 0.95);
-  backdrop-filter: blur(10px);
-  border-radius: 16px;
-  box-shadow: 0 8px 32px rgba(0,0,0,0.3);
-  padding: 40px;
-  width: 100%;
-  max-width: 500px;
-  border: 1px solid rgba(255, 255, 255, 0.2);
-}
-
-.register-header {
-  text-align: center;
-  margin-bottom: 32px;
-}
-
-.register-title {
-  font-size: 1.75rem;
-  color: #ffffff;
-  margin-bottom: 8px;
-  font-weight: 700;
-  font-family: 'Montserrat', sans-serif;
-}
-
-.register-subtitle {
-  color: #b0b0b0;
-  font-size: 0.95rem;
-  font-weight: 500;
-}
-
-.form-group {
-  margin-bottom: 20px;
-}
-
-.form-label {
-  display: block;
-  margin-bottom: 8px;
-  font-weight: 600;
-  color: #e0e0e0;
-  font-size: 0.9rem;
-}
-
-.form-input {
-  width: 100%;
-  padding: 14px 16px;
-  border: 2px solid #555555;
-  border-radius: 12px;
-  font-size: 0.95rem;
-  transition: all 0.3s ease;
-  box-sizing: border-box;
-  background: rgba(60, 60, 60, 0.8);
-  font-family: inherit;
-  color: #ffffff;
-}
-
-.input-group {
-  position: relative;
-  display: flex;
-  align-items: center;
-}
-
-.input-group .form-input {
-  flex: 1;
-  border-top-right-radius: 0;
-  border-bottom-right-radius: 0;
-}
-
-.check-button {
-  padding: 14px 16px;
-  background: linear-gradient(145deg, #666666 0%, #444444 100%);
-  color: white;
-  border: 2px solid #555555;
-  border-left: none;
-  border-top-right-radius: 12px;
-  border-bottom-right-radius: 12px;
-  font-size: 0.9rem;
-  font-weight: 600;
-  cursor: pointer;
-  transition: all 0.3s ease;
-  white-space: nowrap;
-  min-width: 80px;
-}
-
-.check-button:hover:not(:disabled) {
-  background: linear-gradient(145deg, #777777 0%, #555555 100%);
-  transform: translateY(-1px);
-}
-
-.check-button:disabled {
-  background: linear-gradient(145deg, #555555 0%, #333333 100%);
-  cursor: not-allowed;
-  opacity: 0.6;
-}
-
-.capslock-warning {
-  position: absolute;
-  top: -25px;
-  right: 0;
-  background: rgba(255, 193, 7, 0.9);
-  color: #856404;
-  padding: 4px 8px;
-  border-radius: 4px;
-  font-size: 0.8rem;
-  font-weight: 500;
-  display: none;
-  z-index: 10;
-}
-
-.capslock-warning.show {
-  display: block;
-}
-
-.form-input:focus {
-  outline: none;
-  border-color: #888888;
-  box-shadow: 0 0 0 3px rgba(136, 136, 136, 0.2);
-  transform: translateY(-1px);
-  background: rgba(70, 70, 70, 0.9);
-}
-
-.form-input.error {
-  border-color: #ff6b6b;
-  box-shadow: 0 0 0 3px rgba(255, 107, 107, 0.2);
-}
-
-.form-input.success {
-  border-color: #68d391;
-  box-shadow: 0 0 0 3px rgba(104, 211, 145, 0.2);
-}
-
-.validation-message {
-  font-size: 0.875rem;
-  margin-top: 8px;
-  font-weight: 500;
-}
-
-.validation-message.error {
-  color: #ff6b6b;
-}
-
-.validation-message.success {
-  color: #68d391;
-}
-
-.register-button {
-  width: 100%;
-  padding: 14px;
-  background: linear-gradient(145deg, #666666 0%, #444444 100%);
-  color: white;
-  border: none;
-  border-radius: 12px;
-  font-size: 0.95rem;
-  font-weight: 600;
-  cursor: pointer;
-  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-  font-family: 'Montserrat', sans-serif;
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
-}
-
-.register-button:hover:not(:disabled) {
-  transform: translateY(-2px);
-  box-shadow: 0 6px 20px rgba(0, 0, 0, 0.4);
-  background: linear-gradient(145deg, #777777 0%, #555555 100%);
-}
-
-.register-button:active {
-  transform: translateY(0);
-}
-
-.register-button:disabled {
-  background: linear-gradient(145deg, #555555 0%, #333333 100%);
-  cursor: not-allowed;
-  transform: none;
-  opacity: 0.6;
-}
-
-.error-message {
-  background: rgba(197, 48, 48, 0.2);
-  color: #ff6b6b;
-  padding: 16px;
-  border-radius: 12px;
-  margin-bottom: 20px;
-  text-align: center;
-  font-weight: 500;
-  border: 1px solid rgba(197, 48, 48, 0.3);
-}
-
-.login-link {
-  text-align: center;
-  margin-top: 24px;
-  padding-top: 20px;
-  border-top: 1px solid rgba(255, 255, 255, 0.1);
-}
-
-.login-link a {
-  color: #cccccc;
-  text-decoration: none;
-  font-weight: 600;
-  transition: color 0.3s ease;
-}
-
-.login-link a:hover {
-  color: #ffffff;
-  text-decoration: underline;
-}
-
-.back-link {
-  text-align: center;
-  margin-top: 16px;
-}
-
-.back-link a {
-  color: #aaaaaa;
-  text-decoration: none;
-  font-size: 0.9rem;
-  transition: color 0.3s ease;
-}
-
-.back-link a:hover {
-  color: #cccccc;
-  text-decoration: underline;
-}
-
-.required {
-  color: #ff6b6b;
-}
-
-/* 다크모드 지원 */
+/* 다크모드 지원 - Tailwind CSS로 대체되었으므로 최소한의 스타일만 유지 */
 .register-page.dark-mode {
   background: #1a202c;
 }

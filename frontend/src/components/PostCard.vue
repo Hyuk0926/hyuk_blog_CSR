@@ -1,52 +1,60 @@
 <template>
-  <div class="post-card" :class="{ 'dark-mode': isDarkMode }" @click="handleClick($event)">
+  <div class="relative bg-white border border-gray-100 rounded-xl overflow-hidden shadow-sm transition-all duration-300 cursor-pointer flex flex-col h-full hover:-translate-y-0.5 hover:shadow-lg hover:border-gray-200 dark:bg-gray-900 dark:border-gray-800 dark:hover:shadow-gray-900/20 dark:hover:border-gray-700" @click="handleClick($event)">
     <!-- 카테고리 배지 -->
-    <div class="post-category">
-      <span class="category-badge">{{ getCategoryDisplayName(post.category) }}</span>
+    <div class="absolute top-3 left-3 z-10">
+      <span class="inline-block px-3 py-1 bg-white/95 backdrop-blur-sm text-gray-600 text-xs font-semibold rounded-full border border-white/20 shadow-sm dark:bg-gray-800/95 dark:text-gray-300 dark:border-gray-800/30">
+        {{ getCategoryDisplayName(post.category) }}
+      </span>
     </div>
     
     <!-- 대표 이미지 -->
-    <div class="post-image-wrapper">
+    <div class="relative w-full pt-[56.25%] overflow-hidden bg-gray-50 dark:bg-gray-800">
       <img 
         v-if="post.imageUrl" 
         :src="post.imageUrl" 
         :alt="post.title"
-        class="post-image"
+        class="absolute top-0 left-0 w-full h-full object-cover transition-transform duration-300 hover:scale-[1.01]"
         loading="lazy"
         @click.stop="handleImageClick"
       >
-      <div v-else class="post-image-placeholder">
-        <div class="placeholder-icon">
+      <div v-else class="absolute top-0 left-0 w-full h-full flex flex-col items-center justify-center bg-gradient-to-br from-gray-100 to-gray-200 text-gray-500 dark:from-gray-700 dark:to-gray-800 dark:text-gray-400">
+        <div class="mb-2 opacity-60">
           <svg width="32" height="32" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
             <path d="M21 19V5C21 3.9 20.1 3 19 3H5C3.9 3 3 3.9 3 5V19C3 20.1 3.9 21 5 21H19C20.1 21 21 20.1 21 19ZM8.5 13.5L11 16.51L14.5 12L19 18H5L8.5 13.5Z" fill="currentColor"/>
           </svg>
         </div>
-        <span class="placeholder-text">{{ getCategoryDisplayName(post.category) }}</span>
+        <span class="text-sm font-medium">{{ getCategoryDisplayName(post.category) }}</span>
       </div>
     </div>
     
     <!-- 카드 내용 -->
-    <div class="post-content">
+    <div class="p-8 flex flex-col flex-grow gap-3 min-w-0">
       <!-- 제목 -->
-      <h3 class="post-title">{{ displayTitle }}</h3>
+      <h3 class="text-lg font-bold text-gray-800 leading-tight m-0 line-clamp-2 break-keep dark:text-white">
+        {{ displayTitle }}
+      </h3>
       
       <!-- 요약 -->
-      <p v-if="displaySummary" class="post-summary">{{ displaySummary }}</p>
+      <p v-if="displaySummary" class="text-gray-600 text-sm leading-relaxed m-0 line-clamp-2 flex-grow dark:text-gray-300">
+        {{ displaySummary }}
+      </p>
       
       <!-- 메타 정보 -->
-      <div class="post-meta">
-        <div class="meta-left">
-          <span class="post-date">{{ formatDate(post.createdAt) }}</span>
+      <div class="flex justify-between items-center mt-auto pt-3 border-t border-gray-100 dark:border-gray-800">
+        <div class="flex items-center gap-2">
+          <span class="text-xs text-gray-400 font-medium dark:text-gray-500">
+            {{ formatDate(post.createdAt) }}
+          </span>
         </div>
-        <div class="meta-right">
-          <span v-if="post.likeCount > 0" class="post-stat">
-            <svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor">
+        <div class="flex items-center gap-3">
+          <span v-if="post.likeCount > 0" class="flex items-center gap-1 text-xs text-gray-400 font-medium dark:text-gray-500">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor" class="opacity-70">
               <path d="M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z"/>
             </svg>
             {{ post.likeCount }}
           </span>
-          <span v-if="post.commentCount > 0" class="post-stat">
-            <svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor">
+          <span v-if="post.commentCount > 0" class="flex items-center gap-1 text-xs text-gray-400 font-medium dark:text-gray-500">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor" class="opacity-70">
               <path d="M21.99 4c0-1.1-.89-2-2-2H4c-1.1 0-2 .9-2 2v12c0 1.1.9 2 2 2h14l4 4-.01-18zM18 14H6v-2h12v2zm0-3H6V9h12v2zm0-3H6V6h12v2z"/>
             </svg>
             {{ post.commentCount }}
@@ -55,18 +63,16 @@
       </div>
       
       <!-- 태그 (선택사항) -->
-      <div v-if="post.tags && post.tags.trim()" class="post-tags">
+      <div v-if="post.tags && post.tags.trim()" class="flex flex-wrap gap-1.5 mt-2">
         <span 
           v-for="tag in getTags(post.tags)" 
           :key="tag" 
-          class="tag"
+          class="text-xs text-blue-600 bg-blue-50 px-2 py-0.5 rounded-full font-medium transition-all duration-200 hover:bg-blue-100 hover:text-blue-700 dark:text-blue-400 dark:bg-blue-900/30 dark:hover:bg-blue-900/50 dark:hover:text-blue-300"
         >
           #{{ tag.trim() }}
         </span>
       </div>
     </div>
-    
-    
   </div>
 </template>
 
@@ -166,290 +172,69 @@ export default {
 </script>
 
 <style scoped>
-.post-card {
-  position: relative;
-  background: #ffffff;
-  border-radius: 12px;
-  overflow: hidden;
-  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.02);
-  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-  cursor: pointer;
-  display: flex;
-  flex-direction: column;
-  height: 100%;
-  border: 1px solid #f1f5f9;
-}
-
-.post-card:hover {
-  transform: translateY(-2px);
-  box-shadow: 0 2px 12px rgba(0, 0, 0, 0.08);
-  border-color: #e2e8f0;
-}
-
-.post-card:hover .post-image {
-  transform: scale(1.01);
-}
-
-/* 카테고리 배지 */
-.post-category {
-  position: absolute;
-  top: 12px;
-  left: 12px;
-  z-index: 2;
-}
-
-.category-badge {
-  display: inline-block;
-  padding: 4px 12px;
-  background: rgba(255, 255, 255, 0.95);
-  backdrop-filter: blur(8px);
-  color: #475569;
-  font-size: 0.75rem;
-  font-weight: 600;
-  border-radius: 20px;
-  border: 1px solid rgba(255, 255, 255, 0.2);
-  box-shadow: 0 1px 4px rgba(0, 0, 0, 0.02);
-}
-
-/* 이미지 영역 */
-.post-image-wrapper {
-  position: relative;
-  width: 100%;
-  padding-top: 56.25%; /* 16:9 비율 */
-  overflow: hidden;
-  background: #f8fafc;
-}
-
-.post-image {
-  position: absolute;
-  top: 0;
-  left: 0;
-  width: 100%;
-  height: 100%;
-  object-fit: cover;
-  transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-}
-
-.post-image-placeholder {
-  position: absolute;
-  top: 0;
-  left: 0;
-  width: 100%;
-  height: 100%;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: center;
-  background: linear-gradient(135deg, #f1f5f9 0%, #e2e8f0 100%);
-  color: #64748b;
-}
-
-.placeholder-icon {
-  margin-bottom: 8px;
-  opacity: 0.6;
-}
-
-.placeholder-text {
-  font-size: 0.875rem;
-  font-weight: 500;
-}
-
-/* 카드 내용 */
-.post-content {
-  padding: 32px 45px;
-  display: flex;
-  flex-direction: column;
-  flex-grow: 1;
-  gap: 12px;
-  min-width: 0; /* 텍스트 오버플로우 방지 */
-}
-
-.post-title {
-  font-size: 1.125rem;
-  font-weight: 700;
-  color: #1e293b;
-  line-height: 1.4;
-  margin: 0;
+/* line-clamp 유틸리티 클래스 */
+.line-clamp-2 {
   display: -webkit-box;
   -webkit-line-clamp: 2;
   -webkit-box-orient: vertical;
   overflow: hidden;
-  word-break: keep-all;
-}
-
-.post-summary {
-  color: #64748b;
-  font-size: 0.875rem;
-  line-height: 1.6;
-  margin: 0;
-  display: -webkit-box;
-  -webkit-line-clamp: 2;
-  -webkit-box-orient: vertical;
-  overflow: hidden;
-  flex-grow: 1;
-}
-
-/* 메타 정보 */
-.post-meta {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  margin-top: auto;
-  padding-top: 12px;
-  border-top: 1px solid #f1f5f9;
-}
-
-.meta-left {
-  display: flex;
-  align-items: center;
-  gap: 8px;
-}
-
-.post-date {
-  font-size: 0.75rem;
-  color: #94a3b8;
-  font-weight: 500;
-}
-
-.meta-right {
-  display: flex;
-  align-items: center;
-  gap: 12px;
-}
-
-.post-stat {
-  display: flex;
-  align-items: center;
-  gap: 4px;
-  font-size: 0.75rem;
-  color: #94a3b8;
-  font-weight: 500;
-}
-
-.post-stat svg {
-  opacity: 0.7;
-}
-
-/* 태그 */
-.post-tags {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 6px;
-  margin-top: 8px;
-}
-
-.tag {
-  font-size: 0.75rem;
-  color: #3b82f6;
-  background: #eff6ff;
-  padding: 2px 8px;
-  border-radius: 12px;
-  font-weight: 500;
-  transition: all 0.2s ease;
-}
-
-.tag:hover {
-  background: #dbeafe;
-  color: #2563eb;
-}
-
-/* 다크모드 지원 */
-.post-card.dark-mode {
-  background: #0f172a !important;
-  border-color: #1e293b !important;
-  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.1) !important;
-}
-
-.post-card.dark-mode:hover {
-  box-shadow: 0 2px 12px rgba(0, 0, 0, 0.15) !important;
-  border-color: #334155 !important;
-  background: #1e293b !important;
-}
-
-.post-card.dark-mode .category-badge {
-  background: rgba(30, 41, 59, 0.95);
-  color: #cbd5e1;
-  border-color: rgba(30, 41, 59, 0.3);
-  box-shadow: 0 1px 4px rgba(0, 0, 0, 0.1);
-}
-
-.post-card.dark-mode .post-image-placeholder {
-  background: linear-gradient(135deg, #334155 0%, #475569 100%);
-  color: #94a3b8;
-}
-
-.post-card.dark-mode .post-title {
-  color: #ffffff !important;
-}
-
-.post-card.dark-mode .post-summary {
-  color: #cbd5e1 !important;
-}
-
-.post-card.dark-mode .post-meta {
-  border-top-color: #334155 !important;
-}
-
-.post-card.dark-mode .post-date,
-.post-card.dark-mode .post-stat {
-  color: #64748b !important;
-}
-
-.post-card.dark-mode .tag {
-  color: #60a5fa;
-  background: #1e3a8a;
-}
-
-.post-card.dark-mode .tag:hover {
-  background: #1e40af;
-  color: #93c5fd;
 }
 
 /* 반응형 디자인 */
 @media (max-width: 768px) {
-  .post-content {
-    padding: 28px 36px;
-    gap: 10px;
+  .p-8 {
+    padding: 1.75rem 2.25rem;
   }
   
-  .post-title {
+  .text-lg {
     font-size: 1rem;
   }
   
-  .post-summary {
+  .text-sm {
     font-size: 0.8125rem;
   }
   
-  .post-category {
-    top: 8px;
-    left: 8px;
+  .top-3 {
+    top: 0.5rem;
   }
   
-  .category-badge {
-    padding: 3px 10px;
+  .left-3 {
+    left: 0.5rem;
+  }
+  
+  .px-3 {
+    padding-left: 0.625rem;
+    padding-right: 0.625rem;
+  }
+  
+  .py-1 {
+    padding-top: 0.25rem;
+    padding-bottom: 0.25rem;
+  }
+  
+  .text-xs {
     font-size: 0.6875rem;
   }
 }
 
 @media (max-width: 480px) {
-  .post-content {
-    padding: 24px 32px;
+  .p-8 {
+    padding: 1.5rem 2rem;
   }
   
-  .post-title {
+  .text-lg {
     font-size: 0.9375rem;
   }
   
-  .post-summary {
+  .text-sm {
     font-size: 0.75rem;
   }
   
-  .post-meta {
-    padding-top: 8px;
+  .pt-3 {
+    padding-top: 0.5rem;
   }
   
-  .post-date,
-  .post-stat {
+  .text-xs {
     font-size: 0.6875rem;
   }
 }

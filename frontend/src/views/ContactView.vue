@@ -1,63 +1,76 @@
 <template>
-  <div class="container">
-    <div class="contact-main">
-      <h1 class="page-title">{{ $t('contact.title') }}</h1>
-      <div class="contact-card">
-        <div v-if="successMessage" class="success-message">
+  <div class="max-w-6xl mx-auto px-6 py-8">
+    <div class="max-w-2xl mx-auto">
+      <h1 class="text-3xl font-bold text-gray-800 mb-8 pb-4 border-b border-gray-200 font-sans tracking-wide transition-all duration-500 dark:text-gray-100 dark:border-gray-700">
+        {{ $t('contact.title') }}
+      </h1>
+      <div class="bg-white rounded-xl shadow-sm border border-gray-100 p-8 transition-all duration-500 dark:bg-gray-800 dark:border-gray-700">
+        <div v-if="successMessage" class="bg-green-50 text-green-800 border border-green-200 p-4 rounded-lg mb-6 text-sm flex items-center transition-all duration-500 dark:bg-green-900 dark:text-green-200 dark:border-green-700">
+          <span class="bg-green-500 text-white w-5 h-5 rounded-full flex items-center justify-center text-xs font-bold mr-3">✓</span>
           <span>{{ successMessage }}</span>
         </div>
         <form @submit.prevent="submitForm">
-          <div class="form-group">
-            <label class="form-label" for="name">{{ $t('contact.form.name') }}</label>
+          <div class="mb-6">
+            <label class="block text-gray-800 font-medium mb-2 text-sm transition-colors duration-500 dark:text-gray-200" for="name">
+              {{ $t('contact.form.name') }}
+            </label>
             <input 
               type="text" 
               id="name" 
               v-model="formData.name" 
-              class="form-input" 
+              class="w-full px-3 py-2.5 border border-gray-200 rounded-md text-sm text-gray-800 transition-all duration-200 bg-gray-50 font-sans box-border focus:outline-none focus:border-blue-500 focus:shadow-lg focus:shadow-blue-500/15 focus:bg-white dark:bg-gray-700 dark:border-gray-600 dark:text-gray-200 dark:focus:border-blue-400 dark:focus:bg-gray-700" 
               required
-              :placeholder="$t('contact.form.name') + '을(를) 입력해주세요'"
+              :placeholder="$t('contact.form.placeholder.name')"
             >
           </div>
-          <div class="form-group">
-            <label class="form-label" for="email">{{ $t('contact.form.email') }}</label>
+          <div class="mb-6">
+            <label class="block text-gray-800 font-medium mb-2 text-sm transition-colors duration-500 dark:text-gray-200" for="email">
+              {{ $t('contact.form.email') }}
+            </label>
             <input 
               type="email" 
               id="email" 
               v-model="formData.email" 
-              class="form-input" 
+              class="w-full px-3 py-2.5 border border-gray-200 rounded-md text-sm text-gray-800 transition-all duration-200 bg-gray-50 font-sans box-border focus:outline-none focus:border-blue-500 focus:shadow-lg focus:shadow-blue-500/15 focus:bg-white dark:bg-gray-700 dark:border-gray-600 dark:text-gray-200 dark:focus:border-blue-400 dark:focus:bg-gray-700" 
               required
-              placeholder="example@email.com"
+              :placeholder="$t('contact.form.placeholder.email')"
             >
           </div>
-          <div class="form-group">
-            <label class="form-label" for="subject">{{ $t('contact.form.subject') }}</label>
+          <div class="mb-6">
+            <label class="block text-gray-800 font-medium mb-2 text-sm transition-colors duration-500 dark:text-gray-200" for="subject">
+              {{ $t('contact.form.subject') }}
+            </label>
             <input 
               type="text" 
               id="subject" 
               v-model="formData.subject" 
-              class="form-input" 
+              class="w-full px-3 py-2.5 border border-gray-200 rounded-md text-sm text-gray-800 transition-all duration-200 bg-gray-50 font-sans box-border focus:outline-none focus:border-blue-500 focus:shadow-lg focus:shadow-blue-500/15 focus:bg-white dark:bg-gray-700 dark:border-gray-600 dark:text-gray-200 dark:focus:border-blue-400 dark:focus:bg-gray-700" 
               required
-              :placeholder="$t('contact.form.subject') + '을(를) 입력해주세요'"
+              :placeholder="$t('contact.form.placeholder.subject')"
             >
           </div>
-          <div class="form-group">
-            <label class="form-label" for="message">{{ $t('contact.form.message') }}</label>
+          <div class="mb-6">
+            <label class="block text-gray-800 font-medium mb-2 text-sm transition-colors duration-500 dark:text-gray-200" for="message">
+              {{ $t('contact.form.message') }}
+            </label>
             <textarea 
               id="message" 
               v-model="formData.message" 
-              class="form-input" 
+              class="w-full px-3 py-2.5 border border-gray-200 rounded-md text-sm text-gray-800 transition-all duration-200 bg-gray-50 font-sans box-border focus:outline-none focus:border-blue-500 focus:shadow-lg focus:shadow-blue-500/15 focus:bg-white dark:bg-gray-700 dark:border-gray-600 dark:text-gray-200 dark:focus:border-blue-400 dark:focus:bg-gray-700 min-h-30 resize-y" 
               required
-              :placeholder="$t('contact.form.message') + '을(를) 입력해주세요'"
+              :placeholder="$t('contact.form.placeholder.message')"
             ></textarea>
           </div>
-          <button type="submit" class="submit-button" :disabled="isSubmitting">
+          <button type="submit" class="w-full py-3 bg-gray-800 text-white border-none rounded-md text-base font-medium cursor-pointer transition-all duration-200 hover:bg-gray-700 hover:-translate-y-0.5 disabled:bg-gray-400 disabled:cursor-not-allowed disabled:transform-none dark:bg-blue-500 dark:hover:bg-blue-600" :disabled="isSubmitting">
             {{ isSubmitting ? $t('common.loading') : $t('contact.form.send') }}
           </button>
         </form>
-        <div class="contact-info">
+        <div class="mt-8 pt-6 border-t border-gray-200 text-gray-600 text-sm leading-relaxed font-sans transition-all duration-500 dark:border-gray-700 dark:text-gray-300">
           <span>{{ $t('contact.subtitle') }}</span><br>
-          <b>{{ $t('contact.form.email') }}:</b> 
-          <a href="mailto:ehc28260@gmail.com">ehc28260@gmail.com</a>
+          <b class="text-gray-800 font-semibold transition-colors duration-500 dark:text-gray-100">{{ $t('contact.form.email') }}:</b> 
+          <a href="mailto:ehc28260@gmail.com" class="text-blue-600 no-underline font-medium transition-colors duration-200 hover:text-blue-800 dark:text-blue-400 dark:hover:text-blue-300">
+            ehc28260@gmail.com
+          </a>
         </div>
       </div>
     </div>
@@ -73,6 +86,7 @@ export default {
     return {
       successMessage: '',
       isSubmitting: false,
+      isDarkMode: false,
       formData: {
         name: '',
         email: '',
@@ -85,6 +99,14 @@ export default {
     lang() {
       return this.$i18n.locale;
     }
+  },
+  mounted() {
+    this.checkDarkMode();
+    window.addEventListener('dark-mode-toggled', this.handleDarkModeToggle);
+    this.updateDarkModeClass();
+  },
+  beforeUnmount() {
+    window.removeEventListener('dark-mode-toggled', this.handleDarkModeToggle);
   },
   methods: {
     async submitForm() {
@@ -139,237 +161,37 @@ export default {
       } finally {
         this.isSubmitting = false;
       }
+    },
+    checkDarkMode() {
+      this.isDarkMode = document.body.classList.contains('dark-mode');
+    },
+    handleDarkModeToggle(event) {
+      this.isDarkMode = event.detail.isDarkMode;
+      this.updateDarkModeClass();
+    },
+    updateDarkModeClass() {
+      if (this.isDarkMode) {
+        document.documentElement.classList.add('dark');
+      } else {
+        document.documentElement.classList.remove('dark');
+      }
     }
   }
 }
 </script>
 
 <style scoped>
-/* main.css를 참고한 스타일 */
-.container {
-  max-width: 1200px;
-  margin: 0 auto;
-  padding: 32px 24px;
-}
-
-.contact-main {
-  max-width: 600px;
-  margin: 0 auto;
-}
-
-.page-title {
-  font-size: 1.75rem;
-  color: #2c3e50;
-  font-weight: 700;
-  margin-bottom: 32px;
-  padding-bottom: 16px;
-  border-bottom: 1px solid #e0e0e0;
-  font-family: 'Montserrat', sans-serif;
-  letter-spacing: 0.5px;
-  transition: color 0.5s ease, border-bottom-color 0.5s ease;
-}
-
-.contact-card {
-  background: white;
-  border-radius: 12px;
-  box-shadow: 0 2px 10px rgba(0,0,0,0.04);
-  padding: 32px;
-  border: 1px solid #f1f1f1;
-  transition: background-color 0.5s ease, border-color 0.5s ease, box-shadow 0.5s ease;
-}
-
-.success-message {
-  background: #ebf7ed;
-  color: #276749;
-  border: 1px solid #c6f6d5;
-  padding: 16px;
-  border-radius: 8px;
-  margin-bottom: 24px;
-  font-size: 0.95rem;
-  display: flex;
-  align-items: center;
-  transition: background-color 0.5s ease, border-color 0.5s ease, color 0.5s ease;
-}
-
-.success-message::before {
-  content: "✓";
-  font-weight: bold;
-  margin-right: 12px;
-  background: #48bb78;
-  color: white;
-  width: 20px;
-  height: 20px;
-  border-radius: 50%;
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  font-size: 12px;
-}
-
-.form-group {
-  margin-bottom: 24px;
-}
-
-.form-label {
-  display: block;
-  color: #2c3e50;
-  font-weight: 500;
-  margin-bottom: 8px;
-  font-size: 0.95rem;
-  transition: color 0.5s ease;
-}
-
-.form-input {
-  width: 100%;
-  padding: 10px 12px;
-  border: 1px solid #e2e8f0;
-  border-radius: 6px;
-  font-size: 0.95rem;
-  color: #2c3e50;
-  transition: all 0.2s ease;
-  background: #f8fafc;
-  font-family: 'Noto Sans KR', sans-serif;
-  box-sizing: border-box;
-}
-
-.form-input::placeholder {
-  color: #a0aec0;
-  font-family: 'Noto Sans KR', sans-serif;
-}
-
-.form-input:focus {
-  outline: none;
-  border-color: #4299e1;
-  box-shadow: 0 0 0 3px rgba(66, 153, 225, 0.15);
-  background: white;
-}
-
-textarea.form-input {
-  min-height: 120px;
-  resize: vertical;
-}
-
-.submit-button {
-  width: 100%;
-  padding: 12px;
-  background: #2c3e50;
-  color: white;
-  border: none;
-  border-radius: 6px;
-  font-size: 1rem;
-  font-weight: 500;
-  cursor: pointer;
-  transition: all 0.2s ease;
-}
-
-.submit-button:hover:not(:disabled) {
-  background: #34495e;
-  transform: translateY(-1px);
-}
-
-.submit-button:disabled {
-  background: #a0aec0;
-  cursor: not-allowed;
-  transform: none;
-}
-
-.contact-info {
-  margin-top: 32px;
-  padding-top: 24px;
-  border-top: 1px solid #edf2f7;
-  color: #4a5568;
-  font-size: 0.95rem;
-  line-height: 1.6;
-  font-family: 'Noto Sans KR', sans-serif;
-  transition: border-top-color 0.5s ease, color 0.5s ease;
-}
-
-.contact-info a {
-  color: #3182ce;
-  text-decoration: none;
-  font-weight: 500;
-  transition: color 0.2s ease;
-}
-
-.contact-info a:hover {
-  color: #2c5282;
-}
-
-.contact-info b {
-  color: #2c3e50;
-  font-weight: 600;
-  transition: color 0.5s ease;
-}
-
-/* 다크모드 지원 */
-body.dark-mode .page-title {
-  color: #f7fafc;
-  border-bottom-color: #4a5568;
-}
-
-body.dark-mode .contact-card {
-  background: #1a202c;
-  border-color: #2d3748;
-  box-shadow: 0 2px 10px rgba(0,0,0,0.2);
-}
-
-body.dark-mode .form-label {
-  color: #e2e8f0;
-}
-
-body.dark-mode .form-input {
-  background: #2d3748;
-  border-color: #4a5568;
-  color: #e2e8f0;
-}
-
-body.dark-mode .form-input:focus {
-  border-color: #63b3ed;
-  background: #2d3748;
-}
-
-body.dark-mode .submit-button {
-  background: #63b3ed;
-}
-
-body.dark-mode .submit-button:hover:not(:disabled) {
-  background: #4299e1;
-}
-
-body.dark-mode .contact-info {
-  border-top-color: #4a5568;
-  color: #e2e8f0;
-}
-
-body.dark-mode .contact-info b {
-  color: #f7fafc;
-}
-
-body.dark-mode .contact-info a {
-  color: #63b3ed;
-}
-
-body.dark-mode .contact-info a:hover {
-  color: #90cdf4;
-}
-
-body.dark-mode .success-message {
-  background: #1c4532;
-  border-color: #276749;
-  color: #9ae6b4;
-}
-
 /* 반응형 디자인 */
 @media (max-width: 768px) {
-  .container {
+  .max-w-6xl.mx-auto.px-6.py-8 {
     padding: 20px 16px;
   }
   
-  .contact-card {
+  .bg-white.rounded-xl.shadow-sm.border.border-gray-100.p-8 {
     padding: 24px 20px;
   }
   
-  .page-title {
+  .text-3xl.font-bold.text-gray-800.mb-8.pb-4 {
     font-size: 1.5rem;
   }
 }

@@ -1,81 +1,155 @@
 <template>
-  <div :class="{ 'dark-mode': isDarkMode }">
-    <div class="hero-section">
-      <h1 class="hero-title">{{ $i18n.locale === 'ja' ? '高原優輝' : 'Takahara Yuuki' }}</h1>
+  <div>
+    <!-- Hero Section -->
+    <div class="h-96 relative bg-cover bg-center bg-no-repeat" style="background-image: url('/img/light_mode_bg.jpg');">
+      <div class="absolute inset-0 bg-black bg-opacity-20"></div>
+      <div class="relative z-10 flex items-center justify-center h-full">
+        <h1 class="text-5xl font-bold text-white tracking-wider">
+          {{ $i18n.locale === 'ja' ? '高原優輝' : 'Takahara Yuuki' }}
+        </h1>
+      </div>
     </div>
     
-    <div class="page-container">
-        <aside class="sidebar">
-          <div class="category-list-wrapper">
-            <h3 class="category-list-title">{{ $t('knowledge.categories.all') }}</h3>
-            <ul class="category-list">
-              <li class="category-item active" data-category="" @click="selectCategory('')">{{ $t('knowledge.categories.all') }}</li>
-              <li class="category-item" data-category="JAVA" @click="selectCategory('JAVA')">Java</li>
-              <li class="category-item" data-category="JAVASCRIPT" @click="selectCategory('JAVASCRIPT')">JavaScript</li>
-              <li class="category-item" data-category="REACT" @click="selectCategory('REACT')">React</li>
-              <li class="category-item" data-category="CSS" @click="selectCategory('CSS')">CSS</li>
-              <li class="category-item" data-category="HTML" @click="selectCategory('HTML')">HTML</li>
-              <li class="category-item" data-category="SQL" @click="selectCategory('SQL')">SQL</li>
-              <li class="category-item" data-category="PYTHON" @click="selectCategory('PYTHON')">Python</li>
+    <!-- Main Container -->
+    <div class="max-w-7xl mx-auto px-6 py-8">
+      <div class="flex gap-8">
+        <!-- Sidebar -->
+        <aside class="w-56 flex-shrink-0">
+          <div class="sticky top-24">
+            <h3 class="text-lg font-bold text-gray-800 mb-4 pb-3 border-b-2 border-gray-800 dark:text-gray-200 dark:border-gray-700">
+              {{ $t('knowledge.categories.all') }}
+            </h3>
+            <ul class="space-y-1">
+              <li 
+                class="px-3 py-3 cursor-pointer text-gray-600 font-medium rounded-md transition-colors duration-200 hover:bg-gray-100 dark:text-gray-300 dark:hover:bg-gray-700"
+                :class="{ 'text-blue-600 bg-blue-50 font-bold dark:text-blue-400 dark:bg-gray-700': selectedCategory === '' }"
+                @click="selectCategory('')"
+              >
+                {{ $t('knowledge.categories.all') }}
+              </li>
+              <li 
+                class="px-3 py-3 cursor-pointer text-gray-600 font-medium rounded-md transition-colors duration-200 hover:bg-gray-100 dark:text-gray-300 dark:hover:bg-gray-700"
+                :class="{ 'text-blue-600 bg-blue-50 font-bold dark:text-blue-400 dark:bg-gray-700': selectedCategory === 'JAVA' }"
+                @click="selectCategory('JAVA')"
+              >
+                Java
+              </li>
+              <li 
+                class="px-3 py-3 cursor-pointer text-gray-600 font-medium rounded-md transition-colors duration-200 hover:bg-gray-100 dark:text-gray-300 dark:hover:bg-gray-700"
+                :class="{ 'text-blue-600 bg-blue-50 font-bold dark:text-blue-400 dark:bg-gray-700': selectedCategory === 'JAVASCRIPT' }"
+                @click="selectCategory('JAVASCRIPT')"
+              >
+                JavaScript
+              </li>
+              <li 
+                class="px-3 py-3 cursor-pointer text-gray-600 font-medium rounded-md transition-colors duration-200 hover:bg-gray-100 dark:text-gray-300 dark:hover:bg-gray-700"
+                :class="{ 'text-blue-600 bg-blue-50 font-bold dark:text-blue-400 dark:bg-gray-700': selectedCategory === 'REACT' }"
+                @click="selectCategory('REACT')"
+              >
+                React
+              </li>
+              <li 
+                class="px-3 py-3 cursor-pointer text-gray-600 font-medium rounded-md transition-colors duration-200 hover:bg-gray-100 dark:text-gray-300 dark:hover:bg-gray-700"
+                :class="{ 'text-blue-600 bg-blue-50 font-bold dark:text-blue-400 dark:bg-gray-700': selectedCategory === 'CSS' }"
+                @click="selectCategory('CSS')"
+              >
+                CSS
+              </li>
+              <li 
+                class="px-3 py-3 cursor-pointer text-gray-600 font-medium rounded-md transition-colors duration-200 hover:bg-gray-100 dark:text-gray-300 dark:hover:bg-gray-700"
+                :class="{ 'text-blue-600 bg-blue-50 font-bold dark:text-blue-400 dark:bg-gray-700': selectedCategory === 'HTML' }"
+                @click="selectCategory('HTML')"
+              >
+                HTML
+              </li>
+              <li 
+                class="px-3 py-3 cursor-pointer text-gray-600 font-medium rounded-md transition-colors duration-200 hover:bg-gray-100 dark:text-gray-300 dark:hover:bg-gray-700"
+                :class="{ 'text-blue-600 bg-blue-50 font-bold dark:text-blue-400 dark:bg-gray-700': selectedCategory === 'SQL' }"
+                @click="selectCategory('SQL')"
+              >
+                SQL
+              </li>
+              <li 
+                class="px-3 py-3 cursor-pointer text-gray-600 font-medium rounded-md transition-colors duration-200 hover:bg-gray-100 dark:text-gray-300 dark:hover:bg-gray-700"
+                :class="{ 'text-blue-600 bg-blue-50 font-bold dark:text-blue-400 dark:bg-gray-700': selectedCategory === 'PYTHON' }"
+                @click="selectCategory('PYTHON')"
+              >
+                Python
+              </li>
             </ul>
           </div>
         </aside>
 
-        <main class="main-content">
-          <div class="content-section">
-            <div class="section-header">
-              <div class="section-header-title">
-                <h2 class="section-title">{{ $t('knowledge.latestPosts') }}</h2>
-                <span class="post-count">{{ posts.length }}{{ $t('knowledge.postCount') }}</span>
+        <!-- Main Content -->
+        <main class="flex-1 min-w-0">
+          <div class="mb-8 pb-4 border-b border-gray-200 dark:border-gray-700">
+            <div class="flex justify-between items-center">
+              <div class="flex items-center gap-3">
+                <h2 class="text-2xl font-semibold text-gray-800 dark:text-gray-100">
+                  {{ $t('knowledge.latestPosts') }}
+                </h2>
+                <span class="text-gray-500 text-sm dark:text-gray-400">
+                  {{ posts.length }}{{ $t('knowledge.postCount') }}
+                </span>
               </div>
-              <div class="search-form">
+              <div class="relative">
                 <input 
                   type="text" 
                   id="search-input" 
                   :placeholder="$t('knowledge.searchPlaceholder')" 
-                  class="search-input"
+                  class="border-b-2 border-gray-300 px-2 py-2 text-base bg-transparent text-gray-800 w-56 focus:outline-none focus:border-gray-600 transition-all duration-300 dark:text-gray-200 dark:border-gray-600 dark:focus:border-gray-400"
                   v-model="searchQuery"
                   @keyup.enter="searchPosts"
                 >
-                <button type="button" class="search-button" @click="searchPosts">
+                <button 
+                  type="button" 
+                  class="absolute right-0 top-1/2 transform -translate-y-1/2 bg-transparent border-none cursor-pointer p-2 text-gray-600 dark:text-gray-400" 
+                  @click="searchPosts"
+                >
                   <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" width="20" height="20">
                     <path d="M15.5 14h-.79l-.28-.27A6.471 6.471 0 0 0 16 9.5 6.5 6.5 0 1 0 9.5 16c1.61 0 3.09-.59 4.23-1.57l.27.28v.79l5 4.99L20.49 19l-4.99-5zm-6 0C7.01 14 5 11.99 5 9.5S7.01 5 9.5 5 14 7.01 14 9.5 11.99 14 9.5 14z"></path>
                   </svg>
                 </button>
               </div>
             </div>
-            
-            <!-- 로딩 상태 -->
-            <div v-if="loading" class="loading-container">
-              <div class="loading-spinner"></div>
-              <p>{{ $t('knowledge.loading') }}</p>
-            </div>
+          </div>
+          
+          <!-- 로딩 상태 -->
+          <div v-if="loading" class="flex flex-col items-center justify-center py-16 text-center">
+            <div class="w-10 h-10 border-4 border-gray-300 border-t-blue-600 rounded-full animate-spin mb-5"></div>
+            <p class="text-gray-600 dark:text-gray-400">{{ $t('knowledge.loading') }}</p>
+          </div>
 
-            <!-- 에러 상태 -->
-            <div v-else-if="error" class="error-container">
-              <p>{{ error }}</p>
-              <button @click="loadPosts" class="retry-button">{{ $t('knowledge.retry') }}</button>
-            </div>
+          <!-- 에러 상태 -->
+          <div v-else-if="error" class="flex flex-col items-center justify-center py-16 text-center">
+            <p class="text-red-600 mb-5 text-lg">{{ error }}</p>
+            <button 
+              @click="loadPosts" 
+              class="px-5 py-2.5 bg-blue-600 text-white border-none rounded-md cursor-pointer text-sm transition-colors duration-200 hover:bg-blue-700 dark:bg-blue-500 dark:hover:bg-blue-600"
+            >
+              {{ $t('knowledge.retry') }}
+            </button>
+          </div>
 
-            <!-- 게시글 목록 -->
-            <div v-else class="post-grid" id="post-grid">
-              <PostCard
-                v-for="post in posts"
-                :key="`${post.id}-${isDarkMode}`"
-                :post="post"
-                :lang="lang"
-                :is-dark-mode="isDarkMode"
-                @click="(postId) => goToPostDetail(postId)"
-              />
-            </div>
+          <!-- 게시글 목록 -->
+          <div v-else class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 mb-8" id="post-grid">
+            <PostCard
+              v-for="post in posts"
+              :key="`${post.id}-${isDarkMode}`"
+              :post="post"
+              :lang="lang"
+              :is-dark-mode="isDarkMode"
+              @click="(postId) => goToPostDetail(postId)"
+            />
+          </div>
 
-            <!-- 게시글이 없을 때 -->
-            <div v-if="!loading && !error && posts.length === 0" class="no-posts">
-              <p>{{ $t('knowledge.noPosts') }}</p>
-            </div>
+          <!-- 게시글이 없을 때 -->
+          <div v-if="!loading && !error && posts.length === 0" class="flex items-center justify-center py-16 text-center">
+            <p class="text-gray-500 text-lg dark:text-gray-400">{{ $t('knowledge.noPosts') }}</p>
           </div>
         </main>
       </div>
+    </div>
   </div>
 </template>
 
@@ -104,11 +178,9 @@ export default {
     this.setLanguage();
     await this.loadPosts();
 
-    this.isDarkMode = document.body.classList.contains('dark-mode');
-    this.observer = new MutationObserver(() => {
-      this.isDarkMode = document.body.classList.contains('dark-mode');
-    });
-    this.observer.observe(document.body, { attributes: true, attributeFilter: ['class'] });
+    this.checkDarkMode();
+    window.addEventListener('dark-mode-toggled', this.handleDarkModeToggle);
+    this.updateDarkModeClass();
 
     this.$watch(
       () => this.$route.query.lang,
@@ -121,9 +193,7 @@ export default {
     );
   },
   beforeUnmount() {
-    if (this.observer) {
-      this.observer.disconnect();
-    }
+    window.removeEventListener('dark-mode-toggled', this.handleDarkModeToggle);
   },
   methods: {
     setLanguage() {
@@ -199,12 +269,6 @@ export default {
 
     async selectCategory(category) {
       this.selectedCategory = category;
-      
-      // 카테고리 선택 UI 업데이트
-      document.querySelectorAll('.category-item').forEach(item => {
-        item.classList.remove('active');
-      });
-      event.target.classList.add('active');
 
       if (!category) {
         await this.loadPosts();
@@ -266,124 +330,42 @@ export default {
         'BLOG_CODING': 'BlogBuild'
       };
       return categoryMap[category] || category;
+    },
+    checkDarkMode() {
+      this.isDarkMode = document.body.classList.contains('dark-mode');
+    },
+    handleDarkModeToggle(event) {
+      this.isDarkMode = event.detail.isDarkMode;
+      this.updateDarkModeClass();
+    },
+    updateDarkModeClass() {
+      if (this.isDarkMode) {
+        document.documentElement.classList.add('dark');
+      } else {
+        document.documentElement.classList.remove('dark');
+      }
     }
   }
 }
 </script>
 
 <style scoped>
-.hero-section {
-  height: 400px;
-  position: relative;
-}
-
-.hero-section::before {
-  content: '';
-  position: absolute;
-  top: 0;
-  left: 0;
-  right: 0;
-  bottom: 0;
-  background: rgba(0, 0, 0, 0.2);
-  z-index: 1;
-}
-
-.hero-title {
-  position: relative;
-  z-index: 2;
-  font-size: 3rem;
-  color: white;
-  margin: 0;
-  letter-spacing: 2px;
-}
-
-/* 포스트 카드 스타일은 PostCard 컴포넌트에서 처리 */
-
-/* 로딩 및 에러 상태 스타일 */
-.loading-container {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: center;
-  padding: 60px 20px;
-  text-align: center;
-}
-
-.loading-spinner {
-  width: 40px;
-  height: 40px;
-  border: 4px solid #f3f3f3;
-  border-top: 4px solid #007bff;
-  border-radius: 50%;
-  animation: spin 1s linear infinite;
-  margin-bottom: 20px;
-}
-
-@keyframes spin {
-  0% { transform: rotate(0deg); }
-  100% { transform: rotate(360deg); }
-}
-
-.error-container {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: center;
-  padding: 60px 20px;
-  text-align: center;
-}
-
-.error-container p {
-  color: #e53e3e;
-  margin-bottom: 20px;
-  font-size: 1.1rem;
-}
-
-.retry-button {
-  padding: 10px 20px;
-  background: #007bff;
-  color: white;
-  border: none;
-  border-radius: 6px;
-  cursor: pointer;
-  font-size: 0.9rem;
-  transition: background-color 0.2s ease;
-}
-
-.retry-button:hover {
-  background: #0056b3;
-}
-
-.no-posts {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  padding: 60px 20px;
-  text-align: center;
-}
-
-.no-posts p {
-  color: #718096;
-  font-size: 1.1rem;
-}
-
-.post-image {
-  width: 100%;
-  height: 200px;
-  overflow: hidden;
-  border-radius: 8px 8px 0 0;
-}
-
-.post-image img {
-  width: 100%;
-  height: 100%;
-  object-fit: cover;
-}
-
 /* 반응형 디자인 */
 @media (max-width: 768px) {
-  .hero-title {
+  .text-5xl {
     font-size: 2rem;
+  }
+  
+  .flex.gap-8 {
+    flex-direction: column;
+  }
+  
+  .w-56 {
+    width: 100%;
+  }
+  
+  .sticky {
+    position: static;
   }
 }
 </style> 

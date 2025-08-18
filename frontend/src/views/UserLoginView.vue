@@ -1,75 +1,75 @@
 <template>
-  <div class="login-page">
-    <div class="login-container">
-    <div class="login-header">
-      <h1 class="login-title">{{ $t('login.title') }}</h1>
-      <p class="login-subtitle">{{ $t('login.subtitle') }}</p>
-    </div>
-    
-    <div v-if="error" class="error-message">
-      {{ error }}
-    </div>
-    
-    <div v-if="message" class="success-message">
-      {{ message }}
-    </div>
-    
-    <form @submit.prevent="handleLogin">
-      <input type="hidden" name="redirectUrl" :value="redirectUrl">
-      
-      <div class="form-group">
-        <label for="username" class="form-label">{{ $t('login.username') }}</label>
-        <input 
-          type="text" 
-          id="username" 
-          v-model="formData.username" 
-          class="form-input" 
-          required
-        >
+  <div class="min-h-screen flex items-center justify-center p-5 font-['Noto_Sans_KR',sans-serif] bg-gradient-to-br from-[#1a1a1a] via-[#2d2d2d] via-[#404040] via-[#2d2d2d] to-[#1a1a1a]">
+    <div class="bg-[rgba(45,45,45,0.95)] backdrop-blur-[10px] rounded-2xl shadow-[0_8px_32px_rgba(0,0,0,0.3)] p-10 w-full max-w-[400px] border border-[rgba(255,255,255,0.2)]">
+      <div class="text-center mb-8">
+        <h1 class="text-[1.75rem] text-white mb-2 font-bold font-['Montserrat',sans-serif]">{{ $t('login.title') }}</h1>
+        <p class="text-[#b0b0b0] text-[0.95rem] font-medium">{{ $t('login.subtitle') }}</p>
       </div>
       
-      <div class="form-group">
-        <label for="password" class="form-label">{{ $t('login.password') }}</label>
-        <div style="position:relative;">
+      <div v-if="error" class="bg-[rgba(197,48,48,0.2)] text-[#ff6b6b] p-4 rounded-xl mb-5 text-center font-medium border border-[rgba(197,48,48,0.3)]">
+        {{ error }}
+      </div>
+      
+      <div v-if="message" class="bg-[rgba(47,133,90,0.2)] text-[#68d391] p-4 rounded-xl mb-5 text-center font-medium border border-[rgba(47,133,90,0.3)]">
+        {{ message }}
+      </div>
+      
+      <form @submit.prevent="handleLogin">
+        <input type="hidden" name="redirectUrl" :value="redirectUrl">
+        
+        <div class="mb-5">
+          <label for="username" class="block mb-2 font-semibold text-[#e0e0e0] text-[0.9rem]">{{ $t('login.username') }}</label>
           <input 
-            :type="showPassword ? 'text' : 'password'" 
-            id="password" 
-            v-model="formData.password" 
-            class="form-input" 
-            required 
-            autocomplete="current-password" 
-            style="padding-right:40px; ime-mode:disabled;"
+            type="text" 
+            id="username" 
+            v-model="formData.username" 
+            class="w-full p-[14px] px-4 border-2 border-[#555555] rounded-xl text-[0.95rem] transition-all duration-300 ease-in-out box-border bg-[rgba(60,60,60,0.8)] font-inherit text-white focus:outline-none focus:border-[#888888] focus:shadow-[0_0_0_3px_rgba(136,136,136,0.2)] focus:-translate-y-[1px] focus:bg-[rgba(70,70,70,0.9)]" 
+            required
           >
-                  <span 
-          @click="togglePassword" 
-          :title="$t('login.passwordToggle')" 
-          style="position:absolute; right:12px; top:50%; transform:translateY(-50%); cursor:pointer; font-size:1.3rem; color:#888;"
-        >
-          {{ showPassword ? '👁️' : '𝄐' }}
-        </span>
         </div>
-        <div 
-          id="capsLockMsg" 
-          style="color:#dc3545; font-size:0.95rem; margin-top:6px; display:none;" 
-          :style="{ display: capsLockOn ? 'block' : 'none' }"
-        >
-          {{ $t('login.capsLock') }}
+        
+        <div class="mb-5">
+          <label for="password" class="block mb-2 font-semibold text-[#e0e0e0] text-[0.9rem]">{{ $t('login.password') }}</label>
+          <div class="relative">
+            <input 
+              :type="showPassword ? 'text' : 'password'" 
+              id="password" 
+              v-model="formData.password" 
+              class="w-full p-[14px] px-4 pr-10 border-2 border-[#555555] rounded-xl text-[0.95rem] transition-all duration-300 ease-in-out box-border bg-[rgba(60,60,60,0.8)] font-inherit text-white focus:outline-none focus:border-[#888888] focus:shadow-[0_0_0_3px_rgba(136,136,136,0.2)] focus:-translate-y-[1px] focus:bg-[rgba(70,70,70,0.9)]" 
+              required 
+              autocomplete="current-password" 
+              style="ime-mode:disabled;"
+            >
+            <span 
+              @click="togglePassword" 
+              :title="$t('login.passwordToggle')" 
+              class="absolute right-3 top-1/2 -translate-y-1/2 cursor-pointer text-[1.3rem] text-[#888] hover:text-white hover:scale-110 transition-all duration-200 ease-in-out"
+            >
+              {{ showPassword ? '👁️' : '𝄐' }}
+            </span>
+          </div>
+          <div 
+            id="capsLockMsg" 
+            class="text-[#dc3545] text-[0.95rem] mt-[6px] hidden" 
+            :class="{ 'block': capsLockOn }"
+          >
+            {{ $t('login.capsLock') }}
+          </div>
         </div>
+        
+        <button type="submit" class="w-full p-[14px] bg-gradient-to-br from-[#666666] to-[#444444] text-white border-none rounded-xl text-[0.95rem] font-semibold cursor-pointer transition-all duration-300 ease-[cubic-bezier(0.4,0,0.2,1)] font-['Montserrat',sans-serif] shadow-[0_4px_12px_rgba(0,0,0,0.3)] hover:-translate-y-[2px] hover:shadow-[0_6px_20px_rgba(0,0,0,0.4)] hover:bg-gradient-to-br hover:from-[#777777] hover:to-[#555555] active:translate-y-0 disabled:opacity-60 disabled:cursor-not-allowed disabled:transform-none" :disabled="loading">
+          {{ loading ? $t('login.loading') : $t('login.loginButton') }}
+        </button>
+      </form>
+      
+      <div class="text-center mt-6 pt-5 border-t border-[rgba(255,255,255,0.1)]">
+        <p class="text-[#cccccc]">{{ $t('login.noAccount') }} <router-link to="/user/register" class="text-[#cccccc] no-underline font-semibold transition-colors duration-300 ease-in-out hover:text-white hover:underline">{{ $t('login.register') }}</router-link></p>
       </div>
       
-      <button type="submit" class="login-button" :disabled="loading">
-        {{ loading ? $t('login.loading') : $t('login.loginButton') }}
-      </button>
-    </form>
-    
-    <div class="register-link">
-      <p>{{ $t('login.noAccount') }} <router-link to="/user/register">{{ $t('login.register') }}</router-link></p>
+      <div class="text-center mt-4">
+        <router-link to="/" class="text-[#aaaaaa] no-underline text-[0.9rem] transition-colors duration-300 ease-in-out hover:text-[#cccccc] hover:underline">{{ $t('login.backToHome') }}</router-link>
+      </div>
     </div>
-    
-    <div class="back-link">
-      <router-link to="/">{{ $t('login.backToHome') }}</router-link>
-    </div>
-  </div>
   </div>
 </template>
 
@@ -165,176 +165,7 @@ export default {
 </script>
 
 <style scoped>
-.login-page {
-  background: linear-gradient(135deg, #1a1a1a 0%, #2d2d2d 25%, #404040 50%, #2d2d2d 75%, #1a1a1a 100%);
-  min-height: 100vh;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  margin: 0;
-  padding: 20px;
-  font-family: 'Noto Sans KR', sans-serif;
-}
-
-.login-container {
-  background: rgba(45, 45, 45, 0.95);
-  backdrop-filter: blur(10px);
-  border-radius: 16px;
-  box-shadow: 0 8px 32px rgba(0,0,0,0.3);
-  padding: 40px;
-  width: 100%;
-  max-width: 400px;
-  border: 1px solid rgba(255, 255, 255, 0.2);
-}
-
-.login-header {
-  text-align: center;
-  margin-bottom: 32px;
-}
-
-.login-title {
-  font-size: 1.75rem;
-  color: #ffffff;
-  margin-bottom: 8px;
-  font-weight: 700;
-  font-family: 'Montserrat', sans-serif;
-}
-
-.login-subtitle {
-  color: #b0b0b0;
-  font-size: 0.95rem;
-  font-weight: 500;
-}
-
-.form-group {
-  margin-bottom: 20px;
-}
-
-.form-label {
-  display: block;
-  margin-bottom: 8px;
-  font-weight: 600;
-  color: #e0e0e0;
-  font-size: 0.9rem;
-}
-
-.form-input {
-  width: 100%;
-  padding: 14px 16px;
-  border: 2px solid #555555;
-  border-radius: 12px;
-  font-size: 0.95rem;
-  transition: all 0.3s ease;
-  box-sizing: border-box;
-  background: rgba(60, 60, 60, 0.8);
-  font-family: inherit;
-  color: #ffffff;
-}
-
-.form-input:focus {
-  outline: none;
-  border-color: #888888;
-  box-shadow: 0 0 0 3px rgba(136, 136, 136, 0.2);
-  transform: translateY(-1px);
-  background: rgba(70, 70, 70, 0.9);
-}
-
-.login-button {
-  width: 100%;
-  padding: 14px;
-  background: linear-gradient(145deg, #666666 0%, #444444 100%);
-  color: white;
-  border: none;
-  border-radius: 12px;
-  font-size: 0.95rem;
-  font-weight: 600;
-  cursor: pointer;
-  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-  font-family: 'Montserrat', sans-serif;
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
-}
-
-.login-button:hover:not(:disabled) {
-  transform: translateY(-2px);
-  box-shadow: 0 6px 20px rgba(0, 0, 0, 0.4);
-  background: linear-gradient(145deg, #777777 0%, #555555 100%);
-}
-
-.login-button:active {
-  transform: translateY(0);
-}
-
-.login-button:disabled {
-  opacity: 0.6;
-  cursor: not-allowed;
-  transform: none;
-}
-
-.error-message {
-  background: rgba(197, 48, 48, 0.2);
-  color: #ff6b6b;
-  padding: 16px;
-  border-radius: 12px;
-  margin-bottom: 20px;
-  text-align: center;
-  font-weight: 500;
-  border: 1px solid rgba(197, 48, 48, 0.3);
-}
-
-.success-message {
-  background: rgba(47, 133, 90, 0.2);
-  color: #68d391;
-  padding: 16px;
-  border-radius: 12px;
-  margin-bottom: 20px;
-  text-align: center;
-  font-weight: 500;
-  border: 1px solid rgba(47, 133, 90, 0.3);
-}
-
-.register-link {
-  text-align: center;
-  margin-top: 24px;
-  padding-top: 20px;
-  border-top: 1px solid rgba(255, 255, 255, 0.1);
-}
-
-.register-link a {
-  color: #cccccc;
-  text-decoration: none;
-  font-weight: 600;
-  transition: color 0.3s ease;
-}
-
-.register-link a:hover {
-  color: #ffffff;
-  text-decoration: underline;
-}
-
-.back-link {
-  text-align: center;
-  margin-top: 16px;
-}
-
-.back-link a {
-  color: #aaaaaa;
-  text-decoration: none;
-  font-size: 0.9rem;
-  transition: color 0.3s ease;
-}
-
-.back-link a:hover {
-  color: #cccccc;
-  text-decoration: underline;
-}
-
-#togglePassword:hover {
-  color: #ffffff !important;
-  transform: scale(1.1);
-  transition: all 0.2s ease;
-}
-
-/* 다크모드 지원 */
+/* 다크모드 지원 - Tailwind CSS로 대체되었으므로 최소한의 스타일만 유지 */
 .login-page.dark-mode {
   background: #1a202c;
 }
