@@ -1,58 +1,58 @@
 <template>
-  <div class="login-container">
-    <div class="login-header">
-      <h1 class="login-title">관리자 로그인</h1>
+  <div class="bg-[rgba(45,45,45,0.95)] backdrop-blur-[10px] rounded-2xl shadow-[0_8px_32px_rgba(0,0,0,0.3)] p-10 w-full max-w-[400px] border border-[rgba(255,255,255,0.2)] absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2">
+    <div class="text-center mb-8">
+      <h1 class="text-[1.75rem] text-white mb-2 font-bold font-['Montserrat',sans-serif]">관리자 로그인</h1>
     </div>
     
-    <div v-if="errorMessage" class="error-message">
+    <div v-if="errorMessage" class="bg-[rgba(197,48,48,0.2)] text-[#ff6b6b] p-4 rounded-xl mb-5 text-center font-medium border border-[rgba(197,48,48,0.3)]">
       {{ errorMessage }}
     </div>
     
     <form @submit.prevent="submitLogin">
-      <div class="form-group">
-        <label for="username" class="form-label">아이디</label>
+      <div class="mb-5">
+        <label for="username" class="block mb-2 font-semibold text-[#e0e0e0] text-[0.9rem]">아이디</label>
         <input 
           type="text" 
           id="username" 
           v-model="formData.username" 
-          class="form-input" 
+          class="w-full p-[14px] px-4 border-2 border-[#555555] rounded-xl text-[0.95rem] transition-all duration-300 ease-in-out box-border bg-[rgba(60,60,60,0.8)] font-inherit text-white focus:outline-none focus:border-[#888888] focus:shadow-[0_0_0_3px_rgba(136,136,136,0.2)] focus:-translate-y-[1px] focus:bg-[rgba(70,70,70,0.9)]" 
           required
         >
       </div>
       
-      <div class="form-group">
-        <label for="password" class="form-label">비밀번호</label>
-        <div style="position:relative;">
+      <div class="mb-5">
+        <label for="password" class="block mb-2 font-semibold text-[#e0e0e0] text-[0.9rem]">비밀번호</label>
+        <div class="relative">
           <input 
             :type="showPassword ? 'text' : 'password'" 
             id="password" 
             v-model="formData.password" 
-            class="form-input" 
+            class="w-full p-[14px] px-4 pr-10 border-2 border-[#555555] rounded-xl text-[0.95rem] transition-all duration-300 ease-in-out box-border bg-[rgba(60,60,60,0.8)] font-inherit text-white focus:outline-none focus:border-[#888888] focus:shadow-[0_0_0_3px_rgba(136,136,136,0.2)] focus:-translate-y-[1px] focus:bg-[rgba(70,70,70,0.9)]" 
             required 
             autocomplete="current-password" 
-            style="padding-right:40px; ime-mode:disabled;"
+            style="ime-mode:disabled;"
             @keydown="checkCapsLock"
           >
           <span 
             @click="togglePassword" 
             title="비밀번호 보기" 
-            style="position:absolute; right:12px; top:50%; transform:translateY(-50%); cursor:pointer; font-size:1.3rem; color:#888;"
+            class="absolute right-3 top-1/2 -translate-y-1/2 cursor-pointer text-[1.3rem] text-[#888] hover:text-white hover:scale-110 transition-all duration-200 ease-in-out"
           >
             {{ showPassword ? '👁️' : '𝄐' }}
           </span>
         </div>
-        <div v-if="capsLockOn" style="color:#dc3545; font-size:0.95rem; margin-top:6px;">
+        <div v-if="capsLockOn" class="text-[#dc3545] text-[0.95rem] mt-1.5">
           CapsLock이 켜져 있습니다!
         </div>
       </div>
       
-      <button type="submit" class="login-button" :disabled="isSubmitting">
+      <button type="submit" class="w-full p-[14px] bg-gradient-to-br from-[#666666] to-[#444444] text-white border-none rounded-xl text-[0.95rem] font-semibold cursor-pointer transition-all duration-300 ease-[cubic-bezier(0.4,0,0.2,1)] font-['Montserrat',sans-serif] shadow-[0_4px_12px_rgba(0,0,0,0.3)] hover:-translate-y-[2px] hover:shadow-[0_6px_20px_rgba(0,0,0,0.4)] hover:bg-gradient-to-br hover:from-[#777777] hover:to-[#555555] active:translate-y-0 disabled:bg-gradient-to-br disabled:from-[#444444] disabled:to-[#333333] disabled:cursor-not-allowed disabled:transform-none" :disabled="isSubmitting">
         {{ isSubmitting ? '로그인 중...' : '로그인' }}
       </button>
     </form>
     
-    <div class="back-link">
-      <router-link to="/">← 메인 페이지로 돌아가기</router-link>
+    <div class="text-center mt-6 pt-5 border-t border-[rgba(255,255,255,0.1)]">
+      <router-link to="/" class="text-[#aaaaaa] no-underline text-[0.9rem] transition-colors duration-300 ease-in-out hover:text-[#cccccc] hover:underline">← 메인 페이지로 돌아가기</router-link>
     </div>
   </div>
 </template>
@@ -147,129 +147,7 @@ export default {
 </script>
 
 <style scoped>
-.login-container {
-  background: rgba(45, 45, 45, 0.95);
-  backdrop-filter: blur(10px);
-  border-radius: 16px;
-  box-shadow: 0 8px 32px rgba(0,0,0,0.3);
-  padding: 40px;
-  width: 100%;
-  max-width: 400px;
-  border: 1px solid rgba(255, 255, 255, 0.2);
-  position: absolute;
-  top: 50%;
-  left: 50%;
-  transform: translate(-50%, -50%);
-}
-
-.login-header {
-  text-align: center;
-  margin-bottom: 32px;
-}
-
-.login-title {
-  font-size: 1.75rem;
-  color: #ffffff;
-  margin-bottom: 8px;
-  font-weight: 700;
-  font-family: 'Montserrat', sans-serif;
-}
-
-.form-group {
-  margin-bottom: 20px;
-}
-
-.form-label {
-  display: block;
-  margin-bottom: 8px;
-  font-weight: 600;
-  color: #e0e0e0;
-  font-size: 0.9rem;
-}
-
-.form-input {
-  width: 100%;
-  padding: 14px 16px;
-  border: 2px solid #555555;
-  border-radius: 12px;
-  font-size: 0.95rem;
-  transition: all 0.3s ease;
-  box-sizing: border-box;
-  background: rgba(60, 60, 60, 0.8);
-  font-family: inherit;
-  color: #ffffff;
-}
-
-.form-input:focus {
-  outline: none;
-  border-color: #888888;
-  box-shadow: 0 0 0 3px rgba(136, 136, 136, 0.2);
-  transform: translateY(-1px);
-  background: rgba(70, 70, 70, 0.9);
-}
-
-.login-button {
-  width: 100%;
-  padding: 14px;
-  background: linear-gradient(145deg, #666666 0%, #444444 100%);
-  color: white;
-  border: none;
-  border-radius: 12px;
-  font-size: 0.95rem;
-  font-weight: 600;
-  cursor: pointer;
-  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-  font-family: 'Montserrat', sans-serif;
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
-}
-
-.login-button:hover:not(:disabled) {
-  transform: translateY(-2px);
-  box-shadow: 0 6px 20px rgba(0, 0, 0, 0.4);
-  background: linear-gradient(145deg, #777777 0%, #555555 100%);
-}
-
-.login-button:active {
-  transform: translateY(0);
-}
-
-.login-button:disabled {
-  background: linear-gradient(145deg, #444444 0%, #333333 100%);
-  cursor: not-allowed;
-  transform: none;
-}
-
-.error-message {
-  background: rgba(197, 48, 48, 0.2);
-  color: #ff6b6b;
-  padding: 16px;
-  border-radius: 12px;
-  margin-bottom: 20px;
-  text-align: center;
-  font-weight: 500;
-  border: 1px solid rgba(197, 48, 48, 0.3);
-}
-
-.back-link {
-  text-align: center;
-  margin-top: 24px;
-  padding-top: 20px;
-  border-top: 1px solid rgba(255, 255, 255, 0.1);
-}
-
-.back-link a {
-  color: #aaaaaa;
-  text-decoration: none;
-  font-size: 0.9rem;
-  transition: color 0.3s ease;
-}
-
-.back-link a:hover {
-  color: #cccccc;
-  text-decoration: underline;
-}
-
-/* 다크모드 지원 */
+/* 다크모드 지원 - Tailwind CSS로 대체되었으므로 최소한의 스타일만 유지 */
 body.dark-mode .login-container {
   background: #2d3748;
   border-color: #4a5568;

@@ -12,42 +12,54 @@
           <p>{{ error }}</p>
         </div>
 
-        <header class="bg-gray-800 text-white p-10 rounded-xl mb-8 shadow-lg dark:bg-gray-900 dark:border dark:border-gray-700">
+        <header class="bg-white text-gray-800 p-10 rounded-xl mb-8 shadow-lg border border-gray-200 dark:bg-gray-900 dark:text-white dark:border dark:border-gray-700 md:p-10 p-8">
           <div class="text-center">
-            <div class="flex items-center justify-center gap-6 mb-6 flex-wrap">
-              <img v-if="resume.photoUrl" :src="resume.photoUrl" alt="프로필 사진" class="w-30 h-30 object-cover rounded-full border-4 border-white shadow-lg">
+            <div class="flex items-center justify-center gap-6 mb-6 flex-wrap md:flex-row flex-col">
+              <img v-if="resume.photoUrl" :src="resume.photoUrl" alt="프로필 사진" class="w-30 h-30 object-cover rounded-full border-4 border-gray-200 shadow-lg dark:border-gray-600">
               <div class="text-center">
-                <h1 class="font-bold text-5xl mb-2 text-white">
+                <h1 class="font-bold text-5xl mb-2 text-gray-800 md:text-5xl text-3xl dark:text-white">
                   {{ currentLang === 'ja' ? resume.nameJa : resume.nameKo }}
                 </h1>
-                <p v-if="currentLang === 'ja' ? resume.jobTitleJa : resume.jobTitleKo" class="text-xl text-gray-300 font-medium">
+                <p v-if="currentLang === 'ja' ? resume.jobTitleJa : resume.jobTitleKo" class="text-xl text-gray-600 font-medium md:text-xl text-base dark:text-gray-300">
                   {{ currentLang === 'ja' ? resume.jobTitleJa : resume.jobTitleKo }}
                 </p>
               </div>
             </div>
-            <div class="flex justify-center flex-wrap gap-5 bg-white bg-opacity-10 p-4 rounded-lg text-sm dark:bg-white dark:bg-opacity-5">
-              <span v-if="resume.email" class="flex items-center text-gray-100">
-                <i class="icon email w-4 h-4 mr-2 bg-gray-100 mask-repeat-none mask-size-contain"></i>
+            <div class="flex justify-center flex-wrap gap-5 bg-gray-50 p-4 rounded-lg text-sm dark:bg-gray-800 md:gap-5 gap-4 md:text-sm text-xs">
+              <span v-if="resume.email" class="flex items-center text-gray-700 dark:text-gray-100">
+                <svg class="w-4 h-4 mr-2 text-gray-700 dark:text-gray-100" fill="currentColor" viewBox="0 0 24 24">
+                  <path d="M20 4H4c-1.1 0-1.99.9-1.99 2L2 18c0 1.1.9 2 2 2h16c1.1 0 2-.9 2-2V6c0-1.1-.9-2-2-2zm0 4l-8 5-8-5V6l8 5 8-5v2z"/>
+                </svg>
                 {{ resume.email }}
               </span>
-              <span v-if="showPhone === 'true' && resume.phone" class="flex items-center text-gray-100">
-                <i class="icon phone w-4 h-4 mr-2 bg-gray-100 mask-repeat-none mask-size-contain"></i>
+              <span v-if="showPhone === 'true' && resume.phone" class="flex items-center text-gray-700 dark:text-gray-100">
+                <svg class="w-4 h-4 mr-2 text-gray-700 dark:text-gray-100" fill="currentColor" viewBox="0 0 24 24">
+                  <path d="M6.62 10.79c1.44 2.83 3.76 5.14 6.59 6.59l2.2-2.2c.27-.27.67-.36 1.02-.24 1.12.37 2.33.57 3.57.57.55 0 1 .45 1 1V20c0 .55-.45 1-1 1-9.39 0-17-7.61-17-17 0-.55.45-1 1-1h3.5c.55 0 1 .45 1 1 0 1.25.2 2.45.57 3.57.11.35.03.74-.25 1.02l-2.2 2.2z"/>
+                </svg>
                 {{ resume.phone }}
               </span>
-              <span v-if="showPhone === 'masked' && resume.phone" class="flex items-center text-gray-100">
-                <i class="icon phone w-4 h-4 mr-2 bg-gray-100 mask-repeat-none mask-size-contain"></i>
+              <span v-if="showPhone === 'masked' && resume.phone" class="flex items-center text-gray-700 dark:text-gray-100">
+                <svg class="w-4 h-4 mr-2 text-gray-700 dark:text-gray-100" fill="currentColor" viewBox="0 0 24 24">
+                  <path d="M6.62 10.79c1.44 2.83 3.76 5.14 6.59 6.59l2.2-2.2c.27-.27.67-.36 1.02-.24 1.12.37 2.33.57 3.57.57.55 0 1 .45 1 1V20c0 .55-.45 1-1 1-9.39 0-17-7.61-17-17 0-.55.45-1 1-1h3.5c.55 0 1 .45 1 1 0 1.25.2 2.45.57 3.57.11.35.03.74-.25 1.02l-2.2 2.2z"/>
+                </svg>
                 {{ maskPhone(resume.phone) }}
               </span>
-              <span v-if="showPhone === 'contact-info' && resume.phone" class="flex items-center text-gray-100">
-                <i class="icon phone w-4 h-4 mr-2 bg-gray-100 mask-repeat-none mask-size-contain"></i>
+              <span v-if="showPhone === 'contact-info' && resume.phone" class="flex items-center text-gray-700 dark:text-gray-100">
+                <svg class="w-4 h-4 mr-2 text-gray-700 dark:text-gray-100" fill="currentColor" viewBox="0 0 24 24">
+                  <path d="M6.62 10.79c1.44 2.83 3.76 5.14 6.59 6.59l2.2-2.2c.27-.27.67-.36 1.02-.24 1.12.37 2.33.57 3.57.57.55 0 1 .45 1 1V20c0 .55-.45 1-1 1-9.39 0-17-7.61-17-17 0-.55.45-1 1-1h3.5c.55 0 1 .45 1 1 0 1.25.2 2.45.57 3.57.11.35.03.74-.25 1.02l-2.2 2.2z"/>
+                </svg>
                 문의 시 이메일로 연락
               </span>
-              <span v-if="showAddress === 'true' && (currentLang === 'ja' ? resume.addressJa : resume.addressKo)" class="flex items-center text-gray-100">
-                <i class="icon address w-4 h-4 mr-2 bg-gray-100 mask-repeat-none mask-size-contain"></i>
+              <span v-if="showAddress === 'true' && (currentLang === 'ja' ? resume.addressJa : resume.addressKo)" class="flex items-center text-gray-700 dark:text-gray-100">
+                <svg class="w-4 h-4 mr-2 text-gray-700 dark:text-gray-100" fill="currentColor" viewBox="0 0 24 24">
+                  <path d="M12 2C8.13 2 5 5.13 5 9c0 5.25 7 13 7 13s7-7.75 7-13c0-3.87-3.13-7-7-7zm0 9.5c-1.38 0-2.5-1.12-2.5-2.5s1.12-2.5 2.5-2.5 2.5 1.12 2.5 2.5-1.12 2.5-2.5-2.5z"/>
+                </svg>
                 {{ currentLang === 'ja' ? resume.addressJa : resume.addressKo }}
               </span>
-              <span v-if="showAddress === 'masked' && (currentLang === 'ja' ? resume.addressJa : resume.addressKo)" class="flex items-center text-gray-100">
-                <i class="icon address w-4 h-4 mr-2 bg-gray-100 mask-repeat-none mask-size-contain"></i>
+              <span v-if="showAddress === 'masked' && (currentLang === 'ja' ? resume.addressJa : resume.addressKo)" class="flex items-center text-gray-700 dark:text-gray-100">
+                <svg class="w-4 h-4 mr-2 text-gray-700 dark:text-gray-100" fill="currentColor" viewBox="0 0 24 24">
+                  <path d="M12 2C8.13 2 5 5.13 5 9c0 5.25 7 13 7 13s7-7.75 7-13c0-3.87-3.13-7-7-7zm0 9.5c-1.38 0-2.5-1.12-2.5-2.5s1.12-2.5 2.5-2.5 2.5 1.12 2.5 2.5-1.12 2.5-2.5-2.5z"/>
+                </svg>
                 {{ maskAddress(currentLang === 'ja' ? resume.addressJa : resume.addressKo) }}
               </span>
             </div>
@@ -287,52 +299,4 @@ export default {
 }
 </script>
 
-<style scoped>
-/* 아이콘 스타일만 유지 */
-.icon.email { 
-  mask-image: url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="black"><path d="M20 4H4c-1.1 0-1.99.9-1.99 2L2 18c0 1.1.9 2 2 2h16c1.1 0 2-.9 2-2V6c0-1.1-.9-2-2-2zm0 4l-8 5-8-5V6l8 5 8-5v2z"/></svg>'); 
-}
-
-.icon.phone { 
-  mask-image: url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="black"><path d="M6.62 10.79c1.44 2.83 3.76 5.14 6.59 6.59l2.2-2.2c.27-.27.67-.36 1.02-.24 1.12.37 2.33.57 3.57.57.55 0 1 .45 1 1V20c0 .55-.45 1-1 1-9.39 0-17-7.61-17-17 0-.55.45-1 1-1h3.5c.55 0 1 .45 1 1 0 1.25.2 2.45.57 3.57.11.35.03.74-.25 1.02l-2.2 2.2z"/></svg>'); 
-}
-
-.icon.address { 
-  mask-image: url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="black"><path d="M12 2C8.13 2 5 5.13 5 9c0 5.25 7 13 7 13s7-7.75 7-13c0-3.87-3.13-7-7-7zm0 9.5c-1.38 0-2.5-1.12-2.5-2.5s1.12-2.5 2.5-2.5 2.5 1.12 2.5 2.5-1.12 2.5-2.5-2.5z"/></svg>'); 
-}
-
-/* 반응형 디자인 */
-@media (max-width: 768px) {
-  .flex.items-center.justify-center.gap-6.mb-6.flex-wrap {
-    flex-direction: column;
-    text-align: center;
-  }
-  
-  .font-bold.text-5xl.mb-2.text-white {
-    font-size: 2rem;
-  }
-  
-  .text-xl.text-gray-300.font-medium {
-    font-size: 1rem;
-  }
-  
-  .flex.justify-center.flex-wrap.gap-5 {
-    gap: 15px;
-    font-size: 12px;
-  }
-  
-  .bg-gray-800.text-white.p-10.rounded-xl.mb-8.shadow-lg {
-    padding: 30px 20px;
-  }
-  
-  /* 모바일에서 그리드 레이아웃 조정 */
-  .grid.grid-cols-1.lg\\:grid-cols-3 {
-    grid-template-columns: 1fr;
-  }
-  
-  .lg\\:col-span-2,
-  .lg\\:col-span-1 {
-    grid-column: span 1;
-  }
-}
-</style> 
+ 

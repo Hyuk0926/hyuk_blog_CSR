@@ -17,6 +17,7 @@
                 {{ $t('projects.personal.blog.title') }}
               </h3>
               <div class="flex gap-3 mb-6">
+                <img class="w-7 h-7 transition-transform duration-200 hover:-translate-y-0.5" src="/svg/vue.svg" alt="Vue" title="Vue">
                 <img class="w-7 h-7 transition-transform duration-200 hover:-translate-y-0.5" src="/svg/java.svg" alt="Java" title="Java">
                 <img class="w-7 h-7 transition-transform duration-200 hover:-translate-y-0.5" src="/svg/spring.svg" alt="Spring Boot" title="Spring Boot">
                 <img class="w-7 h-7 transition-transform duration-200 hover:-translate-y-0.5" src="/svg/mysql.svg" alt="MySQL" title="MySQL">

@@ -1,72 +1,74 @@
 <template>
-  <div class="admin-container">
-    <div class="admin-header">
-      <h1 class="admin-title">관리자 대시보드</h1>
-      <div class="admin-info">
-                 <div class="admin-welcome">
-           안녕하세요, <span class="admin-name">{{ adminInfo.name || adminInfo.username || '관리자' }}</span>님
-         </div>
-        <button @click="goToNewPost" class="admin-btn btn-primary">새 게시글</button>
-        <button @click="goToResumeManagement" class="admin-btn btn-secondary">이력서 관리</button>
-        <button @click="goToInquiryManagement" class="admin-btn btn-secondary">문의 관리</button>
-        <button @click="logout" class="admin-btn btn-danger">로그아웃</button>
+  <div class="max-w-7xl mx-auto p-8 bg-[#f8f9fa] min-h-screen">
+    <div class="flex justify-between items-center mb-10 p-6 bg-white rounded-lg shadow-[0_2px_8px_rgba(0,0,0,0.08)] border border-[#e9ecef]">
+      <h1 class="text-[1.75rem] text-[#2c3e50] font-bold">관리자 대시보드</h1>
+      <div class="flex items-center gap-4">
+        <div class="text-[#5c6a7a] text-[0.95rem]">
+          안녕하세요, <span class="font-semibold text-[#2c3e50]">{{ adminInfo.name || adminInfo.username || '관리자' }}</span>님
+        </div>
+        <button @click="goToNewPost" class="px-4 py-2 bg-[#495057] text-white border-none rounded-md text-[0.9rem] font-medium transition-all duration-200 ease-in-out cursor-pointer hover:bg-[#343a40] hover:-translate-y-[1px] hover:shadow-[0_2px_8px_rgba(0,0,0,0.15)]">새 게시글</button>
+        <button @click="goToResumeManagement" class="px-4 py-2 bg-[#f8f9fa] text-[#495057] border border-[#dee2e6] rounded-md text-[0.9rem] font-medium transition-all duration-200 ease-in-out cursor-pointer hover:bg-[#e9ecef] hover:-translate-y-[1px] hover:shadow-[0_2px_8px_rgba(0,0,0,0.1)]">이력서 관리</button>
+        <button @click="goToInquiryManagement" class="px-4 py-2 bg-[#f8f9fa] text-[#495057] border border-[#dee2e6] rounded-md text-[0.9rem] font-medium transition-all duration-200 ease-in-out cursor-pointer hover:bg-[#e9ecef] hover:-translate-y-[1px] hover:shadow-[0_2px_8px_rgba(0,0,0,0.1)]">문의 관리</button>
+        <button @click="logout" class="px-4 py-2 bg-[#dc3545] text-white border-none rounded-md text-[0.9rem] font-medium transition-all duration-200 ease-in-out cursor-pointer hover:bg-[#c82333] hover:-translate-y-[1px] hover:shadow-[0_2px_8px_rgba(220,53,69,0.3)]">로그아웃</button>
       </div>
     </div>
     
-    <div class="stats-container">
-      <div class="stat-card">
-        <div class="stat-number">{{ stats.totalPosts }}</div>
-        <div class="stat-label">전체 게시글</div>
+    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 mb-10">
+      <div class="bg-white p-6 rounded-lg shadow-[0_1px_3px_rgba(0,0,0,0.05)] border border-[#edf2f7]">
+        <div class="text-[1.75rem] font-semibold text-[#2c3e50] mb-2">{{ stats.totalPosts }}</div>
+        <div class="text-[#718096] text-[0.9rem] font-medium">전체 게시글</div>
       </div>
-      <div class="stat-card">
-        <div class="stat-number">{{ stats.publishedPosts }}</div>
-        <div class="stat-label">공개 게시글</div>
+      <div class="bg-white p-6 rounded-lg shadow-[0_1px_3px_rgba(0,0,0,0.05)] border border-[#edf2f7]">
+        <div class="text-[1.75rem] font-semibold text-[#2c3e50] mb-2">{{ stats.publishedPosts }}</div>
+        <div class="text-[#718096] text-[0.9rem] font-medium">공개 게시글</div>
       </div>
-      <div class="stat-card">
-        <div class="stat-number">{{ stats.draftPosts }}</div>
-        <div class="stat-label">임시저장</div>
+      <div class="bg-white p-6 rounded-lg shadow-[0_1px_3px_rgba(0,0,0,0.05)] border border-[#edf2f7]">
+        <div class="text-[1.75rem] font-semibold text-[#2c3e50] mb-2">{{ stats.draftPosts }}</div>
+        <div class="text-[#718096] text-[0.9rem] font-medium">임시저장</div>
       </div>
     </div>
     
-    <div v-if="posts.length === 0" class="no-posts">
-      <h3>등록된 게시글이 없습니다.</h3>
-      <p>새 게시글을 작성해보세요!</p>
+    <div v-if="posts.length === 0" class="text-center py-15 px-5 text-[#718096] bg-white rounded-lg shadow-[0_1px_3px_rgba(0,0,0,0.05)]">
+      <h3 class="text-xl font-semibold mb-2">등록된 게시글이 없습니다.</h3>
+      <p class="text-[#718096]">새 게시글을 작성해보세요!</p>
     </div>
     
-    <table v-if="posts.length > 0" class="posts-table">
-      <thead>
-        <tr>
-          <th>ID</th>
-          <th>제목</th>
-          <th>요약</th>
-          <th>상태</th>
-          <th>작성일</th>
-          <th>수정일</th>
-          <th>작업</th>
-        </tr>
-      </thead>
-      <tbody>
-        <tr v-for="post in posts" :key="post.id">
-          <td>{{ post.id }}</td>
-          <td>{{ lang === 'ja' ? post.titleJa : post.titleKo }}</td>
-          <td>{{ lang === 'ja' ? truncateText(post.summaryJa, 50) : truncateText(post.summaryKo, 50) }}</td>
-          <td>
-            <span :class="post.published ? 'status-badge status-published' : 'status-badge status-draft'">
-              {{ post.published ? '공개' : '임시저장' }}
-            </span>
-          </td>
-          <td>{{ formatDate(post.createdAt) }}</td>
-          <td>{{ formatDate(post.updatedAt) }}</td>
-          <td>
-                         <div class="action-buttons">
-               <button @click="editPost(post.id)" class="btn-action btn-edit">수정</button>
-               <button @click="previewPost(post.id)" class="btn-action btn-preview">미리보기</button>
-               <button @click="deletePost(post.id)" class="btn-action btn-delete" :data-post-id="post.id">삭제</button>
-             </div>
-          </td>
-        </tr>
-      </tbody>
-    </table>
+    <div v-if="posts.length > 0" class="w-full border-collapse mt-6 bg-white rounded-lg overflow-hidden shadow-[0_1px_3px_rgba(0,0,0,0.05)]">
+      <table class="w-full">
+        <thead>
+          <tr class="bg-[#f8fafc]">
+            <th class="p-3.5 px-4 text-left border-b border-[#edf2f7] text-[0.95rem] font-semibold text-[#2c3e50]">ID</th>
+            <th class="p-3.5 px-4 text-left border-b border-[#edf2f7] text-[0.95rem] font-semibold text-[#2c3e50]">제목</th>
+            <th class="p-3.5 px-4 text-left border-b border-[#edf2f7] text-[0.95rem] font-semibold text-[#2c3e50]">요약</th>
+            <th class="p-3.5 px-4 text-left border-b border-[#edf2f7] text-[0.95rem] font-semibold text-[#2c3e50]">상태</th>
+            <th class="p-3.5 px-4 text-left border-b border-[#edf2f7] text-[0.95rem] font-semibold text-[#2c3e50]">작성일</th>
+            <th class="p-3.5 px-4 text-left border-b border-[#edf2f7] text-[0.95rem] font-semibold text-[#2c3e50]">수정일</th>
+            <th class="p-3.5 px-4 text-left border-b border-[#edf2f7] text-[0.95rem] font-semibold text-[#2c3e50]">작업</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr v-for="post in posts" :key="post.id" class="hover:bg-[#f8fafc] transition-colors duration-200">
+            <td class="p-3.5 px-4 text-left border-b border-[#edf2f7] text-[0.95rem]">{{ post.id }}</td>
+            <td class="p-3.5 px-4 text-left border-b border-[#edf2f7] text-[0.95rem]">{{ lang === 'ja' ? post.titleJa : post.titleKo }}</td>
+            <td class="p-3.5 px-4 text-left border-b border-[#edf2f7] text-[0.95rem]">{{ lang === 'ja' ? truncateText(post.summaryJa, 50) : truncateText(post.summaryKo, 50) }}</td>
+            <td class="p-3.5 px-4 text-left border-b border-[#edf2f7] text-[0.95rem]">
+              <span :class="post.published ? 'px-2.5 py-1 rounded-full text-[0.8rem] font-medium bg-[#ebf5ee] text-[#2f855a]' : 'px-2.5 py-1 rounded-full text-[0.8rem] font-medium bg-[#f7f0ea] text-[#c05621]'">
+                {{ post.published ? '공개' : '임시저장' }}
+              </span>
+            </td>
+            <td class="p-3.5 px-4 text-left border-b border-[#edf2f7] text-[0.95rem]">{{ formatDate(post.createdAt) }}</td>
+            <td class="p-3.5 px-4 text-left border-b border-[#edf2f7] text-[0.95rem]">{{ formatDate(post.updatedAt) }}</td>
+            <td class="p-3.5 px-4 text-left border-b border-[#edf2f7] text-[0.95rem]">
+              <div class="flex gap-2">
+                <button @click="editPost(post.id)" class="px-3 py-1.5 text-[0.85rem] font-medium transition-all duration-200 ease-in-out cursor-pointer bg-[#f8f9fa] text-[#495057] border border-[#e9ecef] rounded hover:bg-[#e9ecef] hover:-translate-y-[1px] hover:shadow-[0_2px_8px_rgba(0,0,0,0.1)]">수정</button>
+                <button @click="previewPost(post.id)" class="px-3 py-1.5 text-[0.85rem] font-medium transition-all duration-200 ease-in-out cursor-pointer bg-[#f8f9fa] text-[#495057] border border-[#e9ecef] rounded hover:bg-[#e9ecef] hover:-translate-y-[1px] hover:shadow-[0_2px_8px_rgba(0,0,0,0.1)]">미리보기</button>
+                <button @click="deletePost(post.id)" class="px-3 py-1.5 text-[0.85rem] font-medium transition-all duration-200 ease-in-out cursor-pointer bg-[#fff5f5] text-[#dc3545] border border-[#fed7d7] rounded hover:bg-[#fed7d7] hover:-translate-y-[1px] hover:shadow-[0_2px_8px_rgba(220,53,69,0.2)] relative z-10" :data-post-id="post.id">삭제</button>
+              </div>
+            </td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
   </div>
 </template>
 
@@ -398,249 +400,6 @@ export default {
 </script>
 
 <style scoped>
-.admin-container {
-  max-width: 1200px;
-  margin: 0 auto;
-  padding: 32px 24px;
-  background: #f8f9fa;
-  min-height: 100vh;
-}
-
-.admin-header {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  margin-bottom: 40px;
-  padding: 24px;
-  background: #ffffff;
-  border-radius: 8px;
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
-  border: 1px solid #e9ecef;
-}
-
-.admin-title {
-  font-size: 1.75rem;
-  color: #2c3e50;
-  font-weight: 700;
-}
-
-.admin-info {
-  display: flex;
-  align-items: center;
-  gap: 16px;
-}
-
-.admin-welcome {
-  color: #5c6a7a;
-  font-size: 0.95rem;
-}
-
-.admin-name {
-  font-weight: 600;
-  color: #2c3e50;
-}
-
-.admin-btn {
-  padding: 8px 16px;
-  text-decoration: none;
-  border: none;
-  border-radius: 6px;
-  font-size: 0.9rem;
-  font-weight: 500;
-  transition: all 0.2s ease;
-  cursor: pointer;
-}
-
-.btn-primary {
-  background: #495057;
-  color: white;
-  border: none;
-  border-radius: 6px;
-  padding: 8px 16px;
-  font-size: 0.9rem;
-  font-weight: 500;
-  transition: all 0.2s ease;
-  cursor: pointer;
-}
-
-.btn-primary:hover {
-  background: #343a40;
-  transform: translateY(-1px);
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15);
-}
-
-.btn-secondary {
-  background: #f8f9fa;
-  color: #495057;
-  border: 1px solid #dee2e6;
-  border-radius: 6px;
-  padding: 8px 16px;
-  font-size: 0.9rem;
-  font-weight: 500;
-  transition: all 0.2s ease;
-  cursor: pointer;
-}
-
-.btn-secondary:hover {
-  background: #e9ecef;
-  transform: translateY(-1px);
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
-}
-
-.btn-danger {
-  background: #dc3545;
-  color: white;
-  border: none;
-  border-radius: 6px;
-  padding: 8px 16px;
-  font-size: 0.9rem;
-  font-weight: 500;
-  transition: all 0.2s ease;
-  cursor: pointer;
-}
-
-.btn-danger:hover {
-  background: #c82333;
-  transform: translateY(-1px);
-  box-shadow: 0 2px 8px rgba(220, 53, 69, 0.3);
-}
-
-.stats-container {
-  display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
-  gap: 24px;
-  margin-bottom: 40px;
-}
-
-.stat-card {
-  background: white;
-  padding: 24px;
-  border-radius: 8px;
-  box-shadow: 0 1px 3px rgba(0,0,0,0.05);
-  border: 1px solid #edf2f7;
-}
-
-.stat-number {
-  font-size: 1.75rem;
-  font-weight: 600;
-  color: #2c3e50;
-  margin-bottom: 8px;
-}
-
-.stat-label {
-  color: #718096;
-  font-size: 0.9rem;
-  font-weight: 500;
-}
-
-.posts-table {
-  width: 100%;
-  border-collapse: collapse;
-  margin-top: 24px;
-  background: white;
-  border-radius: 8px;
-  overflow: hidden;
-  box-shadow: 0 1px 3px rgba(0,0,0,0.05);
-}
-
-.posts-table th,
-.posts-table td {
-  padding: 14px 16px;
-  text-align: left;
-  border-bottom: 1px solid #edf2f7;
-  font-size: 0.95rem;
-}
-
-.posts-table th {
-  background-color: #f8fafc;
-  font-weight: 600;
-  color: #2c3e50;
-}
-
-.posts-table tr:hover {
-  background-color: #f8fafc;
-}
-
-.status-badge {
-  padding: 4px 10px;
-  border-radius: 20px;
-  font-size: 0.8rem;
-  font-weight: 500;
-}
-
-.status-published {
-  background-color: #ebf5ee;
-  color: #2f855a;
-}
-
-.status-draft {
-  background-color: #f7f0ea;
-  color: #c05621;
-}
-
-.action-buttons {
-  display: flex;
-  gap: 8px;
-}
-
-.btn-action {
-  padding: 6px 12px;
-  text-decoration: none;
-  border: none;
-  border-radius: 4px;
-  font-size: 0.85rem;
-  font-weight: 500;
-  transition: all 0.2s ease;
-  cursor: pointer;
-}
-
-.btn-edit {
-  background: #f8f9fa;
-  color: #495057;
-  border: 1px solid #e9ecef;
-}
-
-.btn-edit:hover {
-  background: #e9ecef;
-  transform: translateY(-1px);
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
-}
-
-.btn-delete {
-  background: #fff5f5;
-  color: #dc3545;
-  border: 1px solid #fed7d7;
-  position: relative;
-  z-index: 10;
-}
-
-.btn-delete:hover {
-  background: #fed7d7;
-  transform: translateY(-1px);
-  box-shadow: 0 2px 8px rgba(220, 53, 69, 0.2);
-}
-
-.btn-preview {
-  background: #f8f9fa;
-  color: #495057;
-  border: 1px solid #e9ecef;
-}
-
-.btn-preview:hover {
-  background: #e9ecef;
-  transform: translateY(-1px);
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
-}
-
-.no-posts {
-  text-align: center;
-  padding: 60px 20px;
-  color: #718096;
-  background: white;
-  border-radius: 8px;
-  box-shadow: 0 1px 3px rgba(0,0,0,0.05);
-}
-
 /* 대시보드는 항상 밝은 테마로 통일 */
 
 /* 반응형 디자인 */

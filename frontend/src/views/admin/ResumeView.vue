@@ -1,137 +1,139 @@
 <template>
-  <div class="resume-container">
-    <div class="resume-form-container">
-      <h1 class="resume-form-title">
-        <i class="fas fa-user-tie"></i>
-        이력서 관리
-        <span v-if="loading" class="loading-indicator">
-          <i class="fas fa-spinner fa-spin"></i>
+  <div class="min-h-screen p-5 flex items-start justify-center overflow-x-hidden">
+    <div class="max-w-6xl w-full mx-auto bg-[rgba(45,45,45,0.95)] rounded-2xl shadow-[0_10px_30px_rgba(0,0,0,0.5)] overflow-hidden border border-[rgba(255,255,255,0.1)]">
+      <h1 class="bg-gradient-to-r from-[#333333] to-[#555555] text-white m-0 p-8 text-4xl font-semibold flex items-center justify-between">
+        <div class="flex items-center gap-3">
+          <i class="fas fa-user-tie"></i>
+          이력서 관리
+        </div>
+        <span v-if="loading" class="text-base font-normal opacity-80">
+          <i class="fas fa-spinner fa-spin mr-2"></i>
           로딩 중...
         </span>
       </h1>
       
-      <form @submit.prevent="saveResume" class="resume-form">
+      <form @submit.prevent="saveResume" class="p-10">
         <!-- 프로필 사진 -->
-        <div class="form-section">
-          <h3 class="section-title">
+        <div class="mb-10 border border-[rgba(255,255,255,0.1)] rounded-xl p-6 bg-[rgba(60,60,60,0.3)]">
+          <h3 class="text-white text-2xl font-semibold mb-6 flex items-center gap-3 border-b-2 border-[#888888] pb-3">
             <i class="fas fa-camera"></i>
             프로필 사진
           </h3>
-          <div class="form-group">
-            <label class="form-label">사진 URL</label>
-            <div class="input-with-preview">
+          <div class="mb-5">
+            <label class="block mb-2 font-semibold text-white text-sm">사진 URL</label>
+            <div class="flex gap-5 items-start flex-wrap">
               <input 
                 v-model="resume.photoUrl" 
                 type="text" 
-                class="form-input" 
+                class="flex-1 p-3 px-4 border-2 border-[#555555] rounded-lg text-base font-inherit transition-all duration-300 ease-in-out bg-[rgba(60,60,60,0.8)] text-white focus:outline-none focus:border-[#888888] focus:shadow-[0_0_0_3px_rgba(136,136,136,0.2)] focus:bg-[rgba(70,70,70,0.9)] placeholder-[#aaaaaa]"
                 placeholder="이미지 URL을 입력하세요"
               >
-              <div v-if="resume.photoUrl" class="photo-preview">
-                <img :src="resume.photoUrl" alt="프로필 사진" @error="handleImageError">
+              <div v-if="resume.photoUrl" class="flex-shrink-0">
+                <img :src="resume.photoUrl" alt="프로필 사진" @error="handleImageError" class="w-30 h-30 object-cover rounded-xl border-3 border-[#888888] shadow-[0_4px_12px_rgba(0,0,0,0.3)]">
               </div>
             </div>
           </div>
         </div>
 
         <!-- 기본 정보 -->
-        <div class="form-section">
-          <h3 class="section-title">
+        <div class="mb-10 border border-[rgba(255,255,255,0.1)] rounded-xl p-6 bg-[rgba(60,60,60,0.3)]">
+          <h3 class="text-white text-2xl font-semibold mb-6 flex items-center gap-3 border-b-2 border-[#888888] pb-3">
             <i class="fas fa-info-circle"></i>
             기본 정보
           </h3>
           
-          <div class="form-row">
-            <div class="form-group">
-              <label class="form-label">
-                <span class="flag-ko">🇰🇷</span>
+          <div class="grid grid-cols-2 gap-5 mb-5 w-full">
+            <div class="mb-5">
+              <label class="block mb-2 font-semibold text-white text-sm">
+                <span class="text-[#1565c0] font-bold">🇰🇷</span>
                 이름 (한국어)
               </label>
               <input 
                 v-model="resume.nameKo" 
                 type="text" 
-                class="form-input" 
+                class="w-full p-3 px-4 border-2 border-[#555555] rounded-lg text-base font-inherit transition-all duration-300 ease-in-out bg-[rgba(60,60,60,0.8)] text-white focus:outline-none focus:border-[#888888] focus:shadow-[0_0_0_3px_rgba(136,136,136,0.2)] focus:bg-[rgba(70,70,70,0.9)] placeholder-[#aaaaaa]"
                 placeholder="예: 최은혁" 
                 required
               >
             </div>
-            <div class="form-group">
-              <label class="form-label">
-                <span class="flag-ja">🇯🇵</span>
+            <div class="mb-5">
+              <label class="block mb-2 font-semibold text-white text-sm">
+                <span class="text-[#f9a825] font-bold">🇯🇵</span>
                 이름 (일본어)
               </label>
               <input 
                 v-model="resume.nameJa" 
                 type="text" 
-                class="form-input" 
+                class="w-full p-3 px-4 border-2 border-[#555555] rounded-lg text-base font-inherit transition-all duration-300 ease-in-out bg-[rgba(60,60,60,0.8)] text-white focus:outline-none focus:border-[#888888] focus:shadow-[0_0_0_3px_rgba(136,136,136,0.2)] focus:bg-[rgba(70,70,70,0.9)] placeholder-[#aaaaaa]"
                 placeholder="例: 崔恩爀(通称：高原優輝）" 
                 required
               >
             </div>
           </div>
 
-          <div class="form-row">
-            <div class="form-group">
-              <label class="form-label">
+          <div class="grid grid-cols-2 gap-5 mb-5 w-full">
+            <div class="mb-5">
+              <label class="block mb-2 font-semibold text-white text-sm">
                 <i class="fas fa-phone"></i>
                 연락처
               </label>
               <input 
                 v-model="resume.phone" 
                 type="text" 
-                class="form-input" 
+                class="w-full p-3 px-4 border-2 border-[#555555] rounded-lg text-base font-inherit transition-all duration-300 ease-in-out bg-[rgba(60,60,60,0.8)] text-white focus:outline-none focus:border-[#888888] focus:shadow-[0_0_0_3px_rgba(136,136,136,0.2)] focus:bg-[rgba(70,70,70,0.9)] placeholder-[#aaaaaa]"
                 placeholder="010-1234-5678"
               >
             </div>
-            <div class="form-group">
-              <label class="form-label">
+            <div class="mb-5">
+              <label class="block mb-2 font-semibold text-white text-sm">
                 <i class="fas fa-envelope"></i>
                 이메일
               </label>
               <input 
                 v-model="resume.email" 
                 type="email" 
-                class="form-input" 
+                class="w-full p-3 px-4 border-2 border-[#555555] rounded-lg text-base font-inherit transition-all duration-300 ease-in-out bg-[rgba(60,60,60,0.8)] text-white focus:outline-none focus:border-[#888888] focus:shadow-[0_0_0_3px_rgba(136,136,136,0.2)] focus:bg-[rgba(70,70,70,0.9)] placeholder-[#aaaaaa]"
                 placeholder="example@email.com"
               >
             </div>
           </div>
 
-          <div class="form-row">
-            <div class="form-group">
-              <label class="form-label">
+          <div class="grid grid-cols-2 gap-5 mb-5 w-full">
+            <div class="mb-5">
+              <label class="block mb-2 font-semibold text-white text-sm">
                 <i class="fas fa-birthday-cake"></i>
                 생년월일
               </label>
               <input 
                 v-model="resume.birth" 
                 type="date" 
-                class="form-input"
+                class="w-full p-3 px-4 border-2 border-[#555555] rounded-lg text-base font-inherit transition-all duration-300 ease-in-out bg-[rgba(60,60,60,0.8)] text-white focus:outline-none focus:border-[#888888] focus:shadow-[0_0_0_3px_rgba(136,136,136,0.2)] focus:bg-[rgba(70,70,70,0.9)] placeholder-[#aaaaaa]"
               >
             </div>
           </div>
 
-          <div class="form-row">
-            <div class="form-group">
-              <label class="form-label">
-                <span class="flag-ko">🇰🇷</span>
+          <div class="grid grid-cols-2 gap-5 mb-5 w-full">
+            <div class="mb-5">
+              <label class="block mb-2 font-semibold text-white text-sm">
+                <span class="text-[#1565c0] font-bold">🇰🇷</span>
                 주소 (한국어)
               </label>
               <input 
                 v-model="resume.addressKo" 
                 type="text" 
-                class="form-input" 
+                class="w-full p-3 px-4 border-2 border-[#555555] rounded-lg text-base font-inherit transition-all duration-300 ease-in-out bg-[rgba(60,60,60,0.8)] text-white focus:outline-none focus:border-[#888888] focus:shadow-[0_0_0_3px_rgba(136,136,136,0.2)] focus:bg-[rgba(70,70,70,0.9)] placeholder-[#aaaaaa]"
                 placeholder="예: 대한민국 경기도 용인시 ..."
               >
             </div>
-            <div class="form-group">
-              <label class="form-label">
-                <span class="flag-ja">🇯🇵</span>
+            <div class="mb-5">
+              <label class="block mb-2 font-semibold text-white text-sm">
+                <span class="text-[#f9a825] font-bold">🇯🇵</span>
                 주소 (일본어)
               </label>
               <input 
                 v-model="resume.addressJa" 
                 type="text" 
-                class="form-input" 
+                class="w-full p-3 px-4 border-2 border-[#555555] rounded-lg text-base font-inherit transition-all duration-300 ease-in-out bg-[rgba(60,60,60,0.8)] text-white focus:outline-none focus:border-[#888888] focus:shadow-[0_0_0_3px_rgba(136,136,136,0.2)] focus:bg-[rgba(70,70,70,0.9)] placeholder-[#aaaaaa]"
                 placeholder="例: 韓民国 京畿道 ..."
               >
             </div>
@@ -139,70 +141,70 @@
         </div>
 
         <!-- 학력 -->
-        <div class="form-section">
-          <h3 class="section-title">
+        <div class="mb-10 border border-[rgba(255,255,255,0.1)] rounded-xl p-6 bg-[rgba(60,60,60,0.3)]">
+          <h3 class="text-white text-2xl font-semibold mb-6 flex items-center gap-3 border-b-2 border-[#888888] pb-3">
             <i class="fas fa-graduation-cap"></i>
             학력
           </h3>
           
-          <div class="education-table-container">
-            <table class="education-table">
+          <div class="bg-[rgba(45,45,45,0.8)] rounded-lg overflow-hidden shadow-[0_2px_8px_rgba(0,0,0,0.3)] border border-[rgba(255,255,255,0.1)]">
+            <table class="w-full border-collapse mb-4 table-fixed">
               <thead>
                 <tr>
-                  <th class="flag-ko">학교명 (🇰🇷)</th>
-                  <th class="flag-ja">학교명 (🇯🇵)</th>
-                  <th class="flag-ko">전공 (🇰🇷)</th>
-                  <th class="flag-ja">전공 (🇯🇵)</th>
-                  <th>기간</th>
-                  <th>삭제</th>
+                  <th class="bg-gradient-to-r from-[#333333] to-[#555555] text-white p-4 font-semibold text-left text-sm break-words text-[#1565c0] font-bold">학교명 (🇰🇷)</th>
+                  <th class="bg-gradient-to-r from-[#333333] to-[#555555] text-white p-4 font-semibold text-left text-sm break-words text-[#f9a825] font-bold">학교명 (🇯🇵)</th>
+                  <th class="bg-gradient-to-r from-[#333333] to-[#555555] text-white p-4 font-semibold text-left text-sm break-words text-[#1565c0] font-bold">전공 (🇰🇷)</th>
+                  <th class="bg-gradient-to-r from-[#333333] to-[#555555] text-white p-4 font-semibold text-left text-sm break-words text-[#f9a825] font-bold">전공 (🇯🇵)</th>
+                  <th class="bg-gradient-to-r from-[#333333] to-[#555555] text-white p-4 font-semibold text-left text-sm break-words">기간</th>
+                  <th class="bg-gradient-to-r from-[#333333] to-[#555555] text-white p-4 font-semibold text-left text-sm break-words">삭제</th>
                 </tr>
               </thead>
               <tbody>
-                <tr v-for="(education, index) in resume.educations" :key="index" :class="{ 'even-row': index % 2 === 0 }">
-                  <td>
+                <tr v-for="(education, index) in resume.educations" :key="index" :class="index % 2 === 0 ? 'bg-[rgba(70,70,70,0.3)]' : ''" class="hover:bg-[rgba(100,100,100,0.3)]">
+                  <td class="p-3 border-b border-[rgba(255,255,255,0.1)] break-words overflow-hidden">
                     <input 
                       v-model="education.schoolKo" 
                       type="text" 
-                      class="form-input compact-input" 
+                      class="w-full p-2 px-3 border-2 border-[#555555] rounded-lg text-sm font-inherit transition-all duration-300 ease-in-out bg-[rgba(60,60,60,0.8)] text-white focus:outline-none focus:border-[#888888] focus:shadow-[0_0_0_3px_rgba(136,136,136,0.2)] focus:bg-[rgba(70,70,70,0.9)] placeholder-[#aaaaaa]"
                       placeholder="예: 상현고등학교"
                     >
                   </td>
-                  <td>
+                  <td class="p-3 border-b border-[rgba(255,255,255,0.1)] break-words overflow-hidden">
                     <input 
                       v-model="education.schoolJa" 
                       type="text" 
-                      class="form-input compact-input" 
+                      class="w-full p-2 px-3 border-2 border-[#555555] rounded-lg text-sm font-inherit transition-all duration-300 ease-in-out bg-[rgba(60,60,60,0.8)] text-white focus:outline-none focus:border-[#888888] focus:shadow-[0_0_0_3px_rgba(136,136,136,0.2)] focus:bg-[rgba(70,70,70,0.9)] placeholder-[#aaaaaa]"
                       placeholder="例: 上峴高校"
                     >
                   </td>
-                  <td>
+                  <td class="p-3 border-b border-[rgba(255,255,255,0.1)] break-words overflow-hidden">
                     <input 
                       v-model="education.degreeKo" 
                       type="text" 
-                      class="form-input compact-input" 
+                      class="w-full p-2 px-3 border-2 border-[#555555] rounded-lg text-sm font-inherit transition-all duration-300 ease-in-out bg-[rgba(60,60,60,0.8)] text-white focus:outline-none focus:border-[#888888] focus:shadow-[0_0_0_3px_rgba(136,136,136,0.2)] focus:bg-[rgba(70,70,70,0.9)] placeholder-[#aaaaaa]"
                       placeholder="예: 인문계"
                     >
                   </td>
-                  <td>
+                  <td class="p-3 border-b border-[rgba(255,255,255,0.1)] break-words overflow-hidden">
                     <input 
                       v-model="education.degreeJa" 
                       type="text" 
-                      class="form-input compact-input" 
+                      class="w-full p-2 px-3 border-2 border-[#555555] rounded-lg text-sm font-inherit transition-all duration-300 ease-in-out bg-[rgba(60,60,60,0.8)] text-white focus:outline-none focus:border-[#888888] focus:shadow-[0_0_0_3px_rgba(136,136,136,0.2)] focus:bg-[rgba(70,70,70,0.9)] placeholder-[#aaaaaa]"
                       placeholder="例: 人文系"
                     >
                   </td>
-                  <td>
+                  <td class="p-3 border-b border-[rgba(255,255,255,0.1)] break-words overflow-hidden">
                     <input 
                       v-model="education.period" 
                       type="text" 
-                      class="form-input compact-input" 
+                      class="w-full p-2 px-3 border-2 border-[#555555] rounded-lg text-sm font-inherit transition-all duration-300 ease-in-out bg-[rgba(60,60,60,0.8)] text-white focus:outline-none focus:border-[#888888] focus:shadow-[0_0_0_3px_rgba(136,136,136,0.2)] focus:bg-[rgba(70,70,70,0.9)] placeholder-[#aaaaaa]"
                       placeholder="2015.03-2018.02"
                     >
                   </td>
-                  <td class="action-cell">
+                  <td class="p-3 border-b border-[rgba(255,255,255,0.1)] break-words overflow-hidden text-center w-15">
                     <button 
                       type="button" 
-                      class="remove-btn" 
+                      class="bg-[#e74c3c] text-white border-none rounded-md p-2 px-3 cursor-pointer transition-all duration-300 ease-in-out text-sm hover:bg-[#c0392b] hover:scale-105"
                       @click="removeEducation(index)"
                       title="삭제"
                     >
@@ -214,7 +216,7 @@
             </table>
             <button 
               type="button" 
-              class="add-btn" 
+              class="bg-gradient-to-r from-[#666666] to-[#444444] text-white border-none rounded-lg p-3 px-5 cursor-pointer text-base font-semibold transition-all duration-300 ease-in-out flex items-center gap-2 mx-auto shadow-[0_4px_12px_rgba(0,0,0,0.3)] hover:from-[#777777] hover:to-[#555555] hover:-translate-y-0.5 hover:shadow-[0_6px_20px_rgba(0,0,0,0.4)]"
               @click="addEducation"
             >
               <i class="fas fa-plus"></i>
@@ -224,76 +226,76 @@
         </div>
 
         <!-- 기술 스택 -->
-        <div class="form-section">
-          <h3 class="section-title">
+        <div class="mb-10 border border-[rgba(255,255,255,0.1)] rounded-xl p-6 bg-[rgba(60,60,60,0.3)]">
+          <h3 class="text-white text-2xl font-semibold mb-6 flex items-center gap-3 border-b-2 border-[#888888] pb-3">
             <i class="fas fa-code"></i>
             기술 스택
           </h3>
-          <div class="form-group">
-            <label class="form-label">보유 기술</label>
+          <div class="mb-5">
+            <label class="block mb-2 font-semibold text-white text-sm">보유 기술</label>
             <input 
               v-model="resume.skills" 
               type="text" 
-              class="form-input" 
+              class="w-full p-3 px-4 border-2 border-[#555555] rounded-lg text-base font-inherit transition-all duration-300 ease-in-out bg-[rgba(60,60,60,0.8)] text-white focus:outline-none focus:border-[#888888] focus:shadow-[0_0_0_3px_rgba(136,136,136,0.2)] focus:bg-[rgba(70,70,70,0.9)] placeholder-[#aaaaaa]"
               placeholder="Java, Spring, React, Vue.js, ..."
             >
           </div>
         </div>
 
         <!-- 자기소개 -->
-        <div class="form-section">
-          <h3 class="section-title">
+        <div class="mb-10 border border-[rgba(255,255,255,0.1)] rounded-xl p-6 bg-[rgba(60,60,60,0.3)]">
+          <h3 class="text-white text-2xl font-semibold mb-6 flex items-center gap-3 border-b-2 border-[#888888] pb-3">
             <i class="fas fa-user-edit"></i>
             자기소개
           </h3>
           
-          <div class="form-group">
-            <label class="form-label">
-              <span class="flag-ko">🇰🇷</span>
+          <div class="mb-5">
+            <label class="block mb-2 font-semibold text-white text-sm">
+              <span class="text-[#1565c0] font-bold">🇰🇷</span>
               자기소개 (한국어)
             </label>
             <textarea 
               v-model="resume.introductionKo" 
-              class="form-textarea" 
+              class="w-full p-3 px-4 border-2 border-[#555555] rounded-lg text-base font-inherit transition-all duration-300 ease-in-out bg-[rgba(60,60,60,0.8)] text-white focus:outline-none focus:border-[#888888] focus:shadow-[0_0_0_3px_rgba(136,136,136,0.2)] focus:bg-[rgba(70,70,70,0.9)] placeholder-[#aaaaaa] min-h-[100px] resize-y"
               placeholder="한국어 자기소개를 입력하세요"
               rows="4"
             ></textarea>
           </div>
           
-          <div class="form-group">
-            <label class="form-label">
-              <span class="flag-ja">🇯🇵</span>
+          <div class="mb-5">
+            <label class="block mb-2 font-semibold text-white text-sm">
+              <span class="text-[#f9a825] font-bold">🇯🇵</span>
               自己紹介 (일본어)
             </label>
             <textarea 
               v-model="resume.introductionJa" 
-              class="form-textarea" 
+              class="w-full p-3 px-4 border-2 border-[#555555] rounded-lg text-base font-inherit transition-all duration-300 ease-in-out bg-[rgba(60,60,60,0.8)] text-white focus:outline-none focus:border-[#888888] focus:shadow-[0_0_0_3px_rgba(136,136,136,0.2)] focus:bg-[rgba(70,70,70,0.9)] placeholder-[#aaaaaa] min-h-[100px] resize-y"
               placeholder="日本語 自己紹介を入力してください"
               rows="4"
             ></textarea>
           </div>
           
-          <div class="form-group">
-            <label class="form-label">
-              <span class="flag-ko">🇰🇷</span>
+          <div class="mb-5">
+            <label class="block mb-2 font-semibold text-white text-sm">
+              <span class="text-[#1565c0] font-bold">🇰🇷</span>
               학생생활 (한국어)
             </label>
             <textarea 
               v-model="resume.studentLifeKo" 
-              class="form-textarea" 
+              class="w-full p-3 px-4 border-2 border-[#555555] rounded-lg text-base font-inherit transition-all duration-300 ease-in-out bg-[rgba(60,60,60,0.8)] text-white focus:outline-none focus:border-[#888888] focus:shadow-[0_0_0_3px_rgba(136,136,136,0.2)] focus:bg-[rgba(70,70,70,0.9)] placeholder-[#aaaaaa] min-h-[100px] resize-y"
               placeholder="한국어 성장과정을 입력하세요"
               rows="4"
             ></textarea>
           </div>
           
-          <div class="form-group">
-            <label class="form-label">
-              <span class="flag-ja">🇯🇵</span>
+          <div class="mb-5">
+            <label class="block mb-2 font-semibold text-white text-sm">
+              <span class="text-[#f9a825] font-bold">🇯🇵</span>
               学生生活 (일본어)
             </label>
             <textarea 
               v-model="resume.studentLifeJa" 
-              class="form-textarea" 
+              class="w-full p-3 px-4 border-2 border-[#555555] rounded-lg text-base font-inherit transition-all duration-300 ease-in-out bg-[rgba(60,60,60,0.8)] text-white focus:outline-none focus:border-[#888888] focus:shadow-[0_0_0_3px_rgba(136,136,136,0.2)] focus:bg-[rgba(70,70,70,0.9)] placeholder-[#aaaaaa] min-h-[100px] resize-y"
               placeholder="日本語 学生生活を入力してください"
               rows="4"
             ></textarea>
@@ -301,33 +303,33 @@
         </div>
 
         <!-- 장단점 -->
-        <div class="form-section">
-          <h3 class="section-title">
+        <div class="mb-10 border border-[rgba(255,255,255,0.1)] rounded-xl p-6 bg-[rgba(60,60,60,0.3)]">
+          <h3 class="text-white text-2xl font-semibold mb-6 flex items-center gap-3 border-b-2 border-[#888888] pb-3">
             <i class="fas fa-balance-scale"></i>
             장점과 단점
           </h3>
           
-          <div class="form-group">
-            <label class="form-label">
-              <span class="flag-ko">🇰🇷</span>
+          <div class="mb-5">
+            <label class="block mb-2 font-semibold text-white text-sm">
+              <span class="text-[#1565c0] font-bold">🇰🇷</span>
               장점과 단점 (한국어)
             </label>
             <textarea 
               v-model="resume.strengthsWeaknessesKo" 
-              class="form-textarea" 
+              class="w-full p-3 px-4 border-2 border-[#555555] rounded-lg text-base font-inherit transition-all duration-300 ease-in-out bg-[rgba(60,60,60,0.8)] text-white focus:outline-none focus:border-[#888888] focus:shadow-[0_0_0_3px_rgba(136,136,136,0.2)] focus:bg-[rgba(70,70,70,0.9)] placeholder-[#aaaaaa] min-h-[100px] resize-y"
               placeholder="한국어 장단점을 입력하세요"
               rows="4"
             ></textarea>
           </div>
           
-          <div class="form-group">
-            <label class="form-label">
-              <span class="flag-ja">🇯🇵</span>
+          <div class="mb-5">
+            <label class="block mb-2 font-semibold text-white text-sm">
+              <span class="text-[#f9a825] font-bold">🇯🇵</span>
               長所と短所 (일본어)
             </label>
             <textarea 
               v-model="resume.strengthsWeaknessesJa" 
-              class="form-textarea" 
+              class="w-full p-3 px-4 border-2 border-[#555555] rounded-lg text-base font-inherit transition-all duration-300 ease-in-out bg-[rgba(60,60,60,0.8)] text-white focus:outline-none focus:border-[#888888] focus:shadow-[0_0_0_3px_rgba(136,136,136,0.2)] focus:bg-[rgba(70,70,70,0.9)] placeholder-[#aaaaaa] min-h-[100px] resize-y"
               placeholder="日本語 長所と短所を入力してください"
               rows="4"
             ></textarea>
@@ -335,33 +337,33 @@
         </div>
 
         <!-- 노력 경험 -->
-        <div class="form-section">
-          <h3 class="section-title">
+        <div class="mb-10 border border-[rgba(255,255,255,0.1)] rounded-xl p-6 bg-[rgba(60,60,60,0.3)]">
+          <h3 class="text-white text-2xl font-semibold mb-6 flex items-center gap-3 border-b-2 border-[#888888] pb-3">
             <i class="fas fa-trophy"></i>
             노력 경험
           </h3>
           
-          <div class="form-group">
-            <label class="form-label">
-              <span class="flag-ko">🇰🇷</span>
+          <div class="mb-5">
+            <label class="block mb-2 font-semibold text-white text-sm">
+              <span class="text-[#1565c0] font-bold">🇰🇷</span>
               노력 경험 (한국어)
             </label>
             <textarea 
               v-model="resume.effortExperienceKo" 
-              class="form-textarea" 
+              class="w-full p-3 px-4 border-2 border-[#555555] rounded-lg text-base font-inherit transition-all duration-300 ease-in-out bg-[rgba(60,60,60,0.8)] text-white focus:outline-none focus:border-[#888888] focus:shadow-[0_0_0_3px_rgba(136,136,136,0.2)] focus:bg-[rgba(70,70,70,0.9)] placeholder-[#aaaaaa] min-h-[100px] resize-y"
               placeholder="한국어 노력 경험을 입력하세요"
               rows="4"
             ></textarea>
           </div>
           
-          <div class="form-group">
-            <label class="form-label">
-              <span class="flag-ja">🇯🇵</span>
+          <div class="mb-5">
+            <label class="block mb-2 font-semibold text-white text-sm">
+              <span class="text-[#f9a825] font-bold">🇯🇵</span>
               努力経験 (일본어)
             </label>
             <textarea 
               v-model="resume.effortExperienceJa" 
-              class="form-textarea" 
+              class="w-full p-3 px-4 border-2 border-[#555555] rounded-lg text-base font-inherit transition-all duration-300 ease-in-out bg-[rgba(60,60,60,0.8)] text-white focus:outline-none focus:border-[#888888] focus:shadow-[0_0_0_3px_rgba(136,136,136,0.2)] focus:bg-[rgba(70,70,70,0.9)] placeholder-[#aaaaaa] min-h-[100px] resize-y"
               placeholder="日本語 努力経験を入力してください"
               rows="4"
             ></textarea>
@@ -369,33 +371,33 @@
         </div>
 
         <!-- 일본 IT 취업 동기 -->
-        <div class="form-section">
-          <h3 class="section-title">
+        <div class="mb-10 border border-[rgba(255,255,255,0.1)] rounded-xl p-6 bg-[rgba(60,60,60,0.3)]">
+          <h3 class="text-white text-2xl font-semibold mb-6 flex items-center gap-3 border-b-2 border-[#888888] pb-3">
             <i class="fas fa-rocket"></i>
             일본 IT 취업 동기
           </h3>
           
-          <div class="form-group">
-            <label class="form-label">
-              <span class="flag-ko">🇰🇷</span>
+          <div class="mb-5">
+            <label class="block mb-2 font-semibold text-white text-sm">
+              <span class="text-[#1565c0] font-bold">🇰🇷</span>
               일본 IT 취업 동기 (한국어)
             </label>
             <textarea 
               v-model="resume.japanItMotivationKo" 
-              class="form-textarea" 
+              class="w-full p-3 px-4 border-2 border-[#555555] rounded-lg text-base font-inherit transition-all duration-300 ease-in-out bg-[rgba(60,60,60,0.8)] text-white focus:outline-none focus:border-[#888888] focus:shadow-[0_0_0_3px_rgba(136,136,136,0.2)] focus:bg-[rgba(70,70,70,0.9)] placeholder-[#aaaaaa] min-h-[100px] resize-y"
               placeholder="한국어 일본 IT 취업 동기를 입력하세요"
               rows="4"
             ></textarea>
           </div>
           
-          <div class="form-group">
-            <label class="form-label">
-              <span class="flag-ja">🇯🇵</span>
+          <div class="mb-5">
+            <label class="block mb-2 font-semibold text-white text-sm">
+              <span class="text-[#f9a825] font-bold">🇯🇵</span>
               日本IT就職志望動機 (일본어)
             </label>
             <textarea 
               v-model="resume.japanItMotivationJa" 
-              class="form-textarea" 
+              class="w-full p-3 px-4 border-2 border-[#555555] rounded-lg text-base font-inherit transition-all duration-300 ease-in-out bg-[rgba(60,60,60,0.8)] text-white focus:outline-none focus:border-[#888888] focus:shadow-[0_0_0_3px_rgba(136,136,136,0.2)] focus:bg-[rgba(70,70,70,0.9)] placeholder-[#aaaaaa] min-h-[100px] resize-y"
               placeholder="日本語 IT志望動機を入力してください"
               rows="4"
             ></textarea>
@@ -403,33 +405,33 @@
         </div>
 
         <!-- 장래 계획 -->
-        <div class="form-section">
-          <h3 class="section-title">
+        <div class="mb-10 border border-[rgba(255,255,255,0.1)] rounded-xl p-6 bg-[rgba(60,60,60,0.3)]">
+          <h3 class="text-white text-2xl font-semibold mb-6 flex items-center gap-3 border-b-2 border-[#888888] pb-3">
             <i class="fas fa-chart-line"></i>
             장래 계획
           </h3>
           
-          <div class="form-group">
-            <label class="form-label">
-              <span class="flag-ko">🇰🇷</span>
+          <div class="mb-5">
+            <label class="block mb-2 font-semibold text-white text-sm">
+              <span class="text-[#1565c0] font-bold">🇰🇷</span>
               장래 계획 (한국어)
             </label>
             <textarea 
               v-model="resume.futurePlanKo" 
-              class="form-textarea" 
+              class="w-full p-3 px-4 border-2 border-[#555555] rounded-lg text-base font-inherit transition-all duration-300 ease-in-out bg-[rgba(60,60,60,0.8)] text-white focus:outline-none focus:border-[#888888] focus:shadow-[0_0_0_3px_rgba(136,136,136,0.2)] focus:bg-[rgba(70,70,70,0.9)] placeholder-[#aaaaaa] min-h-[100px] resize-y"
               placeholder="한국어 장래 계획을 입력하세요"
               rows="4"
             ></textarea>
           </div>
           
-          <div class="form-group">
-            <label class="form-label">
-              <span class="flag-ja">🇯🇵</span>
+          <div class="mb-5">
+            <label class="block mb-2 font-semibold text-white text-sm">
+              <span class="text-[#f9a825] font-bold">🇯🇵</span>
               将来の計画 (일본어)
             </label>
             <textarea 
               v-model="resume.futurePlanJa" 
-              class="form-textarea" 
+              class="w-full p-3 px-4 border-2 border-[#555555] rounded-lg text-base font-inherit transition-all duration-300 ease-in-out bg-[rgba(60,60,60,0.8)] text-white focus:outline-none focus:border-[#888888] focus:shadow-[0_0_0_3px_rgba(136,136,136,0.2)] focus:bg-[rgba(70,70,70,0.9)] placeholder-[#aaaaaa] min-h-[100px] resize-y"
               placeholder="日本語 将来の計画を入力してください"
               rows="4"
             ></textarea>
@@ -437,12 +439,12 @@
         </div>
 
         <!-- 버튼 -->
-        <div class="form-buttons">
-          <button type="submit" class="btn-submit" :disabled="saving">
+        <div class="flex gap-4 justify-center mt-10 pt-8 border-t-2 border-[rgba(255,255,255,0.1)]">
+          <button type="submit" class="p-4 px-8 border-none rounded-lg text-base font-semibold cursor-pointer text-decoration-none text-center flex items-center gap-2 transition-all duration-300 ease-in-out min-w-[120px] justify-center shadow-[0_4px_12px_rgba(0,0,0,0.3)] bg-gradient-to-r from-[#666666] to-[#444444] text-white hover:from-[#777777] hover:to-[#555555] hover:-translate-y-0.5 hover:shadow-[0_6px_20px_rgba(0,0,0,0.4)] disabled:opacity-60 disabled:cursor-not-allowed disabled:transform-none disabled:shadow-none" :disabled="saving">
             <i class="fas fa-save"></i>
-            {{ saving ? '저장 중...' : '저장' }}
+            {{ saving ? '저장 중...' : '이력서 확인' }}
           </button>
-          <router-link to="/admin" class="btn-cancel" :class="{ 'disabled': saving }">
+          <router-link to="/admin/dashboard" class="p-4 px-8 border-none rounded-lg text-base font-semibold cursor-pointer text-decoration-none text-center flex items-center gap-2 transition-all duration-300 ease-in-out min-w-[120px] justify-center shadow-[0_4px_12px_rgba(0,0,0,0.3)] bg-gradient-to-r from-[#555555] to-[#333333] text-white hover:from-[#666666] hover:to-[#444444] hover:-translate-y-0.5 hover:shadow-[0_6px_20px_rgba(0,0,0,0.4)] disabled:opacity-60 disabled:cursor-not-allowed disabled:transform-none disabled:shadow-none" :class="{ 'opacity-60 cursor-not-allowed transform-none shadow-none': saving }">
             <i class="fas fa-times"></i>
             취소
           </router-link>
@@ -588,7 +590,7 @@ export default {
         
         if (response.success) {
           alert('이력서가 성공적으로 저장되었습니다.');
-          this.$router.push('/admin');
+          this.$router.push('/admin/dashboard');
         } else {
           alert('저장에 실패했습니다: ' + (response.message || '알 수 없는 오류'));
         }
@@ -620,387 +622,4 @@ export default {
     }
   }
 }
-</script>
-
-<style scoped>
-.resume-container {
-  min-height: 100vh;
-  padding: 20px;
-  display: flex;
-  align-items: flex-start;
-  justify-content: center;
-  overflow-x: hidden;
-}
-
-.resume-form-container {
-  max-width: 1200px;
-  width: 100%;
-  margin: 0 auto;
-  background: rgba(45, 45, 45, 0.95);
-  border-radius: 16px;
-  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.5);
-  overflow: hidden;
-  border: 1px solid rgba(255, 255, 255, 0.1);
-}
-
-.resume-form-title {
-  background: linear-gradient(135deg, #333333 0%, #555555 100%);
-  color: white;
-  margin: 0;
-  padding: 30px;
-  font-size: 2rem;
-  font-weight: 600;
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-}
-
-.loading-indicator {
-  font-size: 1rem;
-  font-weight: normal;
-  opacity: 0.8;
-}
-
-.loading-indicator i {
-  margin-right: 8px;
-}
-
-.resume-form {
-  padding: 40px;
-}
-
-.form-section {
-  margin-bottom: 40px;
-  border: 1px solid rgba(255, 255, 255, 0.1);
-  border-radius: 12px;
-  padding: 25px;
-  background: rgba(60, 60, 60, 0.3);
-}
-
-.section-title {
-  color: #ffffff;
-  font-size: 1.4rem;
-  font-weight: 600;
-  margin-bottom: 25px;
-  display: flex;
-  align-items: center;
-  gap: 10px;
-  border-bottom: 2px solid #888888;
-  padding-bottom: 10px;
-}
-
-.form-row {
-  display: grid;
-  grid-template-columns: 1fr 1fr;
-  gap: 20px;
-  margin-bottom: 20px;
-  width: 100%;
-}
-
-.form-group {
-  margin-bottom: 20px;
-}
-
-.form-label {
-  display: block;
-  margin-bottom: 8px;
-  font-weight: 600;
-  color: #ffffff;
-  font-size: 0.95rem;
-}
-
-.form-input, .form-textarea {
-  width: 100%;
-  padding: 12px 16px;
-  border: 2px solid #555555;
-  border-radius: 8px;
-  font-size: 1rem;
-  font-family: inherit;
-  transition: all 0.3s ease;
-  background: rgba(60, 60, 60, 0.8);
-  color: #ffffff;
-  box-sizing: border-box;
-}
-
-.form-input:focus, .form-textarea:focus {
-  outline: none;
-  border-color: #888888;
-  box-shadow: 0 0 0 3px rgba(136, 136, 136, 0.2);
-  background: rgba(70, 70, 70, 0.9);
-}
-
-.form-input::placeholder, .form-textarea::placeholder {
-  color: #aaaaaa;
-  opacity: 1;
-}
-
-.form-textarea {
-  min-height: 100px;
-  resize: vertical;
-}
-
-.input-with-preview {
-  display: flex;
-  gap: 20px;
-  align-items: flex-start;
-  flex-wrap: wrap;
-}
-
-.photo-preview {
-  flex-shrink: 0;
-}
-
-.photo-preview img {
-  width: 120px;
-  height: 120px;
-  object-fit: cover;
-  border-radius: 12px;
-  border: 3px solid #888888;
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
-}
-
-.flag-ko {
-  color: #1565c0;
-  font-weight: bold;
-}
-
-.flag-ja {
-  color: #f9a825;
-  font-weight: bold;
-}
-
-.education-table-container {
-  background: rgba(45, 45, 45, 0.8);
-  border-radius: 8px;
-  overflow: hidden;
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.3);
-  border: 1px solid rgba(255, 255, 255, 0.1);
-}
-
-.education-table {
-  width: 100%;
-  border-collapse: collapse;
-  margin-bottom: 15px;
-  table-layout: fixed;
-}
-
-.education-table th {
-  background: linear-gradient(135deg, #333333 0%, #555555 100%);
-  color: white;
-  padding: 15px 10px;
-  font-weight: 600;
-  text-align: left;
-  font-size: 0.9rem;
-  word-wrap: break-word;
-}
-
-.education-table td {
-  padding: 12px 10px;
-  border-bottom: 1px solid rgba(255, 255, 255, 0.1);
-  word-wrap: break-word;
-  overflow: hidden;
-}
-
-.education-table tr:nth-child(even) {
-  background: rgba(70, 70, 70, 0.3);
-}
-
-.education-table tr:hover {
-  background: rgba(100, 100, 100, 0.3);
-}
-
-.compact-input {
-  padding: 8px 12px;
-  font-size: 0.9rem;
-}
-
-.action-cell {
-  text-align: center;
-  width: 60px;
-}
-
-.remove-btn {
-  background: #e74c3c;
-  color: white;
-  border: none;
-  border-radius: 6px;
-  padding: 8px 12px;
-  cursor: pointer;
-  transition: all 0.3s ease;
-  font-size: 0.9rem;
-}
-
-.remove-btn:hover {
-  background: #c0392b;
-  transform: scale(1.05);
-}
-
-.add-btn {
-  background: linear-gradient(145deg, #666666 0%, #444444 100%);
-  color: white;
-  border: none;
-  border-radius: 8px;
-  padding: 12px 20px;
-  cursor: pointer;
-  font-size: 1rem;
-  font-weight: 600;
-  transition: all 0.3s ease;
-  display: flex;
-  align-items: center;
-  gap: 8px;
-  margin: 0 auto;
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
-}
-
-.add-btn:hover {
-  background: linear-gradient(145deg, #777777 0%, #555555 100%);
-  transform: translateY(-2px);
-  box-shadow: 0 6px 20px rgba(0, 0, 0, 0.4);
-}
-
-.form-buttons {
-  display: flex;
-  gap: 15px;
-  justify-content: center;
-  margin-top: 40px;
-  padding-top: 30px;
-  border-top: 2px solid rgba(255, 255, 255, 0.1);
-}
-
-.btn-submit, .btn-cancel {
-  padding: 15px 30px;
-  border: none;
-  border-radius: 8px;
-  font-size: 1rem;
-  font-weight: 600;
-  cursor: pointer;
-  text-decoration: none;
-  text-align: center;
-  display: flex;
-  align-items: center;
-  gap: 8px;
-  transition: all 0.3s ease;
-  min-width: 120px;
-  justify-content: center;
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
-}
-
-.btn-submit {
-  background: linear-gradient(145deg, #666666 0%, #444444 100%);
-  color: white;
-}
-
-.btn-submit:hover {
-  background: linear-gradient(145deg, #777777 0%, #555555 100%);
-  transform: translateY(-2px);
-  box-shadow: 0 6px 20px rgba(0, 0, 0, 0.4);
-}
-
-.btn-cancel {
-  background: linear-gradient(145deg, #555555 0%, #333333 100%);
-  color: white;
-}
-
-.btn-cancel:hover {
-  background: linear-gradient(145deg, #666666 0%, #444444 100%);
-  transform: translateY(-2px);
-  box-shadow: 0 6px 20px rgba(0, 0, 0, 0.4);
-}
-
-.btn-submit:disabled,
-.btn-cancel.disabled {
-  opacity: 0.6;
-  cursor: not-allowed;
-  transform: none !important;
-  box-shadow: none !important;
-}
-
-.btn-submit:disabled:hover,
-.btn-cancel.disabled:hover {
-  background: linear-gradient(145deg, #555555 0%, #333333 100%);
-  transform: none;
-  box-shadow: none;
-}
-
-/* 반응형 디자인 */
-@media (max-width: 768px) {
-  .resume-container {
-    padding: 10px;
-  }
-  
-  .resume-form {
-    padding: 20px;
-  }
-  
-  .form-row {
-    grid-template-columns: 1fr;
-    gap: 15px;
-  }
-  
-  .education-table {
-    font-size: 0.8rem;
-  }
-  
-  .education-table th,
-  .education-table td {
-    padding: 8px 6px;
-  }
-  
-  .input-with-preview {
-    flex-direction: column;
-  }
-  
-  .photo-preview img {
-    width: 100px;
-    height: 100px;
-  }
-  
-  .form-section {
-    padding: 20px;
-    margin-bottom: 30px;
-  }
-}
-
-@media (max-width: 480px) {
-  .resume-container {
-    padding: 5px;
-  }
-  
-  .resume-form-container {
-    border-radius: 12px;
-  }
-  
-  .resume-form-title {
-    font-size: 1.5rem;
-    padding: 20px;
-  }
-  
-  .section-title {
-    font-size: 1.2rem;
-  }
-  
-  .form-buttons {
-    flex-direction: column;
-  }
-  
-  .btn-submit, .btn-cancel {
-    width: 100%;
-  }
-  
-  .form-section {
-    padding: 15px;
-    margin-bottom: 25px;
-  }
-  
-  .education-table th,
-  .education-table td {
-    padding: 6px 4px;
-    font-size: 0.75rem;
-  }
-  
-  .compact-input {
-    padding: 6px 8px;
-    font-size: 0.8rem;
-  }
-}
-</style> 
+</script> 

@@ -1,33 +1,33 @@
 <template>
-  <div class="post-form-container">
-    <div class="form-header">
-      <div class="header-left">
-        <h1 class="form-title">{{ isEdit ? '게시글 수정' : '새 게시글 작성' }}</h1>
-        <div class="admin-info">
-          <span class="admin-welcome">
-            <span class="admin-name">관리자</span>님
+  <div class="min-h-screen bg-[#f8f9fa] flex flex-col">
+    <div class="bg-white border-b border-[#e9ecef] p-5 px-8 flex justify-between items-center sticky top-0 z-100 shadow-[0_2px_8px_rgba(0,0,0,0.08)]">
+      <div class="flex items-center gap-6">
+        <h1 class="text-[1.75rem] font-bold text-[#2c3e50] m-0">{{ isEdit ? '게시글 수정' : '새 게시글 작성' }}</h1>
+        <div class="flex items-center gap-2">
+          <span class="text-[#6c757d] text-[0.9rem]">
+            <span class="font-semibold text-[#007bff]">관리자</span>님
           </span>
         </div>
       </div>
-      <div class="header-right">
-        <button @click="goToDashboard" class="btn-secondary">대시보드</button>
-        <button @click="logout" class="btn-danger">로그아웃</button>
+      <div class="flex gap-3">
+        <button @click="goToDashboard" class="px-6 py-3 bg-[#6c757d] text-white border-none rounded-xl text-[0.95rem] font-semibold cursor-pointer transition-all duration-300 ease-in-out no-underline inline-flex items-center justify-center relative overflow-hidden hover:bg-[#545b62]">대시보드</button>
+        <button @click="logout" class="px-6 py-3 bg-[#dc3545] text-white border-none rounded-xl text-[0.95rem] font-semibold cursor-pointer transition-all duration-300 ease-in-out no-underline inline-flex items-center justify-center relative overflow-hidden hover:bg-[#c82333]">로그아웃</button>
       </div>
     </div>
 
-    <div class="form-content">
-      <div class="form-main">
-        <div class="title-section">
-          <div class="language-tabs">
+    <div class="flex-1 flex gap-8 p-8 max-w-[1400px] mx-auto w-full">
+      <div class="flex-1 bg-white rounded-lg shadow-[0_2px_8px_rgba(0,0,0,0.08)] overflow-hidden border border-[#e9ecef]">
+        <div class="p-5 px-8 border-b border-[#e9ecef] bg-white">
+          <div class="flex gap-2 mb-4">
             <button 
               @click="activeLanguage = 'ko'" 
-              :class="['lang-tab', { active: activeLanguage === 'ko' }]"
+              :class="['px-4 py-2 border border-[#dee2e6] bg-white text-[#6c757d] rounded cursor-pointer text-[0.9rem] transition-all duration-300 ease-in-out', { 'bg-[#ced9ea] text-[#2c3e50] border-[#ced9ea] shadow-[0_2px_4px_rgba(206,217,234,0.3)]': activeLanguage === 'ko' }]"
             >
               한국어
             </button>
             <button 
               @click="activeLanguage = 'ja'" 
-              :class="['lang-tab', { active: activeLanguage === 'ja' }]"
+              :class="['px-4 py-2 border border-[#dee2e6] bg-white text-[#6c757d] rounded cursor-pointer text-[0.9rem] transition-all duration-300 ease-in-out', { 'bg-[#ced9ea] text-[#2c3e50] border-[#ced9ea] shadow-[0_2px_4px_rgba(206,217,234,0.3)]': activeLanguage === 'ja' }]"
             >
               日本語
             </button>
@@ -37,7 +37,7 @@
             v-if="activeLanguage === 'ko'"
             v-model="formData.titleKo" 
             type="text" 
-            class="title-input" 
+            class="w-full text-[1.5rem] font-semibold border border-[#e9ecef] rounded-lg outline-none text-[#2c3e50] bg-white p-2.5 px-3.5 transition-all duration-300 ease-in-out focus:border-[#007bff] focus:shadow-[0_0_0_3px_rgba(0,123,255,0.1)] placeholder:text-[#adb5bd] placeholder:font-normal" 
             placeholder="한국어 제목을 입력하세요..."
             required
           >
@@ -45,18 +45,18 @@
             v-if="activeLanguage === 'ja'"
             v-model="formData.titleJa" 
             type="text" 
-            class="title-input" 
+            class="w-full text-[1.5rem] font-semibold border border-[#e9ecef] rounded-lg outline-none text-[#2c3e50] bg-white p-2.5 px-3.5 transition-all duration-300 ease-in-out focus:border-[#007bff] focus:shadow-[0_0_0_3px_rgba(0,123,255,0.1)] placeholder:text-[#adb5bd] placeholder:font-normal" 
             placeholder="日本語のタイトルを入力してください..."
             required
           >
         </div>
 
-        <div class="meta-section">
-          <div class="meta-row">
-            <div class="meta-item">
-              <label class="meta-label">카테고리</label>
-              <div class="category-input-group">
-                <select v-model="formData.category" class="meta-select" required>
+        <div class="p-3 px-8 border-b border-[#e9ecef] bg-[#f8f9fa]">
+          <div class="flex gap-6 items-center">
+            <div class="flex items-center gap-2">
+              <label class="text-[0.85rem] font-semibold text-[#495057] min-w-[60px]">카테고리</label>
+              <div class="flex items-center gap-2">
+                <select v-model="formData.category" class="p-1.5 px-3 border-2 border-[#e9ecef] rounded-lg text-[0.85rem] bg-white transition-all duration-300 ease-in-out cursor-pointer focus:outline-none focus:border-[#495057] focus:shadow-[0_0_0_3px_rgba(73,80,87,0.1)]" required>
                   <option value="">카테고리 선택</option>
                   <option v-for="category in categories" :key="category.value" :value="category.value">
                     {{ category.displayName }}
@@ -67,22 +67,22 @@
                   v-if="formData.category === 'custom'"
                   v-model="customCategory" 
                   type="text" 
-                  class="custom-category-input" 
+                  class="flex-1 p-1.5 px-3 border-2 border-[#e9ecef] rounded-lg text-[0.85rem] bg-white transition-all duration-300 ease-in-out focus:outline-none focus:border-[#495057] focus:shadow-[0_0_0_3px_rgba(73,80,87,0.1)]" 
                   placeholder="새 카테고리명 입력..."
                   @input="updateCustomCategory"
                 >
               </div>
             </div>
-            <div class="meta-item">
-              <label class="meta-label">상태</label>
-              <div class="publish-toggle">
+            <div class="flex items-center gap-2">
+              <label class="text-[0.85rem] font-semibold text-[#495057] min-w-[60px]">상태</label>
+              <div class="flex items-center gap-2">
                 <input 
                   v-model="formData.published" 
                   type="checkbox" 
                   id="published" 
-                  class="publish-checkbox"
+                  class="w-5 h-5 accent-[#495057] cursor-pointer"
                 >
-                <label for="published" class="publish-label">
+                <label for="published" class="text-[0.85rem] font-semibold text-[#495057] cursor-pointer transition-colors duration-300 ease-in-out hover:text-[#2c3e50]">
                   {{ formData.published ? '공개' : '임시저장' }}
                 </label>
               </div>
@@ -90,130 +90,95 @@
           </div>
         </div>
 
-        <div class="content-section">
-          <div class="content-tabs">
-            <button 
-              @click="activeTab = 'write'" 
-              :class="['tab-btn', { active: activeTab === 'write' }]"
-            >
-              작성
-            </button>
-            <button 
-              @click="activeTab = 'preview'" 
-              :class="['tab-btn', { active: activeTab === 'preview' }]"
-            >
-              미리보기
-            </button>
-          </div>
-
-          <div v-if="activeTab === 'write'" class="write-area">
-            <div class="summary-section">
+                 <div class="flex-1 flex flex-col">
+           <div v-if="activeTab === 'write'" class="flex-1 flex flex-col">
+            <div class="p-3 px-8 border-b border-[#e9ecef] bg-white">
               <textarea 
                 v-if="activeLanguage === 'ko'"
                 v-model="formData.summaryKo" 
-                class="summary-input" 
+                class="w-full border border-[#e9ecef] rounded-lg outline-none resize-none text-[0.9rem] leading-[1.4] text-[#495057] bg-white p-2 px-3 transition-all duration-300 ease-in-out min-h-[60px] focus:border-[#007bff] focus:shadow-[0_0_0_3px_rgba(0,123,255,0.1)] placeholder:text-[#adb5bd]" 
                 placeholder="한국어 요약을 입력하세요... (선택사항)"
                 rows="3"
               ></textarea>
               <textarea 
                 v-if="activeLanguage === 'ja'"
                 v-model="formData.summaryJa" 
-                class="summary-input" 
+                class="w-full border border-[#e9ecef] rounded-lg outline-none resize-none text-[0.9rem] leading-[1.4] text-[#495057] bg-white p-2 px-3 transition-all duration-300 ease-in-out min-h-[60px] focus:border-[#007bff] focus:shadow-[0_0_0_3px_rgba(0,123,255,0.1)] placeholder:text-[#adb5bd]" 
                 placeholder="日本語の要約を入力してください... (選択項目)"
                 rows="3"
               ></textarea>
             </div>
             
-                         <div class="content-editor">
+                         <div class="flex-1 p-4 px-8 bg-white">
                <Editor
-                 v-if="activeLanguage === 'ko'"
-                 :key="'ko-editor'"
-                 v-model="formData.contentKo"
+                 :key="`editor-${activeLanguage}`"
+                 v-model="currentContent"
                  :init="editorConfig"
-                 :placeholder="'한국어 내용을 입력하세요...'"
-                 class="content-input"
-               />
-               <Editor
-                 v-if="activeLanguage === 'ja'"
-                 :key="'ja-editor'"
-                 v-model="formData.contentJa"
-                 :init="editorConfig"
-                 :placeholder="'日本語の内容を入力してください...'"
-                 class="content-input"
+                 :placeholder="activeLanguage === 'ko' ? '한국어 내용을 입력하세요...' : '日本語の内容を入力してください...'"
+                 class="w-full min-h-[400px] border-none outline-none bg-transparent transition-all duration-300 ease-in-out border border-[#e9ecef] rounded-lg overflow-hidden shadow-[0_2px_4px_rgba(0,0,0,0.05)]"
+                 @init="onEditorInit"
+                 @blur="onEditorBlur"
+                 @input="onEditorInput"
                />
              </div>
           </div>
 
-          <div v-if="activeTab === 'preview'" class="preview-area">
-            <div class="preview-content">
-              <h1 class="preview-title">{{ getDisplayTitle() }}</h1>
-              <div class="preview-meta">
-                <span class="preview-category">{{ getCategoryName(formData.category) }}</span>
-                <span class="preview-status" :class="formData.published ? 'published' : 'draft'">
-                  {{ formData.published ? '공개' : '임시저장' }}
-                </span>
-              </div>
-              <div v-if="getDisplaySummary()" class="preview-summary">
-                {{ getDisplaySummary() }}
-              </div>
-              <div class="preview-body" v-html="getDisplayContent()"></div>
+          
+        </div>
+      </div>
+
+      <div class="w-80 flex flex-col gap-6">
+        <div class="bg-white rounded-lg shadow-[0_2px_8px_rgba(0,0,0,0.08)] p-6 border border-[#e9ecef]">
+          <h3 class="text-[1.1rem] font-semibold text-[#2c3e50] m-0 mb-4">게시 설정</h3>
+          <div class="mb-4">
+            <label class="block text-[0.9rem] font-semibold text-[#495057] mb-1.5">대표 이미지</label>
+            <input 
+              v-model="formData.imageUrl" 
+              type="url" 
+              class="w-full p-3 px-4 border-2 border-[#e9ecef] rounded-lg text-[0.9rem] bg-white transition-all duration-300 ease-in-out box-border focus:outline-none focus:border-[#495057] focus:shadow-[0_0_0_3px_rgba(73,80,87,0.1)] focus:-translate-y-[1px]" 
+              placeholder="이미지 URL 입력..."
+            >
+          </div>
+          <div class="mb-4">
+            <label class="block text-[0.9rem] font-semibold text-[#495057] mb-1.5">태그</label>
+            <input 
+              v-model="formData.tags" 
+              type="text" 
+              class="w-full p-3 px-4 border-2 border-[#e9ecef] rounded-lg text-[0.9rem] bg-white transition-all duration-300 ease-in-out box-border focus:outline-none focus:border-[#495057] focus:shadow-[0_0_0_3px_rgba(73,80,87,0.1)] focus:-translate-y-[1px]" 
+              placeholder="태그1, 태그2, 태그3..."
+            >
+            <div class="text-[0.8rem] text-[#6c757d] mt-1">쉼표로 구분하여 입력하세요</div>
+          </div>
+        </div>
+
+        <div class="bg-white rounded-lg shadow-[0_2px_8px_rgba(0,0,0,0.08)] p-6 border border-[#e9ecef]">
+          <h3 class="text-[1.1rem] font-semibold text-[#2c3e50] m-0 mb-4">빠른 가이드</h3>
+          <div class="flex flex-col gap-2">
+            <div class="text-[0.85rem] text-[#495057] p-2 px-3 rounded bg-[#f8f9fa] mb-1.5 border-l-2 border-[#007bff]">
+              <strong class="inline font-semibold text-[#2c3e50] mr-2">서식</strong>
+              <p class="inline m-0 text-[#6c757d] text-[0.8rem]">굵게, 기울임, 색상</p>
+            </div>
+            <div class="text-[0.85rem] text-[#495057] p-2 px-3 rounded bg-[#f8f9fa] mb-1.5 border-l-2 border-[#007bff]">
+              <strong class="inline font-semibold text-[#2c3e50] mr-2">구조</strong>
+              <p class="inline m-0 text-[#6c757d] text-[0.8rem]">제목, 목록, 정렬</p>
+            </div>
+            <div class="text-[0.85rem] text-[#495057] p-2 px-3 rounded bg-[#f8f9fa] mb-1.5 border-l-2 border-[#007bff]">
+              <strong class="inline font-semibold text-[#2c3e50] mr-2">미디어</strong>
+              <p class="inline m-0 text-[#6c757d] text-[0.8rem]">링크, 이미지, 코드</p>
+            </div>
+            <div class="text-[0.85rem] text-[#495057] p-2 px-3 rounded bg-[#f8f9fa] mb-1.5 border-l-2 border-[#007bff]">
+              <strong class="inline font-semibold text-[#2c3e50] mr-2">미리보기</strong>
+              <p class="inline m-0 text-[#6c757d] text-[0.8rem]">실제 결과 확인</p>
             </div>
           </div>
         </div>
       </div>
-
-      <div class="form-sidebar">
-        <div class="sidebar-section">
-          <h3 class="sidebar-title">게시 설정</h3>
-          <div class="setting-item">
-            <label class="setting-label">대표 이미지</label>
-            <input 
-              v-model="formData.imageUrl" 
-              type="url" 
-              class="setting-input" 
-              placeholder="이미지 URL 입력..."
-            >
-          </div>
-          <div class="setting-item">
-            <label class="setting-label">태그</label>
-            <input 
-              v-model="formData.tags" 
-              type="text" 
-              class="setting-input" 
-              placeholder="태그1, 태그2, 태그3..."
-            >
-            <div class="help-text">쉼표로 구분하여 입력하세요</div>
-          </div>
-        </div>
-
-                 <div class="sidebar-section">
-           <h3 class="sidebar-title">빠른 가이드</h3>
-           <div class="help-list">
-             <div class="help-item">
-               <strong>서식</strong>
-               <p>굵게, 기울임, 색상</p>
-             </div>
-             <div class="help-item">
-               <strong>구조</strong>
-               <p>제목, 목록, 정렬</p>
-             </div>
-             <div class="help-item">
-               <strong>미디어</strong>
-               <p>링크, 이미지, 코드</p>
-             </div>
-             <div class="help-item">
-               <strong>미리보기</strong>
-               <p>실제 결과 확인</p>
-             </div>
-           </div>
-         </div>
-      </div>
     </div>
 
-    <div class="form-footer">
-      <div class="footer-right">
-        <button @click="goToDashboard" class="btn-cancel">취소</button>
-        <button @click="submitForm" class="btn-primary" :disabled="isSubmitting">
+         <div class="bg-white border-t border-[#e9ecef] p-5 px-8 flex justify-end items-center sticky bottom-0 z-[9999] shadow-[0_-2px_8px_rgba(0,0,0,0.08)]">
+      <div class="flex gap-3">
+        <button @click="goToDashboard" class="px-6 py-3 bg-[#f8f9fa] text-[#6c757d] border-2 border-[#e9ecef] rounded-xl text-[0.95rem] font-semibold cursor-pointer transition-all duration-300 ease-in-out no-underline inline-flex items-center justify-center relative overflow-hidden hover:bg-[#e9ecef] hover:-translate-y-[1px] hover:shadow-[0_2px_8px_rgba(0,0,0,0.08)]">취소</button>
+        <button @click="submitForm" class="px-6 py-3 bg-[#495057] text-white border-none rounded-xl text-[0.95rem] font-semibold cursor-pointer transition-all duration-300 ease-in-out no-underline inline-flex items-center justify-center relative overflow-hidden shadow-[0_2px_8px_rgba(73,80,87,0.2)] hover:-translate-y-[1px] hover:shadow-[0_4px_12px_rgba(73,80,87,0.3)] active:translate-y-0 disabled:bg-[#6c757d] disabled:cursor-not-allowed disabled:transform-none disabled:shadow-none" :disabled="isSubmitting">
           {{ isSubmitting ? '저장 중...' : (isEdit ? '수정하기' : '발행하기') }}
         </button>
       </div>
@@ -232,10 +197,9 @@ export default {
   },
   data() {
     return {
-      isEdit: false,
-      isSubmitting: false,
-      activeTab: 'write',
-      activeLanguage: 'ko', // 기본 언어 설정
+             isEdit: false,
+       isSubmitting: false,
+       activeLanguage: 'ko', // 기본 언어 설정
       lang: 'ko', // API 요청용 언어 설정
       categories: [],
       customCategory: '', // 사용자가 직접 입력한 카테고리 이름
@@ -351,9 +315,24 @@ export default {
     this.loadCategories();
     this.setLanguage();
     this.loadPostData();
+    },
+  computed: {
+    currentContent: {
+      get() {
+        return this.activeLanguage === 'ko' ? this.formData.contentKo : this.formData.contentJa;
+      },
+      set(value) {
+        if (this.activeLanguage === 'ko') {
+          this.formData.contentKo = value;
+        } else {
+          this.formData.contentJa = value;
+        }
+      }
+    }
   },
      watch: {
      activeLanguage() {
+       // 언어 변경 시 설정만 업데이트 (에디터는 키 변경으로 자동 재생성)
        this.updateEditorConfig();
      }
    },
@@ -683,344 +662,44 @@ export default {
        } catch (error) {
          console.log('에디터 정리 중 오류:', error);
        }
+     },
+     onEditorInit(editor) {
+       // 에디터 초기화 완료 시 호출
+       console.log('Editor initialized:', editor);
+     },
+     onEditorBlur(editor) {
+       // 에디터에서 포커스가 벗어날 때 호출
+       console.log('Editor blur:', editor);
+     },
+     onEditorInput(value) {
+       // 에디터 내용 변경 시 호출
+       if (this.activeLanguage === 'ko') {
+         this.formData.contentKo = value;
+       } else {
+         this.formData.contentJa = value;
+       }
      }
   }
 }
 </script>
 
 <style scoped>
-.post-form-container {
-  min-height: 100vh;
-  background: #f8f9fa;
-  display: flex;
-  flex-direction: column;
-}
-
-.form-header {
-  background: #ffffff;
-  border-bottom: 1px solid #e9ecef;
-  padding: 20px 32px;
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  position: sticky;
-  top: 0;
-  z-index: 100;
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
-}
-
-.header-left {
-  display: flex;
-  align-items: center;
-  gap: 24px;
-}
-
-.form-title {
-  font-size: 1.75rem;
-  font-weight: 700;
-  color: #2c3e50;
-  margin: 0;
-}
-
-.admin-info {
-  display: flex;
-  align-items: center;
-  gap: 8px;
-}
-
-.admin-welcome {
-  color: #6c757d;
-  font-size: 0.9rem;
-}
-
-.admin-name {
-  font-weight: 600;
-  color: #007bff;
-}
-
-.header-right {
-  display: flex;
-  gap: 12px;
-}
-
-.form-content {
-  flex: 1;
-  display: flex;
-  gap: 32px;
-  padding: 32px;
-  max-width: 1400px;
-  margin: 0 auto;
-  width: 100%;
-}
-
-.form-main {
-  flex: 1;
-  background: #ffffff;
-  border-radius: 8px;
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
-  overflow: hidden;
-  border: 1px solid #e9ecef;
-}
-
-.title-section {
-  padding: 20px 32px;
-  border-bottom: 1px solid #e9ecef;
-  background: #ffffff;
-}
-
-.title-input {
-  width: 100%;
-  font-size: 1.5rem;
-  font-weight: 600;
-  border: 1px solid #e9ecef;
-  border-radius: 8px;
-  outline: none;
-  color: #2c3e50;
-  background: #ffffff;
-  padding: 10px 14px;
-  transition: all 0.3s ease;
-}
-
-.title-input:focus {
-  border-color: #007bff;
-  box-shadow: 0 0 0 3px rgba(0, 123, 255, 0.1);
-}
-
-.title-input::placeholder {
-  color: #adb5bd;
-  font-weight: 400;
-}
-
-.language-tabs {
-  display: flex;
-  gap: 8px;
-  margin-bottom: 16px;
-}
-
-.lang-tab {
-  padding: 8px 16px;
-  border: 1px solid #dee2e6;
-  background: #ffffff;
-  color: #6c757d;
-  border-radius: 4px;
-  cursor: pointer;
-  font-size: 0.9rem;
-  transition: all 0.3s ease;
-}
-
-.lang-tab:hover {
-  background: #f8f9fa;
-  border-color: #adb5bd;
-}
-
-.lang-tab.active {
-  background: #007bff;
-  color: #ffffff;
-  border-color: #007bff;
-}
-
-.meta-section {
-  padding: 12px 32px;
-  border-bottom: 1px solid #e9ecef;
-  background: #f8f9fa;
-}
-
-.meta-row {
-  display: flex;
-  gap: 24px;
-  align-items: center;
-}
-
-.meta-item {
-  display: flex;
-  align-items: center;
-  gap: 8px;
-}
-
-.meta-label {
-  font-size: 0.85rem;
-  font-weight: 600;
-  color: #495057;
-  min-width: 60px;
-}
-
-.category-input-group {
-  display: flex;
-  align-items: center;
-  gap: 8px;
-}
-
-.meta-select {
-  padding: 6px 12px;
-  border: 2px solid #e9ecef;
-  border-radius: 8px;
-  font-size: 0.85rem;
-  background: white;
-  transition: all 0.3s ease;
-  cursor: pointer;
-}
-
-.meta-select:focus {
-  outline: none;
-  border-color: #495057;
-  box-shadow: 0 0 0 3px rgba(73, 80, 87, 0.1);
-}
-
-.custom-category-input {
-  flex: 1;
-  padding: 6px 12px;
-  border: 2px solid #e9ecef;
-  border-radius: 8px;
-  font-size: 0.85rem;
-  background: white;
-  transition: all 0.3s ease;
-}
-
-.custom-category-input:focus {
-  outline: none;
-  border-color: #495057;
-  box-shadow: 0 0 0 3px rgba(73, 80, 87, 0.1);
-}
-
-.publish-toggle {
-  display: flex;
-  align-items: center;
-  gap: 8px;
-}
-
-.publish-checkbox {
-  width: 20px;
-  height: 20px;
-  accent-color: #495057;
-  cursor: pointer;
-}
-
-.publish-label {
-  font-size: 0.85rem;
-  font-weight: 600;
-  color: #495057;
-  cursor: pointer;
-  transition: color 0.3s ease;
-}
-
-.publish-label:hover {
-  color: #2c3e50;
-}
-
-.content-section {
-  flex: 1;
-  display: flex;
-  flex-direction: column;
-}
-
-.content-tabs {
-  display: flex;
-  border-bottom: 1px solid #e9ecef;
-}
-
-.tab-btn {
-  flex: 1;
-  padding: 16px 24px;
-  border: none;
-  background: #f8f9fa;
-  color: #6c757d;
-  font-weight: 600;
-  cursor: pointer;
-  transition: all 0.3s ease;
-  position: relative;
-  overflow: hidden;
-}
-
-.tab-btn::before {
-  content: '';
-  position: absolute;
-  bottom: 0;
-  left: 50%;
-  width: 0;
-  height: 3px;
-  background: #495057;
-  transition: all 0.3s ease;
-  transform: translateX(-50%);
-}
-
-.tab-btn.active {
-  background: white;
-  color: #495057;
-  font-weight: 700;
-}
-
-.tab-btn.active::before {
-  width: 100%;
-}
-
-.tab-btn:hover {
-  background: #e9ecef;
-  transform: translateY(-1px);
-}
-
-.write-area {
-  flex: 1;
-  display: flex;
-  flex-direction: column;
-}
-
-.summary-section {
-  padding: 12px 32px;
-  border-bottom: 1px solid #e9ecef;
-  background: #ffffff;
-}
-
-.summary-input {
-  width: 100%;
-  border: 1px solid #e9ecef;
-  border-radius: 8px;
-  outline: none;
-  resize: none;
-  font-size: 0.9rem;
-  line-height: 1.4;
-  color: #495057;
-  background: #ffffff;
-  padding: 8px 12px;
-  transition: all 0.3s ease;
-  min-height: 60px;
-}
-
-.summary-input:focus {
-  border-color: #007bff;
-  box-shadow: 0 0 0 3px rgba(0, 123, 255, 0.1);
-}
-
-.summary-input::placeholder {
-  color: #adb5bd;
-}
-
-.content-editor {
-  flex: 1;
-  padding: 16px 32px;
-  background: #ffffff;
-}
-
-.content-input {
-  width: 100%;
-  min-height: 400px;
-  border: none;
-  outline: none;
-  background: transparent;
-  transition: all 0.3s ease;
-}
-
 /* TinyMCE 에디터 스타일 커스터마이징 */
 .content-input {
   border: 1px solid #e9ecef !important;
   border-radius: 8px !important;
   overflow: hidden;
   box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
+  z-index: 1 !important;
 }
 
 .content-input .tox-tinymce {
   border: none !important;
   border-radius: 8px !important;
+  z-index: 1 !important;
 }
+
+
 
 .content-input .tox-toolbar {
   background: #ffffff !important;
@@ -1080,618 +759,6 @@ export default {
 
 .content-input .mce-content-body:focus {
   outline: none !important;
-}
-
-.preview-area {
-  flex: 1;
-  padding: 24px;
-  overflow-y: auto;
-}
-
-.preview-content {
-  max-width: 800px;
-  margin: 0 auto;
-}
-
-.preview-title {
-  font-size: 2.5rem;
-  font-weight: 700;
-  color: #2c3e50;
-  margin-bottom: 16px;
-}
-
-.preview-meta {
-  display: flex;
-  gap: 16px;
-  margin-bottom: 24px;
-  padding-bottom: 16px;
-  border-bottom: 1px solid #e9ecef;
-}
-
-.preview-category {
-  background: #e9ecef;
-  color: #495057;
-  padding: 4px 12px;
-  border-radius: 20px;
-  font-size: 0.85rem;
-  font-weight: 500;
-}
-
-.preview-status {
-  padding: 4px 12px;
-  border-radius: 20px;
-  font-size: 0.85rem;
-  font-weight: 500;
-}
-
-.preview-status.published {
-  background: #d4edda;
-  color: #155724;
-}
-
-.preview-status.draft {
-  background: #fff3cd;
-  color: #856404;
-}
-
-.preview-summary {
-  font-size: 1.1rem;
-  color: #6c757d;
-  margin-bottom: 24px;
-  padding: 16px;
-  background: #f8f9fa;
-  border-radius: 8px;
-  border-left: 4px solid #007bff;
-}
-
-.preview-body {
-  line-height: 1.8;
-  color: #2c3e50;
-}
-
-.preview-body h2 {
-  font-size: 1.8rem;
-  font-weight: 600;
-  margin: 32px 0 16px 0;
-  color: #2c3e50;
-}
-
-.preview-body p {
-  margin-bottom: 16px;
-}
-
-.preview-body ul, .preview-body ol {
-  margin-bottom: 16px;
-  padding-left: 24px;
-}
-
-.preview-body li {
-  margin-bottom: 8px;
-}
-
-.preview-body code {
-  background: #f8f9fa;
-  padding: 2px 6px;
-  border-radius: 4px;
-  font-family: 'Courier New', monospace;
-  font-size: 0.9rem;
-}
-
-.preview-body pre {
-  background: #f8f9fa;
-  padding: 16px;
-  border-radius: 8px;
-  overflow-x: auto;
-  margin: 16px 0;
-}
-
-.preview-body pre code {
-  background: none;
-  padding: 0;
-}
-
-.preview-body code {
-  background: #f8f9fa;
-  padding: 2px 6px;
-  border-radius: 4px;
-  font-family: 'Courier New', monospace;
-  font-size: 0.9rem;
-  color: #e83e8c;
-}
-
-.preview-body pre {
-  background: #f8f9fa;
-  padding: 16px;
-  border-radius: 8px;
-  overflow-x: auto;
-  margin: 16px 0;
-  border-left: 4px solid #007bff;
-}
-
-.preview-body blockquote {
-  border-left: 4px solid #007bff;
-  padding-left: 16px;
-  margin: 16px 0;
-  color: #6c757d;
-  font-style: italic;
-}
-
-.preview-body a {
-  color: #007bff;
-  text-decoration: none;
-}
-
-.preview-body a:hover {
-  text-decoration: underline;
-}
-
-.preview-body hr {
-  border: none;
-  height: 1px;
-  background: #e9ecef;
-  margin: 24px 0;
-}
-
-.form-sidebar {
-  width: 320px;
-  display: flex;
-  flex-direction: column;
-  gap: 24px;
-}
-
-.sidebar-section {
-  background: #ffffff;
-  border-radius: 8px;
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
-  padding: 24px;
-  border: 1px solid #e9ecef;
-}
-
-.sidebar-title {
-  font-size: 1.1rem;
-  font-weight: 600;
-  color: #2c3e50;
-  margin: 0 0 16px 0;
-}
-
-.setting-item {
-  margin-bottom: 16px;
-}
-
-.setting-label {
-  display: block;
-  font-size: 0.9rem;
-  font-weight: 600;
-  color: #495057;
-  margin-bottom: 6px;
-}
-
-.setting-input {
-  width: 100%;
-  padding: 12px 16px;
-  border: 2px solid #e9ecef;
-  border-radius: 8px;
-  font-size: 0.9rem;
-  background: white;
-  transition: all 0.3s ease;
-  box-sizing: border-box;
-}
-
-.setting-input:focus {
-  outline: none;
-  border-color: #495057;
-  box-shadow: 0 0 0 3px rgba(73, 80, 87, 0.1);
-  transform: translateY(-1px);
-}
-
-.help-text {
-  font-size: 0.8rem;
-  color: #6c757d;
-  margin-top: 4px;
-}
-
-.help-list {
-  display: flex;
-  flex-direction: column;
-  gap: 8px;
-}
-
-.help-item {
-  font-size: 0.85rem;
-  color: #495057;
-  padding: 8px 12px;
-  border-radius: 4px;
-  background: #f8f9fa;
-  margin-bottom: 6px;
-  border-left: 2px solid #007bff;
-}
-
-.help-item:last-child {
-  margin-bottom: 0;
-}
-
-.help-item strong {
-  display: inline;
-  font-weight: 600;
-  color: #2c3e50;
-  margin-right: 8px;
-}
-
-.help-item p {
-  display: inline;
-  margin: 0;
-  color: #6c757d;
-  font-size: 0.8rem;
-}
-
-.form-footer {
-  background: #ffffff;
-  border-top: 1px solid #e9ecef;
-  padding: 20px 32px;
-  display: flex;
-  justify-content: flex-end;
-  align-items: center;
-  position: sticky;
-  bottom: 0;
-  z-index: 100;
-  box-shadow: 0 -2px 8px rgba(0, 0, 0, 0.08);
-}
-
-.footer-left, .footer-right {
-  display: flex;
-  gap: 12px;
-}
-
-.btn-primary, .btn-secondary, .btn-danger, .btn-cancel {
-  padding: 12px 24px;
-  border: none;
-  border-radius: 12px;
-  font-size: 0.95rem;
-  font-weight: 600;
-  cursor: pointer;
-  transition: all 0.3s ease;
-  text-decoration: none;
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  position: relative;
-  overflow: hidden;
-}
-
-.btn-primary {
-  background: #495057;
-  color: white;
-  box-shadow: 0 2px 8px rgba(73, 80, 87, 0.2);
-}
-
-.btn-primary:hover:not(:disabled) {
-  transform: translateY(-1px);
-  box-shadow: 0 4px 12px rgba(73, 80, 87, 0.3);
-}
-
-.btn-primary:active {
-  transform: translateY(0);
-}
-
-.btn-primary:disabled {
-  background: #6c757d;
-  cursor: not-allowed;
-  transform: none;
-  box-shadow: none;
-}
-
-.btn-secondary {
-  background: #6c757d;
-  color: white;
-}
-
-.btn-secondary:hover {
-  background: #545b62;
-}
-
-.btn-danger {
-  background: #dc3545;
-  color: white;
-}
-
-.btn-danger:hover {
-  background: #c82333;
-}
-
-.btn-cancel {
-  background: #f8f9fa;
-  color: #6c757d;
-  border: 2px solid #e9ecef;
-}
-
-.btn-cancel:hover {
-  background: #e9ecef;
-  transform: translateY(-1px);
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
-}
-
-/* 다크모드 지원 */
-:global(body.dark-mode) .post-form-container {
-  background: #1a202c;
-}
-
-:global(body.dark-mode) .form-header,
-:global(body.dark-mode) .form-main,
-:global(body.dark-mode) .sidebar-section,
-:global(body.dark-mode) .form-footer {
-  background: #2d3748;
-  border-color: #4a5568;
-}
-
-:global(body.dark-mode) .form-title,
-:global(body.dark-mode) .sidebar-title {
-  color: #f7fafc;
-}
-
-:global(body.dark-mode) .admin-welcome {
-  color: #a0aec0;
-}
-
-:global(body.dark-mode) .title-input {
-  background: #2d3748;
-  color: #e2e8f0;
-  border-color: #4a5568;
-}
-
-:global(body.dark-mode) .title-input:focus {
-  border-color: #60a5fa;
-  box-shadow: 0 0 0 3px rgba(96, 165, 250, 0.2);
-}
-
-:global(body.dark-mode) .summary-input {
-  background: #2d3748;
-  color: #e2e8f0;
-  border-color: #4a5568;
-}
-
-:global(body.dark-mode) .summary-input:focus {
-  border-color: #60a5fa;
-  box-shadow: 0 0 0 3px rgba(96, 165, 250, 0.2);
-}
-
-:global(body.dark-mode) .content-input {
-  background: #1a202c;
-  color: #e2e8f0;
-  border-color: #4a5568;
-}
-
-:global(body.dark-mode) .content-input {
-  border-color: #4a5568 !important;
-  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2) !important;
-}
-
-:global(body.dark-mode) .content-input .tox-toolbar {
-  background: #2d3748 !important;
-  border-bottom-color: #4a5568 !important;
-}
-
-:global(body.dark-mode) .content-input .tox-toolbar__group {
-  border-right-color: #4a5568 !important;
-}
-
-:global(body.dark-mode) .content-input .tox-tbtn:hover {
-  background: #4a5568 !important;
-}
-
-:global(body.dark-mode) .content-input .tox-tbtn--enabled {
-  background: #4a5568 !important;
-  color: #e2e8f0 !important;
-}
-
-:global(body.dark-mode) .content-input .tox-edit-area {
-  background: #1a202c !important;
-  border-top-color: #4a5568 !important;
-}
-
-:global(body.dark-mode) .content-input .tox-edit-area__iframe {
-  background: #1a202c !important;
-}
-
-:global(body.dark-mode) .content-input .tox-edit-focus {
-  border-color: #60a5fa !important;
-  box-shadow: 0 0 0 3px rgba(96, 165, 250, 0.2) !important;
-}
-
-:global(body.dark-mode) .content-input .mce-content-body {
-  color: #e2e8f0 !important;
-}
-
-:global(body.dark-mode) .content-input .mce-content-body h1,
-:global(body.dark-mode) .content-input .mce-content-body h2,
-:global(body.dark-mode) .content-input .mce-content-body h3,
-:global(body.dark-mode) .content-input .mce-content-body h4,
-:global(body.dark-mode) .content-input .mce-content-body h5,
-:global(body.dark-mode) .content-input .mce-content-body h6 {
-  color: #f7fafc !important;
-}
-
-:global(body.dark-mode) .content-input .mce-content-body code {
-  background: #1a202c !important;
-  color: #fbb6ce !important;
-}
-
-:global(body.dark-mode) .content-input .mce-content-body pre {
-  background: #1a202c !important;
-  border-left-color: #60a5fa !important;
-}
-
-:global(body.dark-mode) .content-input .mce-content-body blockquote {
-  border-left-color: #60a5fa !important;
-  color: #a0aec0 !important;
-}
-
-:global(body.dark-mode) .content-input .mce-content-body a {
-  color: #60a5fa !important;
-}
-
-:global(body.dark-mode) .content-input .mce-content-body a:hover {
-  color: #93c5fd !important;
-}
-
-:global(body.dark-mode) .title-input::placeholder,
-:global(body.dark-mode) .summary-input::placeholder,
-:global(body.dark-mode) .content-input::placeholder {
-  color: #718096;
-}
-
-:global(body.dark-mode) .title-input:focus,
-:global(body.dark-mode) .summary-input:focus,
-:global(body.dark-mode) .content-input:focus {
-  border-color: #a0aec0;
-  box-shadow: 0 0 0 2px rgba(160,174,192,0.25);
-}
-
-:global(body.dark-mode) .meta-section {
-  background: #1a202c;
-}
-
-:global(body.dark-mode) .meta-label,
-:global(body.dark-mode) .publish-label {
-  color: #e2e8f0;
-}
-
-:global(body.dark-mode) .meta-select,
-:global(body.dark-mode) .setting-input {
-  background: #1a202c;
-  border-color: #4a5568;
-  color: #e2e8f0;
-}
-
-:global(body.dark-mode) .meta-select:focus,
-:global(body.dark-mode) .setting-input:focus {
-  border-color: #a0aec0;
-  box-shadow: 0 0 0 2px rgba(160,174,192,0.25);
-}
-
-:global(body.dark-mode) .custom-category-input {
-  background: #1a202c;
-  border-color: #4a5568;
-  color: #e2e8f0;
-}
-
-:global(body.dark-mode) .custom-category-input:focus {
-  border-color: #a0aec0;
-  box-shadow: 0 0 0 2px rgba(160,174,192,0.25);
-}
-
-:global(body.dark-mode) .tab-btn {
-  background: #1a202c;
-  color: #a0aec0;
-  border-color: #4a5568;
-}
-
-:global(body.dark-mode) .tab-btn.active {
-  background: #2d3748;
-  color: #a0aec0;
-  border-color: #a0aec0;
-}
-
-:global(body.dark-mode) .preview-title {
-  color: #f7fafc;
-}
-
-:global(body.dark-mode) .preview-body {
-  color: #e2e8f0;
-}
-
-:global(body.dark-mode) .preview-summary {
-  background: #1a202c;
-  color: #a0aec0;
-  border-left-color: #a0aec0;
-}
-
-:global(body.dark-mode) .help-item {
-  color: #e2e8f0;
-  background: #2d3748;
-  border-left-color: #60a5fa;
-}
-
-:global(body.dark-mode) .help-item strong {
-  color: #f7fafc;
-}
-
-:global(body.dark-mode) .help-item p {
-  color: #a0aec0;
-}
-
-:global(body.dark-mode) .preview-body code {
-  background: #1a202c;
-  color: #fbb6ce;
-}
-
-:global(body.dark-mode) .preview-body pre {
-  background: #1a202c;
-  border-left-color: #a0aec0;
-}
-
-:global(body.dark-mode) .preview-body blockquote {
-  border-left-color: #a0aec0;
-  color: #a0aec0;
-}
-
-:global(body.dark-mode) .preview-body a {
-  color: #60a5fa;
-}
-
-:global(body.dark-mode) .preview-body a:hover {
-  color: #93c5fd;
-}
-
-:global(body.dark-mode) .preview-body hr {
-  background: #4a5568;
-}
-
-:global(body.dark-mode) .btn-secondary {
-  background: #4a5568;
-  color: #e2e8f0;
-  border-color: #4a5568;
-}
-
-:global(body.dark-mode) .btn-secondary:hover {
-  background: #718096;
-  border-color: #718096;
-}
-
-:global(body.dark-mode) .btn-danger {
-  background: #c53030;
-  color: #fed7d7;
-  border-color: #c53030;
-}
-
-:global(body.dark-mode) .btn-danger:hover {
-  background: #e53e3e;
-  border-color: #e53e3e;
-}
-
-:global(body.dark-mode) .btn-cancel {
-  background: #4a5568;
-  color: #e2e8f0;
-  border-color: #4a5568;
-}
-
-:global(body.dark-mode) .btn-cancel:hover {
-  background: #718096;
-  border-color: #718096;
-}
-
-:global(body.dark-mode) .publish-checkbox {
-  accent-color: #a0aec0;
-}
-
-:global(body.dark-mode) .content-tabs {
-  background: #1a202c;
-  border-color: #4a5568;
-}
-
-:global(body.dark-mode) .write-area,
-:global(body.dark-mode) .preview-area {
-  background: #1a202c;
-  border-color: #4a5568;
 }
 
 /* 반응형 디자인 */
