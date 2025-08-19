@@ -39,6 +39,11 @@ public class AdminService {
                 .map(AdminDto::fromEntity);
     }
     
+    // 사용자명으로 관리자 엔티티 조회
+    public Optional<Admin> findAdminEntityByUsername(String username) {
+        return adminRepository.findByUsername(username);
+    }
+    
     // 관리자 저장
     public AdminDto saveAdmin(AdminDto adminDto) {
         Admin admin = adminDto.toEntity();

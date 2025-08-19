@@ -46,12 +46,18 @@ class ApiService {
       console.log('API Response headers:', response.headers);
       
       if (!response.ok) {
-        // 401 Unauthorized 에러 시 토큰 제거
+        // 401 Unauthorized 에러 시 토큰 제거 (Admin 사용자는 제외)
         if (response.status === 401) {
-          localStorage.removeItem('jwtToken');
-          localStorage.removeItem('userRole');
-          localStorage.removeItem('username');
-          localStorage.removeItem('adminToken');
+          const adminToken = localStorage.getItem('adminToken');
+          const userRole = localStorage.getItem('userRole');
+          
+          // Admin 사용자가 아닌 경우에만 토큰 제거
+          if (!adminToken && userRole !== 'ROLE_ADMIN') {
+            localStorage.removeItem('jwtToken');
+            localStorage.removeItem('userRole');
+            localStorage.removeItem('username');
+            localStorage.removeItem('adminToken');
+          }
         }
         
         // 응답 본문을 읽어서 더 자세한 에러 정보 제공

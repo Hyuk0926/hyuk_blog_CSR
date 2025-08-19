@@ -5,9 +5,11 @@ import com.example.hyuk_blog.dto.UserDto;
 import com.example.hyuk_blog.entity.Comment;
 import com.example.hyuk_blog.entity.PostType;
 import com.example.hyuk_blog.entity.User;
+import com.example.hyuk_blog.entity.Admin;
 import com.example.hyuk_blog.repository.CommentRepository;
 import com.example.hyuk_blog.service.CommentService;
 import com.example.hyuk_blog.service.UserService;
+import com.example.hyuk_blog.service.AdminService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
@@ -29,6 +31,11 @@ public class CommentApiController {
 
     @Autowired
     private UserService userService;
+    
+    @Autowired
+    private AdminService adminService;
+
+
 
     @Autowired
     private CommentRepository commentRepository;
@@ -42,41 +49,30 @@ public class CommentApiController {
             @PathVariable Long postId,
             @RequestParam("postType") String postTypeStr) {
 
-        System.out.println("=== GET COMMENTS METHOD ENTERED ===");
-        System.out.println("PostId: " + postId);
-        System.out.println("PostType: " + postTypeStr);
+
         
         // 파라미터 검증
         if (postId == null) {
-            System.out.println("ERROR: postId is null");
             return ResponseEntity.badRequest().body(List.of());
         }
         if (postTypeStr == null || postTypeStr.trim().isEmpty()) {
-            System.out.println("ERROR: postType is null or empty");
             return ResponseEntity.badRequest().body(List.of());
         }
 
         try {
-            System.out.println("Calling commentService.getCommentsByPost...");
-            // 수정된 서비스 메서드 호출
             List<CommentDto> comments = commentService.getCommentsByPost(postId, postTypeStr);
-            System.out.println("Comments found: " + comments.size());
             
             Map<String, Object> response = new HashMap<>();
             response.put("success", true);
             response.put("data", comments);
             return ResponseEntity.ok(response);
         } catch (IllegalArgumentException e) {
-            System.out.println("Invalid parameter in getComments: " + e.getMessage());
-            e.printStackTrace();
             Map<String, Object> response = new HashMap<>();
             response.put("success", false);
             response.put("message", "잘못된 파라미터입니다.");
             response.put("data", List.of());
             return ResponseEntity.status(400).body(response);
         } catch (Exception e) {
-            System.out.println("ERROR in getComments: " + e.getMessage());
-            e.printStackTrace();
             Map<String, Object> response = new HashMap<>();
             response.put("success", false);
             response.put("message", "댓글을 불러오는데 실패했습니다.");
@@ -96,11 +92,7 @@ public class CommentApiController {
             @RequestBody CommentDto commentDto,
             @AuthenticationPrincipal UserDetails userDetails) {
         
-        System.out.println("=== COMMENT CREATE METHOD ENTERED ===");
-        System.out.println("PostId: " + postId);
-        System.out.println("PostType: " + postTypeStr);
-        System.out.println("CommentDto: " + commentDto);
-        System.out.println("UserDetails: " + (userDetails != null ? userDetails.getUsername() : "null"));
+
         
         if (userDetails == null) {
             return ResponseEntity.status(401).body(Map.of("error", "로그인이 필요합니다."));
@@ -111,23 +103,51 @@ public class CommentApiController {
         }
 
         try {
-            // userDetails에서 username을 가져와 User 엔티티를 조회합니다.
-            User user = userService.findUserEntityByUsername(userDetails.getUsername())
-                    .orElseThrow(() -> new IllegalArgumentException("User not found"));
+            String username = userDetails.getUsername();
             
-            CommentDto createdComment = commentService.createComment(
-                postId, 
-                postTypeStr, 
-                commentDto.getContent().trim(), 
-                user.getId(), 
-                user.getNickname()
-            );
+            // 1. User 테이블에서 사용자 찾기
+            Optional<User> userOpt = userService.findUserEntityByUsername(username);
+            if (userOpt.isPresent()) {
+                User user = userOpt.get();
+                CommentDto createdComment = commentService.createComment(
+                    postId, 
+                    postTypeStr, 
+                    commentDto.getContent().trim(), 
+                    user.getId(), 
+                    user.getNickname()
+                );
 
-            Map<String, Object> response = new HashMap<>();
-            response.put("success", true);
-            response.put("message", "댓글이 작성되었습니다.");
-            response.put("data", createdComment);
-            return ResponseEntity.ok(response);
+                Map<String, Object> response = new HashMap<>();
+                response.put("success", true);
+                response.put("message", "댓글이 작성되었습니다.");
+                response.put("data", createdComment);
+                return ResponseEntity.ok(response);
+            }
+            
+            // 2. User 테이블에 없으면 Admin 테이블에서 확인
+            Optional<Admin> adminOpt = adminService.findAdminEntityByUsername(username);
+            if (adminOpt.isPresent()) {
+                Admin admin = adminOpt.get();
+                // Admin 사용자의 경우 User 테이블에 없는 ID를 사용하므로 
+                // CommentService에서 null로 처리되도록 함
+                CommentDto createdComment = commentService.createComment(
+                    postId, 
+                    postTypeStr, 
+                    commentDto.getContent().trim(), 
+                    admin.getId(), 
+                    admin.getUsername() // admin username을 nickname으로 사용
+                );
+
+                Map<String, Object> response = new HashMap<>();
+                response.put("success", true);
+                response.put("message", "댓글이 작성되었습니다.");
+                response.put("data", createdComment);
+                return ResponseEntity.ok(response);
+            }
+            
+            // 3. 둘 다 없으면 사용자를 찾을 수 없음
+            return ResponseEntity.status(404).body(Map.of("error", "사용자를 찾을 수 없습니다."));
+            
         } catch (jakarta.persistence.EntityNotFoundException e) {
             String errorMessage = e.getMessage();
             if (errorMessage.contains("PostKr not found") || errorMessage.contains("PostJp not found")) {
@@ -156,10 +176,7 @@ public class CommentApiController {
             @RequestBody CommentDto commentDto,
             @AuthenticationPrincipal UserDetails userDetails) {
         
-        System.out.println("=== COMMENT UPDATE METHOD ENTERED ===");
-        System.out.println("CommentId: " + commentId);
-        System.out.println("CommentDto: " + commentDto);
-        System.out.println("UserDetails: " + (userDetails != null ? userDetails.getUsername() : "null"));
+
         
         if (userDetails == null) {
             return ResponseEntity.status(401).body(Map.of("error", "로그인이 필요합니다."));
@@ -170,41 +187,37 @@ public class CommentApiController {
         }
 
         try {
-            // userDetails에서 username을 가져와 User 엔티티를 조회합니다.
-            User user = userService.findUserEntityByUsername(userDetails.getUsername())
-                    .orElseThrow(() -> new IllegalArgumentException("User not found"));
+            String username = userDetails.getUsername();
             
-            boolean updated = commentService.updateComment(commentId, user.getId(), commentDto.getContent().trim());
+            // 1. User 테이블에서 사용자 찾기
+            Optional<User> userOpt = userService.findUserEntityByUsername(username);
+            if (userOpt.isPresent()) {
+                User user = userOpt.get();
+                boolean updated = commentService.updateComment(commentId, user.getId(), commentDto.getContent().trim());
 
-            if (updated) {
-                // 수정된 댓글 정보를 반환
-                Optional<Comment> updatedComment = commentRepository.findById(commentId);
-                if (updatedComment.isPresent()) {
-                    // CommentService의 convertToDto 메서드를 사용하기 위해 새로운 CommentDto 생성
-                    Comment comment = updatedComment.get();
-                    CommentDto updatedCommentDto = new CommentDto();
-                    updatedCommentDto.setId(comment.getId());
-                    updatedCommentDto.setContent(comment.getContent());
-                    updatedCommentDto.setNickname(comment.getNickname());
-                    updatedCommentDto.setUserId(comment.getUser().getId());
-                    updatedCommentDto.setCreatedAt(comment.getCreatedAt());
-                    updatedCommentDto.setUpdatedAt(comment.getUpdatedAt());
-                    updatedCommentDto.setEdited(comment.getUpdatedAt() != null && !comment.getUpdatedAt().equals(comment.getCreatedAt()));
-                    
-                    Map<String, Object> response = new HashMap<>();
-                    response.put("success", true);
-                    response.put("message", "댓글이 수정되었습니다.");
-                    response.put("data", updatedCommentDto);
-                    return ResponseEntity.ok(response);
+                if (updated) {
+                    return ResponseEntity.ok(Map.of("success", true, "message", "댓글이 수정되었습니다."));
                 } else {
-                    Map<String, Object> response = new HashMap<>();
-                    response.put("success", true);
-                    response.put("message", "댓글이 수정되었습니다.");
-                    return ResponseEntity.ok(response);
+                    return ResponseEntity.status(403).body(Map.of("error", "댓글을 수정할 권한이 없습니다."));
                 }
-            } else {
-                return ResponseEntity.status(403).body(Map.of("error", "댓글을 수정할 권한이 없습니다."));
             }
+            
+            // 2. User 테이블에 없으면 Admin 테이블에서 확인
+            Optional<Admin> adminOpt = adminService.findAdminEntityByUsername(username);
+            if (adminOpt.isPresent()) {
+                Admin admin = adminOpt.get();
+                boolean updated = commentService.updateComment(commentId, admin.getId(), commentDto.getContent().trim());
+
+                if (updated) {
+                    return ResponseEntity.ok(Map.of("success", true, "message", "댓글이 수정되었습니다."));
+                } else {
+                    return ResponseEntity.status(403).body(Map.of("error", "댓글을 수정할 권한이 없습니다."));
+                }
+            }
+            
+            // 3. 둘 다 없으면 사용자를 찾을 수 없음
+            return ResponseEntity.status(404).body(Map.of("error", "사용자를 찾을 수 없습니다."));
+            
         } catch (Exception e) {
             System.err.println("Error in updateComment: " + e.getMessage());
             e.printStackTrace();
@@ -221,39 +234,44 @@ public class CommentApiController {
             @PathVariable Long commentId,
             @AuthenticationPrincipal UserDetails userDetails) {
         
-        System.out.println("=== COMMENT DELETE METHOD ENTERED ===");
-        System.out.println("CommentId: " + commentId);
-        System.out.println("UserDetails: " + (userDetails != null ? userDetails.getUsername() : "null"));
-        
         if (userDetails == null) {
-            System.out.println("ERROR: UserDetails is null - returning 401");
             return ResponseEntity.status(401).body(Map.of("error", "로그인이 필요합니다."));
         }
 
         try {
-            // userDetails에서 username을 가져와 User 엔티티를 조회합니다.
-            User user = userService.findUserEntityByUsername(userDetails.getUsername())
-                    .orElseThrow(() -> new IllegalArgumentException("User not found"));
+            String username = userDetails.getUsername();
             
-            System.out.println("Found user: " + user.getUsername() + " (ID: " + user.getId() + ")");
-            
-            boolean deleted = commentService.deleteComment(commentId, user.getId());
-            System.out.println("Delete result: " + deleted);
-
-            if (deleted) {
-                System.out.println("Comment deleted successfully");
-                Map<String, Object> response = new HashMap<>();
-                response.put("success", true);
-                response.put("message", "댓글이 삭제되었습니다.");
-                return ResponseEntity.ok(response);
-            } else {
-                System.out.println("ERROR: No permission to delete comment");
-                return ResponseEntity.status(403).body(Map.of("error", "댓글을 삭제할 권한이 없습니다."));
+            // 1. User 테이블에서 사용자 찾기
+            Optional<User> userOpt = userService.findUserEntityByUsername(username);
+            if (userOpt.isPresent()) {
+                User user = userOpt.get();
+                boolean deleted = commentService.deleteComment(commentId, user.getId());
+                
+                if (deleted) {
+                    return ResponseEntity.ok(Map.of("success", true, "message", "댓글이 삭제되었습니다."));
+                } else {
+                    return ResponseEntity.status(403).body(Map.of("error", "댓글을 삭제할 권한이 없습니다."));
+                }
             }
+            
+            // 2. User 테이블에 없으면 Admin 테이블에서 확인
+            Optional<Admin> adminOpt = adminService.findAdminEntityByUsername(username);
+            if (adminOpt.isPresent()) {
+                Admin admin = adminOpt.get();
+                boolean deleted = commentService.deleteComment(commentId, admin.getId());
+                
+                if (deleted) {
+                    return ResponseEntity.ok(Map.of("success", true, "message", "댓글이 삭제되었습니다."));
+                } else {
+                    return ResponseEntity.status(403).body(Map.of("error", "댓글을 삭제할 권한이 없습니다."));
+                }
+            }
+            
+            // 3. 둘 다 없으면 사용자를 찾을 수 없음
+            return ResponseEntity.status(404).body(Map.of("error", "사용자를 찾을 수 없습니다."));
+            
         } catch (Exception e) {
-            System.err.println("Error in deleteComment: " + e.getMessage());
-            e.printStackTrace();
-            return ResponseEntity.status(500).body(Map.of("error", "댓글 삭제 중 오류가 발생했습니다: " + e.getMessage()));
+            return ResponseEntity.status(500).body(Map.of("error", "댓글 삭제 중 오류가 발생했습니다."));
         }
     }
 }

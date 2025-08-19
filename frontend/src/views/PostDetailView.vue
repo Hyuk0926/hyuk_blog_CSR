@@ -81,7 +81,7 @@
       
       <!-- 댓글 목록 -->
       <div id="comment-list" class="flex flex-col gap-5 mb-8">
-        <div v-for="comment in comments" :key="comment.id" class="bg-white rounded-lg p-5 border border-gray-200 w-full box-border transition-all duration-200 hover:bg-gray-50 dark:bg-gray-800 dark:border-gray-700 dark:hover:bg-gray-700">
+        <div v-for="comment in comments" :key="comment.id" class="group bg-white rounded-lg p-5 border border-gray-200 w-full box-border transition-all duration-200 hover:bg-gray-50 dark:bg-gray-800 dark:border-gray-700 dark:hover:bg-gray-700">
           <div class="flex justify-between items-start mb-4">
             <div class="flex flex-col gap-1.5">
               <div class="font-semibold text-gray-900 text-sm dark:text-white">{{ comment.nickname }}</div>
@@ -578,7 +578,11 @@ const handleEditCommentKeydown = (event) => {
 const canEditComment = (comment) => {
   if (!user.value) return false;
   
-  // 다양한 사용자 ID 필드명에 대응
+  // admin 사용자는 모든 댓글을 편집/삭제할 수 있음
+  const isAdmin = user.value.username === 'admin' || user.value.username === 'admin_jp';
+  if (isAdmin) return true;
+  
+  // 일반 사용자는 자신의 댓글만 편집/삭제할 수 있음
   const commentUserId = comment.userId || comment.user_id || comment.user?.id;
   const commentUsername = comment.username || comment.user?.username;
   const commentNickname = comment.nickname || comment.user?.nickname;
@@ -601,12 +605,17 @@ const deleteCommentDirectly = async (commentId) => {
     
     const response = await apiService.deleteComment(commentId);
     console.log('Delete API response:', response);
+    console.log('Response type:', typeof response);
+    console.log('Response success:', response?.success);
+    console.log('Response message:', response?.message);
     
-    if (response && (response.success || response === true || response.message)) {
+    if (response && (response.success === true || response === true || response.message)) {
+      console.log('Comment deletion successful, updating local state');
       // 로컬 상태에서 댓글 제거
       comments.value = comments.value.filter(c => c.id !== commentId);
       showNotification('댓글이 삭제되었습니다.');
     } else {
+      console.log('Comment deletion failed or unexpected response format');
       showNotification(response?.message || '댓글 삭제 중 오류가 발생했습니다.');
     }
   } catch (error) {
@@ -617,11 +626,10 @@ const deleteCommentDirectly = async (commentId) => {
       name: error.name
     });
     
+    // 401 에러가 발생해도 로그인 페이지로 이동하지 않고 에러 메시지만 표시
     if (error.message && error.message.includes('401')) {
-      console.log('401 Unauthorized error - redirecting to login');
-      showNotification('인증이 만료되었습니다. 다시 로그인해주세요.');
-      // 로그인 페이지로 리다이렉트
-      router.push('/user/login');
+      console.log('401 Unauthorized error - showing error message only');
+      showNotification('댓글 삭제 중 인증 오류가 발생했습니다.');
     } else if (error.message && error.message.includes('403')) {
       showNotification('댓글을 삭제할 권한이 없습니다.');
     } else {
@@ -640,7 +648,7 @@ const confirmDeleteComment = (commentId) => {
     const modalTitle = document.getElementById('modal-title');
     const modalMessage = document.getElementById('modal-message');
     const modal = document.getElementById('login-confirm-modal');
-    const confirmBtn = document.querySelector('.modal-btn.confirm');
+    const confirmBtn = modal ? modal.querySelector('button:last-child') : null; // 두 번째 버튼 (확인 버튼)
     
     if (!modalTitle || !modalMessage || !modal || !confirmBtn) {
       console.error('Modal elements not found');
@@ -659,13 +667,19 @@ const confirmDeleteComment = (commentId) => {
     modal.style.display = 'flex';
     
     // 확인 버튼에 삭제 이벤트 연결
-    const originalOnClick = confirmBtn.onclick;
+    // Vue의 이벤트 리스너도 제거
+    confirmBtn.removeAttribute('onclick');
+    const newConfirmBtn = confirmBtn.cloneNode(true);
+    confirmBtn.parentNode.replaceChild(newConfirmBtn, confirmBtn);
     
-    confirmBtn.onclick = async () => {
-      await deleteCommentDirectly(commentId);
-      closeLoginModal();
-      // 원래 이벤트 복원
-      confirmBtn.onclick = originalOnClick;
+    newConfirmBtn.onclick = async () => {
+      try {
+        await deleteCommentDirectly(commentId);
+        closeLoginModal();
+      } catch (error) {
+        console.error('Error in confirmBtn.onclick:', error);
+        closeLoginModal();
+      }
     };
   });
 };
@@ -740,6 +754,9 @@ const setupCodeCopy = () => {
       block.parentNode.insertBefore(wrapper, block);
       wrapper.appendChild(block);
       
+      // 코드 블록의 언어/기능에 따른 색상 적용
+      applyCodeBlockStyling(block, wrapper);
+      
       const copyBtn = document.createElement('button');
       copyBtn.className = 'copy-btn absolute top-2 right-2 bg-white/10 backdrop-blur-sm text-gray-400 border border-white/20 rounded-lg p-2 text-xs cursor-pointer opacity-30 z-10 transition-all duration-300 font-medium min-w-8 h-8 flex items-center justify-center hover:bg-white/20 hover:text-white hover:border-white/30 hover:-translate-y-0.5 hover:shadow-lg active:translate-y-0 active:transition-all active:duration-100 disabled:opacity-50 disabled:cursor-not-allowed disabled:transform-none';
       copyBtn.innerHTML = `
@@ -763,6 +780,98 @@ const setupCodeCopy = () => {
       });
     });
   });
+};
+
+// 코드 블록의 기능별 색상 적용
+const applyCodeBlockStyling = (block, wrapper) => {
+  const codeElement = block.querySelector('code');
+  if (!codeElement) return;
+  
+  // 클래스명에서 언어/기능 추출
+  const classNames = codeElement.className || '';
+  const languageMatch = classNames.match(/language-(\w+)/);
+  const language = languageMatch ? languageMatch[1] : '';
+  
+  // 기능별 색상 매핑
+  const colorMap = {
+    // 프론트엔드
+    'javascript': { border: 'border-blue-500', bg: 'bg-blue-50', text: 'text-blue-700' },
+    'js': { border: 'border-blue-500', bg: 'bg-blue-50', text: 'text-blue-700' },
+    'typescript': { border: 'border-blue-600', bg: 'bg-blue-50', text: 'text-blue-700' },
+    'ts': { border: 'border-blue-600', bg: 'bg-blue-50', text: 'text-blue-700' },
+    'vue': { border: 'border-green-500', bg: 'bg-green-50', text: 'text-green-700' },
+    'html': { border: 'border-orange-500', bg: 'bg-orange-50', text: 'text-orange-700' },
+    'css': { border: 'border-purple-500', bg: 'bg-purple-50', text: 'text-purple-700' },
+    'scss': { border: 'border-pink-500', bg: 'bg-pink-50', text: 'text-pink-700' },
+    'sass': { border: 'border-pink-500', bg: 'bg-pink-50', text: 'text-pink-700' },
+    
+    // 백엔드
+    'java': { border: 'border-red-500', bg: 'bg-red-50', text: 'text-red-700' },
+    'spring': { border: 'border-green-600', bg: 'bg-green-50', text: 'text-green-700' },
+    'python': { border: 'border-yellow-500', bg: 'bg-yellow-50', text: 'text-yellow-700' },
+    'sql': { border: 'border-indigo-500', bg: 'bg-indigo-50', text: 'text-indigo-700' },
+    'mysql': { border: 'border-indigo-500', bg: 'bg-indigo-50', text: 'text-indigo-700' },
+    
+    // 기타
+    'bash': { border: 'border-gray-500', bg: 'bg-gray-50', text: 'text-gray-700' },
+    'shell': { border: 'border-gray-500', bg: 'bg-gray-50', text: 'text-gray-700' },
+    'json': { border: 'border-yellow-600', bg: 'bg-yellow-50', text: 'text-yellow-700' },
+    'xml': { border: 'border-orange-600', bg: 'bg-orange-50', text: 'text-orange-700' },
+    'yaml': { border: 'border-blue-500', bg: 'bg-blue-50', text: 'text-blue-700' },
+    'yml': { border: 'border-blue-500', bg: 'bg-blue-50', text: 'text-blue-700' }
+  };
+  
+  // 다크모드 색상 매핑
+  const darkColorMap = {
+    'javascript': { border: 'dark:border-blue-400', bg: 'dark:bg-blue-900/20', text: 'dark:text-blue-300' },
+    'js': { border: 'dark:border-blue-400', bg: 'dark:bg-blue-900/20', text: 'dark:text-blue-300' },
+    'typescript': { border: 'dark:border-blue-400', bg: 'dark:bg-blue-900/20', text: 'dark:text-blue-300' },
+    'ts': { border: 'dark:border-blue-400', bg: 'dark:bg-blue-900/20', text: 'dark:text-blue-300' },
+    'vue': { border: 'dark:border-green-400', bg: 'dark:bg-green-900/20', text: 'dark:text-green-300' },
+    'html': { border: 'dark:border-orange-400', bg: 'dark:bg-orange-900/20', text: 'dark:text-orange-300' },
+    'css': { border: 'dark:border-purple-400', bg: 'dark:bg-purple-900/20', text: 'dark:text-purple-300' },
+    'scss': { border: 'dark:border-pink-400', bg: 'dark:bg-pink-900/20', text: 'dark:text-pink-300' },
+    'sass': { border: 'dark:border-pink-400', bg: 'dark:bg-pink-900/20', text: 'dark:text-pink-300' },
+    'java': { border: 'dark:border-red-400', bg: 'dark:bg-red-900/20', text: 'dark:text-red-300' },
+    'spring': { border: 'dark:border-green-400', bg: 'dark:bg-green-900/20', text: 'dark:text-green-300' },
+    'python': { border: 'dark:border-yellow-400', bg: 'dark:bg-yellow-900/20', text: 'dark:text-yellow-300' },
+    'sql': { border: 'dark:border-indigo-400', bg: 'dark:bg-indigo-900/20', text: 'dark:text-indigo-300' },
+    'mysql': { border: 'dark:border-indigo-400', bg: 'dark:bg-indigo-900/20', text: 'dark:text-indigo-300' },
+    'bash': { border: 'dark:border-gray-400', bg: 'dark:bg-gray-900/20', text: 'dark:text-gray-300' },
+    'shell': { border: 'dark:border-gray-400', bg: 'dark:bg-gray-900/20', text: 'dark:text-gray-300' },
+    'json': { border: 'dark:border-yellow-400', bg: 'dark:bg-yellow-900/20', text: 'dark:text-yellow-300' },
+    'xml': { border: 'dark:border-orange-400', bg: 'dark:bg-orange-900/20', text: 'dark:text-orange-300' },
+    'yaml': { border: 'dark:border-blue-400', bg: 'dark:bg-blue-900/20', text: 'dark:text-blue-300' },
+    'yml': { border: 'dark:border-blue-400', bg: 'dark:bg-blue-900/20', text: 'dark:text-blue-300' }
+  };
+  
+  if (colorMap[language]) {
+    const colors = colorMap[language];
+    const darkColors = darkColorMap[language];
+    
+    // 라이트모드 스타일 적용
+    wrapper.classList.add(
+      'border-l-4', 
+      colors.border, 
+      colors.bg, 
+      colors.text
+    );
+    
+    // 다크모드 스타일 적용
+    if (darkColors) {
+      wrapper.classList.add(
+        darkColors.border,
+        darkColors.bg,
+        darkColors.text
+      );
+    }
+    
+    // 언어 라벨 추가
+    const languageLabel = document.createElement('div');
+    languageLabel.className = `absolute top-2 left-2 px-2 py-1 text-xs font-medium rounded ${colors.bg} ${colors.text} ${darkColors ? darkColors.bg + ' ' + darkColors.text : ''}`;
+    languageLabel.textContent = language.toUpperCase();
+    wrapper.appendChild(languageLabel);
+  }
 };
 
 const copyCode = (block, btn) => {
@@ -833,6 +942,109 @@ onUnmounted(() => {
 /* 코드 복사 버튼 스타일 - Tailwind CSS로 대체되었으므로 최소한의 스타일만 유지 */
 .code-block-wrapper {
   position: relative;
+  margin: 1.5rem 0;
+  border-radius: 0.5rem;
+  overflow: hidden;
+  transition: all 0.3s ease;
+}
+
+.code-block-wrapper:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 10px 25px rgba(0, 0, 0, 0.1);
+}
+
+.code-block-wrapper pre {
+  margin: 0;
+  padding: 1rem;
+  padding-top: 3rem;
+  background: #1e293b;
+  color: #e2e8f0;
+  font-family: 'Fira Code', 'Monaco', 'Consolas', monospace;
+  font-size: 0.875rem;
+  line-height: 1.6;
+  overflow-x: auto;
+}
+
+.code-block-wrapper pre code {
+  background: transparent;
+  padding: 0;
+  border-radius: 0;
+  font-size: inherit;
+  color: inherit;
+}
+
+/* 언어 라벨 스타일 */
+.code-block-wrapper .language-label {
+  position: absolute;
+  top: 0.5rem;
+  left: 0.5rem;
+  padding: 0.25rem 0.5rem;
+  font-size: 0.75rem;
+  font-weight: 600;
+  border-radius: 0.25rem;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  z-index: 10;
+}
+
+/* 복사 버튼 스타일 */
+.copy-btn {
+  position: absolute;
+  top: 0.5rem;
+  right: 0.5rem;
+  padding: 0.5rem;
+  background: rgba(255, 255, 255, 0.1);
+  backdrop-filter: blur(8px);
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  border-radius: 0.375rem;
+  color: #94a3b8;
+  cursor: pointer;
+  opacity: 0.3;
+  transition: all 0.3s ease;
+  z-index: 10;
+  min-width: 2rem;
+  height: 2rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.copy-btn:hover {
+  background: rgba(255, 255, 255, 0.2);
+  color: white;
+  border-color: rgba(255, 255, 255, 0.3);
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+  opacity: 1;
+}
+
+.copy-btn:active {
+  transform: translateY(0);
+  transition: all 0.1s ease;
+}
+
+.copy-btn:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+  transform: none;
+}
+
+/* 다크모드 스타일 */
+.dark .code-block-wrapper pre {
+  background: #0f172a;
+  color: #cbd5e1;
+}
+
+.dark .copy-btn {
+  background: rgba(0, 0, 0, 0.3);
+  border-color: rgba(255, 255, 255, 0.1);
+  color: #64748b;
+}
+
+.dark .copy-btn:hover {
+  background: rgba(0, 0, 0, 0.5);
+  color: #e2e8f0;
+  border-color: rgba(255, 255, 255, 0.2);
 }
 
 /* 모달 애니메이션 */
@@ -863,6 +1075,23 @@ onUnmounted(() => {
   
   .self-end {
     align-self: flex-end;
+  }
+  
+  .code-block-wrapper pre {
+    font-size: 0.75rem;
+    padding: 0.75rem;
+    padding-top: 2.5rem;
+  }
+  
+  .copy-btn {
+    min-width: 1.75rem;
+    height: 1.75rem;
+    padding: 0.375rem;
+  }
+  
+  .language-label {
+    font-size: 0.625rem;
+    padding: 0.125rem 0.375rem;
   }
 }
 

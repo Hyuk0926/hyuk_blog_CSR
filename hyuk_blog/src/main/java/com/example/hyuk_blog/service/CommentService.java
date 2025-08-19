@@ -6,10 +6,12 @@ import com.example.hyuk_blog.entity.PostKr;
 import com.example.hyuk_blog.entity.PostJp;
 import com.example.hyuk_blog.entity.PostType;
 import com.example.hyuk_blog.entity.User;
+import com.example.hyuk_blog.entity.Admin;
 import com.example.hyuk_blog.repository.CommentRepository;
 import com.example.hyuk_blog.repository.PostKrRepository;
 import com.example.hyuk_blog.repository.PostJpRepository;
 import com.example.hyuk_blog.repository.UserRepository;
+import com.example.hyuk_blog.repository.AdminRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -40,34 +42,29 @@ public class CommentService {
     @Autowired
     private UserRepository userRepository;
     
+    @Autowired
+    private AdminRepository adminRepository;
+    
+
+    
     // 게시글 댓글 조회 (통합 메서드)
     @Transactional(readOnly = true)
     public List<CommentDto> getCommentsByPost(Long postId, String postTypeStr) {
         try {
-            System.out.println("CommentService.getCommentsByPost - postId: " + postId + ", postTypeStr: " + postTypeStr);
-            PostType postType = PostType.valueOf(postTypeStr.toUpperCase()); // 서비스 내부에서 변환
-            System.out.println("CommentService.getCommentsByPost - converted postType: " + postType);
+            PostType postType = PostType.valueOf(postTypeStr.toUpperCase());
             logger.info("Getting comments for postId: {}, postType: {}", postId, postType);
             List<Comment> comments;
             if (postType == PostType.KR) {
-                System.out.println("CommentService.getCommentsByPost - calling findByPostKrIdOrderByCreatedAtAsc");
                 comments = commentRepository.findByPostKrIdOrderByCreatedAtAsc(postId);
             } else {
-                System.out.println("CommentService.getCommentsByPost - calling findByPostJpIdOrderByCreatedAtAsc");
                 comments = commentRepository.findByPostJpIdOrderByCreatedAtAsc(postId);
             }
-            System.out.println("CommentService.getCommentsByPost - comments.size: " + comments.size());
             logger.info("Found {} comments", comments.size());
-            // 서비스 내에서 DTO 변환을 완료하여 LazyInitializationException 방지
-            List<CommentDto> result = comments.stream()
+            return comments.stream()
                 .map(this::convertToDto)
-                .filter(dto -> dto != null) // null DTO 필터링
+                .filter(dto -> dto != null)
                 .collect(Collectors.toList());
-            System.out.println("CommentService.getCommentsByPost - result.size: " + result.size());
-            return result;
         } catch (Exception e) {
-            System.out.println("CommentService.getCommentsByPost - ERROR: " + e.getMessage());
-            e.printStackTrace();
             logger.error("Error getting comments for postId: {}, postType: {}", postId, postTypeStr, e);
             throw e;
         }
@@ -99,10 +96,16 @@ public class CommentService {
             comment.setNickname(nickname);
             comment.setPostType(postType);
             
-            // User 엔티티를 찾아서 설정
-            User user = userRepository.findById(userId)
-                .orElseThrow(() -> new EntityNotFoundException("User not found with id: " + userId));
-            comment.setUser(user);
+            // User 엔티티를 찾아서 설정 (Admin 사용자의 경우 null로 설정)
+            try {
+                User user = userRepository.findById(userId)
+                    .orElseThrow(() -> new EntityNotFoundException("User not found with id: " + userId));
+                comment.setUser(user);
+            } catch (EntityNotFoundException e) {
+                // Admin 사용자의 경우 User를 null로 설정
+                logger.info("User not found, treating as admin user: {}", userId);
+                comment.setUser(null);
+            }
             
             // 게시글 타입에 따라 연결
             if (postType == PostType.KR) {
@@ -141,7 +144,10 @@ public class CommentService {
             Comment comment = commentOpt.get();
             
             // 댓글 작성자이거나 admin 계정인 경우 수정 가능
-            if (userId.equals(comment.getUser() != null ? comment.getUser().getId() : null) || isAdminUser(userId)) {
+            boolean isAuthor = comment.getUser() != null && userId.equals(comment.getUser().getId());
+            boolean isAdmin = isAdminUser(userId);
+            
+            if (isAuthor || isAdmin) {
                 comment.setContent(newContent.trim());
                 commentRepository.save(comment);
                 return true;
@@ -152,15 +158,27 @@ public class CommentService {
     
     @Transactional
     public boolean deleteComment(Long commentId, Long userId) {
+        logger.info("CommentService.deleteComment - commentId: {}, userId: {}", commentId, userId);
+        
         Optional<Comment> commentOpt = commentRepository.findById(commentId);
         if (commentOpt.isPresent()) {
             Comment comment = commentOpt.get();
             
             // 댓글 작성자이거나 admin 계정인 경우 삭제 가능
-            if (userId.equals(comment.getUser() != null ? comment.getUser().getId() : null) || isAdminUser(userId)) {
+            boolean isAuthor = comment.getUser() != null && userId.equals(comment.getUser().getId());
+            boolean isAdmin = isAdminUser(userId);
+            
+            logger.info("CommentService.deleteComment - isAuthor: {}, isAdmin: {}", isAuthor, isAdmin);
+            
+            if (isAuthor || isAdmin) {
                 commentRepository.delete(comment);
+                logger.info("CommentService.deleteComment - Comment deleted successfully");
                 return true;
+            } else {
+                logger.warn("CommentService.deleteComment - No permission to delete comment");
             }
+        } else {
+            logger.warn("CommentService.deleteComment - Comment not found");
         }
         return false;
     }
@@ -189,7 +207,33 @@ public class CommentService {
     
     // admin 계정인지 확인하는 메서드
     private boolean isAdminUser(Long userId) {
-        return userId != null && (userId == 1 || userId == 2); // admin, admin_jp 계정 ID
+        logger.info("CommentService.isAdminUser - checking userId: {}", userId);
+        if (userId == null) return false;
+        
+        // 1. UserRepository에서 확인
+        Optional<User> userOpt = userRepository.findById(userId);
+        if (userOpt.isPresent()) {
+            String username = userOpt.get().getUsername();
+            logger.info("CommentService.isAdminUser - found in User table: {}", username);
+            if ("admin".equals(username) || "admin_jp".equals(username)) {
+                logger.info("CommentService.isAdminUser - User is admin: true");
+                return true;
+            }
+        }
+        
+        // 2. AdminRepository에서 확인
+        Optional<Admin> adminOpt = adminRepository.findById(userId);
+        if (adminOpt.isPresent()) {
+            String username = adminOpt.get().getUsername();
+            logger.info("CommentService.isAdminUser - found in Admin table: {}", username);
+            if ("admin".equals(username) || "admin_jp".equals(username)) {
+                logger.info("CommentService.isAdminUser - Admin is admin: true");
+                return true;
+            }
+        }
+        
+        logger.info("CommentService.isAdminUser - User is not admin: false");
+        return false;
     }
     
     private CommentDto convertToDto(Comment comment) {

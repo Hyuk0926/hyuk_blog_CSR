@@ -24,6 +24,7 @@ public class PostDto {
     private String contentKo; // 한국어 내용 추가
     private String contentJa; // 일본어 내용 추가
     private String imageUrl;
+    private String tags; // 태그 추가
     private boolean published;
     private Category category;
     private LocalDateTime createdAt;
@@ -36,28 +37,36 @@ public class PostDto {
     public static PostDto fromKrEntity(PostKr post) {
         PostDto dto = new PostDto();
         dto.setId(post.getId());
-        dto.setTitleKo(post.getTitle());
-        dto.setImageUrl(post.getImageUrl());
+        dto.setTitleKo(post.getTitle() != null ? post.getTitle() : "");
+        dto.setImageUrl(post.getImageUrl() != null ? post.getImageUrl() : "");
         dto.setPublished(post.isPublished());
         dto.setCategory(post.getCategory());
         dto.setCreatedAt(post.getCreatedAt());
         dto.setUpdatedAt(post.getUpdatedAt());
-        dto.setSummaryKo(post.getSummary());
-        dto.setContentKo(post.getContent());
+        dto.setSummaryKo(post.getSummary() != null ? post.getSummary() : "");
+        dto.setContentKo(post.getContent() != null ? post.getContent() : "");
+        dto.setTags(""); // 엔티티에 tags 필드가 없으므로 빈 문자열로 설정
+        dto.setLang("ko"); // 언어 정보 추가
+        dto.setLikeCount(0L); // 기본값 설정
+        dto.setCommentCount(0L); // 기본값 설정
         return dto;
     }
     // PostJp Entity를 DTO로 변환
     public static PostDto fromJpEntity(PostJp post) {
         PostDto dto = new PostDto();
         dto.setId(post.getId());
-        dto.setTitleJa(post.getTitle());
-        dto.setImageUrl(post.getImageUrl());
+        dto.setTitleJa(post.getTitle() != null ? post.getTitle() : "");
+        dto.setImageUrl(post.getImageUrl() != null ? post.getImageUrl() : "");
         dto.setPublished(post.isPublished());
         dto.setCategory(post.getCategory());
         dto.setCreatedAt(post.getCreatedAt());
         dto.setUpdatedAt(post.getUpdatedAt());
-        dto.setSummaryJa(post.getSummary());
-        dto.setContentJa(post.getContent());
+        dto.setSummaryJa(post.getSummary() != null ? post.getSummary() : "");
+        dto.setContentJa(post.getContent() != null ? post.getContent() : "");
+        dto.setTags(""); // 엔티티에 tags 필드가 없으므로 빈 문자열로 설정
+        dto.setLang("ja"); // 언어 정보 추가
+        dto.setLikeCount(0L); // 기본값 설정
+        dto.setCommentCount(0L); // 기본값 설정
         return dto;
     }
     // DTO를 PostKr Entity로 변환
@@ -70,6 +79,7 @@ public class PostDto {
         post.setImageUrl(this.imageUrl);
         post.setPublished(this.published);
         post.setCategory(this.category);
+        // tags는 엔티티에 필드가 없으므로 설정하지 않음
         return post;
     }
     // DTO를 PostJp Entity로 변환
@@ -82,6 +92,7 @@ public class PostDto {
         post.setImageUrl(this.imageUrl);
         post.setPublished(this.published);
         post.setCategory(this.category);
+        // tags는 엔티티에 필드가 없으므로 설정하지 않음
         return post;
     }
 

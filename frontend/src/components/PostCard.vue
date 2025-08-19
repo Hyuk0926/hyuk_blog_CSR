@@ -93,6 +93,9 @@ export default {
       default: false
     }
   },
+  mounted() {
+    // 컴포넌트 마운트 완료
+  },
   computed: {
     displayTitle() {
       return this.lang === 'ja' && this.post.titleJa ? this.post.titleJa : this.post.titleKo || this.post.title || '제목 없음';
@@ -129,25 +132,19 @@ export default {
       }
     },
     formatDate(dateString) {
-      if (!dateString) return '';
-      const date = new Date(dateString);
-      const now = new Date();
-      const diffTime = Math.abs(now - date);
-      const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
-      
-      if (diffDays === 1) {
-        return this.lang === 'ja' ? '今日' : '오늘';
-      } else if (diffDays <= 7) {
-        const days = diffDays - 1;
-        return this.lang === 'ja' ? `${days}日前` : `${days}일 전`;
-      } else {
-        const locale = this.lang === 'ja' ? 'ja-JP' : 'ko-KR';
-        return date.toLocaleDateString(locale, {
-          year: 'numeric',
-          month: '2-digit',
-          day: '2-digit'
-        });
+      if (!dateString) {
+        return '';
       }
+      
+      const date = new Date(dateString);
+      
+      // 유효한 날짜인지 확인
+      if (isNaN(date.getTime())) {
+        return '';
+      }
+      
+      // PostDetailView.vue와 동일한 형식으로 날짜 표시
+      return `${date.getFullYear()}년 ${String(date.getMonth() + 1).padStart(2, '0')}월 ${String(date.getDate()).padStart(2, '0')}일`;
     },
     getCategoryDisplayName(category) {
       const categoryMap = {

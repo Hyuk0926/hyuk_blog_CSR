@@ -13,6 +13,7 @@ import org.springframework.web.context.request.RequestContextHolder;
 import org.springframework.web.context.request.ServletRequestAttributes;
 import jakarta.servlet.http.HttpSession;
 
+import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
@@ -58,6 +59,7 @@ public class PostService {
                     PostDto dto = PostDto.fromJpEntity(post);
                     dto.setLikeCount(likeService.getLikeCount(post.getId(), String.valueOf(com.example.hyuk_blog.entity.PostType.JP)));
                     dto.setCommentCount(commentService.getCommentCountByPostJpId(post.getId()));
+                    dto.setTags(""); // 엔티티에 tags 필드가 없으므로 빈 문자열로 설정
                     dto.setLang("ja"); // 언어 정보 추가
                     return dto;
                 })
@@ -69,6 +71,7 @@ public class PostService {
                     PostDto dto = PostDto.fromKrEntity(post);
                     dto.setLikeCount(likeService.getLikeCount(post.getId(), String.valueOf(com.example.hyuk_blog.entity.PostType.KR)));
                     dto.setCommentCount(commentService.getCommentCountByPostKrId(post.getId()));
+                    dto.setTags(""); // 엔티티에 tags 필드가 없으므로 빈 문자열로 설정
                     dto.setLang("ko"); // 언어 정보 추가
                     return dto;
                 })
@@ -94,6 +97,7 @@ public class PostService {
                         PostDto dto = PostDto.fromJpEntity(post);
                         dto.setLikeCount(likeService.getLikeCount(post.getId(), String.valueOf(com.example.hyuk_blog.entity.PostType.JP)));
                         dto.setCommentCount(commentService.getCommentCountByPostJpId(post.getId()));
+                        dto.setTags(""); // 엔티티에 tags 필드가 없으므로 빈 문자열로 설정
                         dto.setLang("ja"); // 언어 정보 추가
                         return dto;
                     })
@@ -108,6 +112,7 @@ public class PostService {
                         PostDto dto = PostDto.fromKrEntity(post);
                         dto.setLikeCount(likeService.getLikeCount(post.getId(), String.valueOf(com.example.hyuk_blog.entity.PostType.KR)));
                         dto.setCommentCount(commentService.getCommentCountByPostKrId(post.getId()));
+                        dto.setTags(""); // 엔티티에 tags 필드가 없으므로 빈 문자열로 설정
                         dto.setLang("ko"); // 언어 정보 추가
                         return dto;
                     })
@@ -128,6 +133,7 @@ public class PostService {
                 PostDto dto = PostDto.fromJpEntity(post);
                 dto.setLikeCount(likeService.getLikeCount(post.getId(), String.valueOf(com.example.hyuk_blog.entity.PostType.JP)));
                 dto.setCommentCount(commentService.getCommentCountByPostJpId(post.getId()));
+                dto.setTags(""); // 엔티티에 tags 필드가 없으므로 빈 문자열로 설정
                 dto.setLang("ja"); // 언어 정보 추가
                 System.out.println("[PostService] Japanese post found - ID: " + dto.getId() + ", titleJa: " + dto.getTitleJa());
                 return dto;
@@ -138,6 +144,7 @@ public class PostService {
                 PostDto dto = PostDto.fromKrEntity(post);
                 dto.setLikeCount(likeService.getLikeCount(post.getId(), String.valueOf(com.example.hyuk_blog.entity.PostType.KR)));
                 dto.setCommentCount(commentService.getCommentCountByPostKrId(post.getId()));
+                dto.setTags(""); // 엔티티에 tags 필드가 없으므로 빈 문자열로 설정
                 dto.setLang("ko"); // 언어 정보 추가
                 System.out.println("[PostService] Korean post found - ID: " + dto.getId() + ", titleKo: " + dto.getTitleKo());
                 return dto;
@@ -150,12 +157,34 @@ public class PostService {
         // published 상태는 PostDto에서 받은 값을 그대로 사용 (임시저장 지원)
         if ("ja".equals(lang)) {
             // 오직 posts_jp에만 저장
-            PostJp saved = postJpRepository.save(postDto.toJpEntity());
-            return PostDto.fromJpEntity(saved);
+            PostJp post = postDto.toJpEntity();
+            // createdAt을 2025년 7월 29일로 설정
+            post.setCreatedAt(LocalDateTime.of(2025, 7, 29, 12, 0, 0));
+            post.setUpdatedAt(LocalDateTime.now());
+            
+            PostJp saved = postJpRepository.save(post);
+            PostDto dto = PostDto.fromJpEntity(saved);
+            // 새로 생성된 게시글의 좋아요 수와 댓글 수를 0으로 설정
+            dto.setLikeCount(0L);
+            dto.setCommentCount(0L);
+            dto.setTags(postDto.getTags()); // 원본 DTO에서 tags 가져오기
+            dto.setLang("ja");
+            return dto;
         } else if ("ko".equals(lang)) {
             // 오직 posts_kr에만 저장
-            PostKr saved = postKrRepository.save(postDto.toKrEntity());
-            return PostDto.fromKrEntity(saved);
+            PostKr post = postDto.toKrEntity();
+            // createdAt을 2025년 7월 29일로 설정
+            post.setCreatedAt(LocalDateTime.of(2025, 7, 29, 12, 0, 0));
+            post.setUpdatedAt(LocalDateTime.now());
+            
+            PostKr saved = postKrRepository.save(post);
+            PostDto dto = PostDto.fromKrEntity(saved);
+            // 새로 생성된 게시글의 좋아요 수와 댓글 수를 0으로 설정
+            dto.setLikeCount(0L);
+            dto.setCommentCount(0L);
+            dto.setTags(postDto.getTags()); // 원본 DTO에서 tags 가져오기
+            dto.setLang("ko");
+            return dto;
         } else {
             // 예외 상황: 잘못된 lang 값이 들어온 경우
             System.err.println("[PostService] savePost: Unexpected lang value: " + lang);
@@ -173,7 +202,14 @@ public class PostService {
                 existing.setImageUrl(postDto.getImageUrl());
                 existing.setPublished(postDto.isPublished());
                 existing.setCategory(postDto.getCategory());
-                return PostDto.fromJpEntity(postJpRepository.save(existing));
+                PostJp saved = postJpRepository.save(existing);
+                PostDto dto = PostDto.fromJpEntity(saved);
+                // 수정된 게시글의 좋아요 수와 댓글 수를 설정
+                dto.setLikeCount(likeService.getLikeCount(saved.getId(), String.valueOf(com.example.hyuk_blog.entity.PostType.JP)));
+                dto.setCommentCount(commentService.getCommentCountByPostJpId(saved.getId()));
+                dto.setTags(postDto.getTags()); // 원본 DTO에서 tags 가져오기
+                dto.setLang("ja");
+                return dto;
             });
         } else {
             return postKrRepository.findById(id).map(existing -> {
@@ -183,7 +219,14 @@ public class PostService {
                 existing.setImageUrl(postDto.getImageUrl());
                 existing.setPublished(postDto.isPublished());
                 existing.setCategory(postDto.getCategory());
-                return PostDto.fromKrEntity(postKrRepository.save(existing));
+                PostKr saved = postKrRepository.save(existing);
+                PostDto dto = PostDto.fromKrEntity(saved);
+                // 수정된 게시글의 좋아요 수와 댓글 수를 설정
+                dto.setLikeCount(likeService.getLikeCount(saved.getId(), String.valueOf(com.example.hyuk_blog.entity.PostType.KR)));
+                dto.setCommentCount(commentService.getCommentCountByPostKrId(saved.getId()));
+                dto.setTags(postDto.getTags()); // 원본 DTO에서 tags 가져오기
+                dto.setLang("ko");
+                return dto;
             });
         }
     }
@@ -239,6 +282,7 @@ public class PostService {
                         PostDto dto = PostDto.fromJpEntity(post);
                         dto.setLikeCount(likeService.getLikeCount(post.getId(), String.valueOf(com.example.hyuk_blog.entity.PostType.JP)));
                         dto.setCommentCount(commentService.getCommentCountByPostJpId(post.getId()));
+                        dto.setTags(""); // 엔티티에 tags 필드가 없으므로 빈 문자열로 설정
                         return dto;
                     })
                     .collect(Collectors.toList());
@@ -249,6 +293,7 @@ public class PostService {
                         PostDto dto = PostDto.fromKrEntity(post);
                         dto.setLikeCount(likeService.getLikeCount(post.getId(), String.valueOf(com.example.hyuk_blog.entity.PostType.KR)));
                         dto.setCommentCount(commentService.getCommentCountByPostKrId(post.getId()));
+                        dto.setTags(""); // 엔티티에 tags 필드가 없으므로 빈 문자열로 설정
                         return dto;
                     })
                     .collect(Collectors.toList());
@@ -264,6 +309,7 @@ public class PostService {
                         PostDto dto = PostDto.fromJpEntity(post);
                         dto.setLikeCount(likeService.getLikeCount(post.getId(), String.valueOf(com.example.hyuk_blog.entity.PostType.JP)));
                         dto.setCommentCount(commentService.getCommentCountByPostJpId(post.getId()));
+                        dto.setTags(""); // 엔티티에 tags 필드가 없으므로 빈 문자열로 설정
                         return dto;
                     })
                     .collect(Collectors.toList());
@@ -274,6 +320,7 @@ public class PostService {
                         PostDto dto = PostDto.fromKrEntity(post);
                         dto.setLikeCount(likeService.getLikeCount(post.getId(), String.valueOf(com.example.hyuk_blog.entity.PostType.KR)));
                         dto.setCommentCount(commentService.getCommentCountByPostKrId(post.getId()));
+                        dto.setTags(""); // 엔티티에 tags 필드가 없으므로 빈 문자열로 설정
                         return dto;
                     })
                     .collect(Collectors.toList());

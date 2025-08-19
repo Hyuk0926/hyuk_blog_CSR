@@ -140,11 +140,19 @@ export default {
         const currentRoute = this.$router.currentRoute.value;
         const query = { ...currentRoute.query, lang: language };
         
-        // 같은 페이지에서 언어만 변경하는 경우
-        this.$router.push({ 
-          path: currentRoute.path, 
-          query: query 
-        });
+        // PostDetailView 페이지에서는 knowledge 페이지로 이동
+        if (currentRoute.name === 'post-detail') {
+          this.$router.push({ 
+            path: '/knowledge', 
+            query: query 
+          });
+        } else {
+          // 다른 페이지에서는 같은 페이지에서 언어만 변경
+          this.$router.push({ 
+            path: currentRoute.path, 
+            query: query 
+          });
+        }
       },
       getLink(path) {
         return `${path}?lang=${this.$i18n.locale}`;
