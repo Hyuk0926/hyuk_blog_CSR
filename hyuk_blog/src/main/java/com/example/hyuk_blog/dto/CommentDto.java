@@ -17,6 +17,11 @@ public class CommentDto {
     private LocalDateTime createdAt;
     private LocalDateTime updatedAt;
     private boolean isEdited;
+    
+    // 게시글 정보 추가
+    private String postTitle;
+    private String postType;
+    private Long postId;
 
     /**
      * Comment 엔티티를 CommentDto로 변환하는 정적 메서드
@@ -40,8 +45,14 @@ public class CommentDto {
         // 게시글 타입에 따라 ID 설정
         if (comment.getPostType() == PostType.KR && comment.getPostKr() != null) {
             dto.setPostkrId(comment.getPostKr().getId());
+            dto.setPostId(comment.getPostKr().getId());
+            dto.setPostTitle(comment.getPostKr().getTitle());
+            dto.setPostType("KR");
         } else if (comment.getPostType() == PostType.JP && comment.getPostJp() != null) {
             dto.setPostjpId(comment.getPostJp().getId());
+            dto.setPostId(comment.getPostJp().getId());
+            dto.setPostTitle(comment.getPostJp().getTitle());
+            dto.setPostType("JP");
         }
         
         return dto;

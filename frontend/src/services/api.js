@@ -339,8 +339,15 @@ class ApiService {
    */
   async deleteComment(commentId) {
     return this.request(`/api/comments/${commentId}`, {
-      method: 'DELETE',
+      method: 'DELETE'
     });
+  }
+
+  /**
+   * 사용자 댓글 조회
+   */
+  async getUserComments() {
+    return this.request('/api/user/comments');
   }
 
   // ==================== 인증 관련 API ====================

@@ -7,7 +7,8 @@ export default {
     contact: 'Contact',
     login: 'ログイン',
     register: '会員登録',
-    logout: 'ログアウト'
+    logout: 'ログアウト',
+    mypage: 'マイページ'
   },
 
   // ホームページ
@@ -114,6 +115,44 @@ export default {
     error: '送信に失敗しました。もう一度お試しください。'
   },
 
+  // マイページ
+  mypage: {
+    title: 'マイページ',
+    subtitle: 'アカウント情報と設定を管理してください。',
+    memberSince: '登録日',
+    commentCount: 'コメント数',
+    quickMenu: 'クイックメニュー',
+    editProfile: 'プロフィール編集',
+    changePassword: 'パスワード変更',
+    deleteAccount: 'アカウント削除',
+    myComments: '私のコメント',
+    commentDescription: '私が書いたコメントを管理できます。',
+    noComments: '書いたコメントがありません。',
+    changeProfileImage: 'プロフィール画像変更',
+    nickname: 'ニックネーム',
+    email: 'メールアドレス',
+    bio: '自己紹介',
+    currentPassword: '現在のパスワード',
+    newPassword: '新しいパスワード',
+    confirmNewPassword: '新しいパスワード確認',
+    deleteWarning: 'アカウントを削除すると、すべてのデータが永続的に削除されます。この操作は元に戻せません。',
+    deleteConfirmPlaceholder: 'DELETEと入力して確認',
+    deleteCommentConfirm: 'このコメントを削除しますか？',
+    // 成功/失敗メッセージ
+    imageUploadSuccess: 'プロフィール画像が正常にアップロードされました。',
+    imageUploadError: 'プロフィール画像のアップロードに失敗しました。',
+    profileUpdateSuccess: 'プロフィールが正常に更新されました。',
+    profileUpdateError: 'プロフィールの更新に失敗しました。',
+    passwordChangeSuccess: 'パスワードが正常に変更されました。',
+    passwordChangeError: 'パスワードの変更に失敗しました。',
+    passwordMismatch: '新しいパスワードが一致しません。',
+    commentDeleteSuccess: 'コメントが正常に削除されました。',
+    commentDeleteError: 'コメントの削除に失敗しました。',
+    accountDeleteSuccess: 'アカウントが正常に削除されました。',
+    accountDeleteError: 'アカウントの削除に失敗しました。',
+    deleteConfirmError: 'DELETEを正確に入力してください。'
+  },
+
   // ログインページ
   login: {
     title: 'ログイン',
@@ -195,6 +234,7 @@ export default {
     delete: '削除',
     back: '戻る',
     next: '次へ',
-    previous: '前へ'
+    previous: '前へ',
+    count: '件'
   }
 } 

@@ -7,7 +7,8 @@ export default {
     contact: 'Contact',
     login: '로그인',
     register: '회원가입',
-    logout: '로그아웃'
+    logout: '로그아웃',
+    mypage: '마이페이지'
   },
 
   // 홈페이지
@@ -114,6 +115,44 @@ export default {
     error: '전송에 실패했습니다. 다시 시도해주세요.'
   },
 
+  // 마이페이지
+  mypage: {
+    title: '마이페이지',
+    subtitle: '계정 정보와 설정을 관리하세요.',
+    memberSince: '가입일',
+    commentCount: '댓글 수',
+    quickMenu: '빠른 메뉴',
+    editProfile: '프로필 수정',
+    changePassword: '비밀번호 변경',
+    deleteAccount: '계정 삭제',
+    myComments: '내 댓글',
+    commentDescription: '내가 작성한 댓글을 관리할 수 있습니다.',
+    noComments: '작성한 댓글이 없습니다.',
+    changeProfileImage: '프로필 이미지 변경',
+    nickname: '닉네임',
+    email: '이메일',
+    bio: '자기소개',
+    currentPassword: '현재 비밀번호',
+    newPassword: '새 비밀번호',
+    confirmNewPassword: '새 비밀번호 확인',
+    deleteWarning: '계정을 삭제하면 모든 데이터가 영구적으로 삭제됩니다. 이 작업은 되돌릴 수 없습니다.',
+    deleteConfirmPlaceholder: 'DELETE를 입력하여 확인',
+    deleteCommentConfirm: '이 댓글을 삭제하시겠습니까?',
+    // 성공/실패 메시지
+    imageUploadSuccess: '프로필 이미지가 성공적으로 업로드되었습니다.',
+    imageUploadError: '프로필 이미지 업로드에 실패했습니다.',
+    profileUpdateSuccess: '프로필이 성공적으로 업데이트되었습니다.',
+    profileUpdateError: '프로필 업데이트에 실패했습니다.',
+    passwordChangeSuccess: '비밀번호가 성공적으로 변경되었습니다.',
+    passwordChangeError: '비밀번호 변경에 실패했습니다.',
+    passwordMismatch: '새 비밀번호가 일치하지 않습니다.',
+    commentDeleteSuccess: '댓글이 성공적으로 삭제되었습니다.',
+    commentDeleteError: '댓글 삭제에 실패했습니다.',
+    accountDeleteSuccess: '계정이 성공적으로 삭제되었습니다.',
+    accountDeleteError: '계정 삭제에 실패했습니다.',
+    deleteConfirmError: 'DELETE를 정확히 입력해주세요.'
+  },
+
   // 로그인 페이지
   login: {
     title: '로그인',
@@ -195,6 +234,7 @@ export default {
     delete: '삭제',
     back: '뒤로',
     next: '다음',
-    previous: '이전'
+    previous: '이전',
+    count: '개'
   }
 } 

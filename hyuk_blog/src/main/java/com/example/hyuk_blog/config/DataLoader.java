@@ -55,31 +55,8 @@ public class DataLoader implements CommandLineRunner {
             updateExistingUserPasswords();
         }
 
-        // 테스트용 사용자 추가 (비밀번호 재설정 테스트용) - 개발 환경에서만
-        if (userRepository.findByUsername("testuser").isEmpty()) {
-            // 개발 환경에서만 테스트 사용자 생성
-            String env = System.getenv("SPRING_PROFILES_ACTIVE");
-            if ("dev".equals(env) || env == null) { // 개발 환경 또는 프로파일 미설정 시
-                User testUser = new User();
-                testUser.setUsername("testuser");
-                
-                // 환경변수에서 테스트 비밀번호 가져오기 (보안 강화)
-                String testPassword = System.getenv("TEST_USER_PASSWORD");
-                if (testPassword == null || testPassword.trim().isEmpty()) {
-                    testPassword = "test123"; // 기본값 (개발 환경에서만)
-                    log.warn("TEST_USER_PASSWORD 환경변수가 설정되지 않아 기본값을 사용합니다. 운영 환경에서는 반드시 환경변수를 설정하세요.");
-                }
-                
-                testUser.setPassword(passwordEncoder.encode(testPassword));
-                testUser.setNickname("테스트 사용자");
-                testUser.setEmail("ehc28260@gmail.com"); // 실제 이메일 주소
-                testUser.setActive(true);
-                userRepository.save(testUser);
-                log.info("테스트 사용자 생성 완료: testuser (개발 환경)");
-            } else {
-                log.info("운영 환경이므로 테스트 사용자 생성을 건너뜁니다.");
-            }
-        }
+        // 테스트용 사용자 생성 비활성화 - 실제 사용자 계정으로 테스트 권장
+        log.info("테스트 사용자 생성을 건너뜁니다. 실제 사용자 계정으로 비밀번호 재설정을 테스트하세요.");
 
         ObjectMapper mapper = new ObjectMapper();
         mapper.registerModule(new com.fasterxml.jackson.datatype.jsr310.JavaTimeModule());
@@ -216,9 +193,37 @@ public class DataLoader implements CommandLineRunner {
     }
 
     private void createInitialUser() {
-        // 테스트용 사용자 계정 생성은 비활성화
-        // 실제 운영 환경에서는 사용자가 직접 회원가입을 통해 계정을 생성해야 함
-        System.out.println("테스트용 사용자 계정 생성을 건너뜁니다.");
+        // 실제 사용자 계정 생성 (비밀번호 재설정 테스트용)
+        // 환경변수에서 사용자 정보를 가져와서 실제 계정 생성
+        String userUsername = System.getenv("DEMO_USER_USERNAME");
+        String userPassword = System.getenv("DEMO_USER_PASSWORD");
+        String userEmail = System.getenv("DEMO_USER_EMAIL");
+        String userNickname = System.getenv("DEMO_USER_NICKNAME");
+        
+        if (userUsername != null && userPassword != null && userEmail != null) {
+            // 이미 존재하는지 확인
+            if (userRepository.findByUsername(userUsername).isEmpty()) {
+                User demoUser = new User();
+                demoUser.setUsername(userUsername);
+                demoUser.setPassword(passwordEncoder.encode(userPassword));
+                demoUser.setNickname(userNickname != null ? userNickname : "데모 사용자");
+                demoUser.setEmail(userEmail);
+                demoUser.setActive(true);
+                userRepository.save(demoUser);
+                
+                System.out.println("데모 사용자 계정이 생성되었습니다.");
+                System.out.println("아이디: " + userUsername);
+                System.out.println("이메일: " + userEmail);
+                System.out.println("비밀번호: [보안상 숨김]");
+                System.out.println("이 계정으로 비밀번호 재설정을 테스트할 수 있습니다.");
+            } else {
+                System.out.println("데모 사용자 계정이 이미 존재합니다: " + userUsername);
+            }
+        } else {
+            System.out.println("데모 사용자 계정 생성을 건너뜁니다.");
+            System.out.println("환경변수를 설정하여 데모 계정을 생성할 수 있습니다:");
+            System.out.println("DEMO_USER_USERNAME, DEMO_USER_PASSWORD, DEMO_USER_EMAIL, DEMO_USER_NICKNAME");
+        }
     }
     
     private void createJapaneseAdmin() {

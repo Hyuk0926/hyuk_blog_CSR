@@ -158,29 +158,49 @@ public class CommentService {
     
     @Transactional
     public boolean deleteComment(Long commentId, Long userId) {
-        logger.info("CommentService.deleteComment - commentId: {}, userId: {}", commentId, userId);
-        
-        Optional<Comment> commentOpt = commentRepository.findById(commentId);
-        if (commentOpt.isPresent()) {
-            Comment comment = commentOpt.get();
-            
-            // 댓글 작성자이거나 admin 계정인 경우 삭제 가능
-            boolean isAuthor = comment.getUser() != null && userId.equals(comment.getUser().getId());
-            boolean isAdmin = isAdminUser(userId);
-            
-            logger.info("CommentService.deleteComment - isAuthor: {}, isAdmin: {}", isAuthor, isAdmin);
-            
-            if (isAuthor || isAdmin) {
-                commentRepository.delete(comment);
-                logger.info("CommentService.deleteComment - Comment deleted successfully");
-                return true;
-            } else {
-                logger.warn("CommentService.deleteComment - No permission to delete comment");
+        try {
+            Optional<Comment> commentOpt = commentRepository.findById(commentId);
+            if (commentOpt.isPresent()) {
+                Comment comment = commentOpt.get();
+                
+                // 댓글 작성자 또는 관리자인지 확인
+                if (comment.getUser() != null && comment.getUser().getId().equals(userId)) {
+                    commentRepository.delete(comment);
+                    return true;
+                }
+                
+                // 관리자 권한 확인 (Admin 테이블에서도 확인)
+                Optional<Admin> adminOpt = adminRepository.findById(userId);
+                if (adminOpt.isPresent()) {
+                    commentRepository.delete(comment);
+                    return true;
+                }
             }
-        } else {
-            logger.warn("CommentService.deleteComment - Comment not found");
+            return false;
+        } catch (Exception e) {
+            logger.error("Error deleting comment: {}", e.getMessage(), e);
+            return false;
         }
-        return false;
+    }
+
+    /**
+     * 사용자별 댓글 조회
+     */
+    @Transactional(readOnly = true)
+    public List<CommentDto> getCommentsByUserId(Long userId) {
+        try {
+            logger.info("Getting comments for userId: {}", userId);
+            List<Comment> comments = commentRepository.findByUserIdOrderByCreatedAtDesc(userId);
+            logger.info("Found {} comments for userId: {}", comments.size(), userId);
+            
+            return comments.stream()
+                .map(this::convertToDto)
+                .filter(dto -> dto != null)
+                .collect(Collectors.toList());
+        } catch (Exception e) {
+            logger.error("Error getting comments for userId: {}", userId, e);
+            throw e;
+        }
     }
     
     // 한국어 게시글 댓글 수 조회

@@ -22,13 +22,19 @@ export ADMIN_PASSWORD=your_admin_password
 export JP_ADMIN_PASSWORD=your_jp_admin_password
 ```
 
-### 3. 테스트 사용자 비밀번호 (개발 환경)
+### 3. 데모 사용자 계정 (비밀번호 재설정 테스트용)
 ```bash
 # Windows
-set TEST_USER_PASSWORD=your_test_password
+set DEMO_USER_USERNAME=your_demo_username
+set DEMO_USER_PASSWORD=your_demo_password
+set DEMO_USER_EMAIL=your_demo_email@example.com
+set DEMO_USER_NICKNAME=your_demo_nickname
 
 # Linux/Mac
-export TEST_USER_PASSWORD=your_test_password
+export DEMO_USER_USERNAME=your_demo_username
+export DEMO_USER_PASSWORD=your_demo_password
+export DEMO_USER_EMAIL=your_demo_email@example.com
+export DEMO_USER_NICKNAME=your_demo_nickname
 ```
 
 ### 4. 프론트엔드 API 키 (Vue.js)

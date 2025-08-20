@@ -33,4 +33,15 @@ public interface CommentRepository extends JpaRepository<Comment, Long> {
     @Query("DELETE FROM Comment c WHERE c.postJp.id = :postId AND c.postType = 'JP'")
     void deleteByPostJpId(@Param("postId") Long postId);
     
+    /**
+     * 사용자별 댓글 조회 (최신순)
+     */
+    @Query("SELECT c FROM Comment c WHERE c.user.id = :userId ORDER BY c.createdAt DESC")
+    List<Comment> findByUserIdOrderByCreatedAtDesc(@Param("userId") Long userId);
+    
+    /**
+     * 사용자별 댓글 수 조회
+     */
+    @Query("SELECT COUNT(c) FROM Comment c WHERE c.user.id = :userId")
+    Long countByUserId(@Param("userId") Long userId);
 } 

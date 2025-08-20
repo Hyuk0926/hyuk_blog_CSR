@@ -45,6 +45,11 @@ const routes = [
     component: () => import('../views/UserRegisterView.vue')
   },
   {
+    path: '/user/mypage',
+    name: 'user-mypage',
+    component: () => import('../views/UserMyPageView.vue')
+  },
+  {
     path: '/password-reset',
     name: 'password-reset-request',
     component: () => import('../views/PasswordResetRequestView.vue')

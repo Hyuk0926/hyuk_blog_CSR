@@ -47,6 +47,8 @@ public class PasswordResetService {
             if (userOpt.isEmpty()) {
                 log.warn("비밀번호 재설정 요청 - 존재하지 않는 이메일: {}", email);
                 // 보안을 위해 존재하지 않는 이메일이어도 성공 응답
+                // 실제 운영에서는 사용자에게 더 구체적인 안내를 제공할 수 있음
+                log.info("존재하지 않는 이메일이지만 보안상 성공 응답을 반환합니다.");
                 return;
             }
 

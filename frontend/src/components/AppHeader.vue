@@ -42,6 +42,12 @@
           <div v-if="user" class="auth-controls">
             <span class="user-info">{{ getUserDisplayName() }}{{ $i18n.locale === 'ja' ? 'さん' : '님' }}</span>
             <button 
+              @click="handleMyPage" 
+              class="auth-btn mypage-btn"
+            >
+              {{ $t('nav.mypage') }}
+            </button>
+            <button 
               @click="handleLogout" 
               class="auth-btn logout-btn"
             >
@@ -121,9 +127,11 @@ export default {
       setDarkMode(enabled) {
         this.isDarkMode = enabled;
         if (enabled) {
+          document.body.classList.add('dark');
           document.body.classList.add('dark-mode');
           localStorage.setItem('darkMode', 'true');
         } else {
+          document.body.classList.remove('dark');
           document.body.classList.remove('dark-mode');
           localStorage.setItem('darkMode', 'false');
         }
@@ -165,6 +173,15 @@ export default {
           console.error('Logout error:', error);
         }
       },
+      handleMyPage() {
+        // 관리자인 경우 대시보드로 이동
+        if (this.user && this.user.role === 'ROLE_ADMIN') {
+          this.$router.push('/admin/dashboard');
+        } else {
+          // 일반 사용자는 마이페이지로 이동 (향후 구현 예정)
+          this.$router.push('/user/mypage');
+        }
+      },
       getUserDisplayName() {
         if (!this.user) return '';
         
@@ -189,6 +206,12 @@ export default {
     mounted() {
       const darkModeSaved = localStorage.getItem('darkMode');
       this.setDarkMode(darkModeSaved === 'true');
+      
+      // 기존 dark-mode 클래스가 있으면 dark 클래스도 추가
+      if (document.body.classList.contains('dark-mode')) {
+        document.body.classList.add('dark');
+      }
+      
       window.addEventListener('language-change-status', this.handleLanguageChangeStatus);
     },
     // 인터벌이 없으므로 정리 불필요
@@ -317,6 +340,17 @@ export default {
 .register-btn:hover { 
   background: #5a67d8; 
   transform: translateY(-1px); 
+}
+
+.mypage-btn { 
+  color: #4a5568; 
+  background: #e6fffa; 
+  margin-right: 8px;
+}
+
+.mypage-btn:hover { 
+  background: #b2f5ea; 
+  color: #234e52; 
 }
 
 .logout-btn { 

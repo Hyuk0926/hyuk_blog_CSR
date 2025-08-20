@@ -254,7 +254,7 @@ public class CommentApiController {
                 }
             }
             
-            // 2. User 테이블에 없으면 Admin 테이블에서 확인
+            // 2. Admin 테이블에서 관리자 찾기
             Optional<Admin> adminOpt = adminService.findAdminEntityByUsername(username);
             if (adminOpt.isPresent()) {
                 Admin admin = adminOpt.get();
@@ -271,7 +271,59 @@ public class CommentApiController {
             return ResponseEntity.status(404).body(Map.of("error", "사용자를 찾을 수 없습니다."));
             
         } catch (Exception e) {
-            return ResponseEntity.status(500).body(Map.of("error", "댓글 삭제 중 오류가 발생했습니다."));
+            System.err.println("Error in deleteComment: " + e.getMessage());
+            e.printStackTrace();
+            return ResponseEntity.status(500).body(Map.of("error", "댓글 삭제 중 오류가 발생했습니다: " + e.getMessage()));
+        }
+    }
+
+    /**
+     * 사용자별 댓글 조회 API
+     * GET /api/user/comments
+     */
+    @GetMapping("/user/comments")
+    public ResponseEntity<?> getUserComments(@AuthenticationPrincipal UserDetails userDetails) {
+        
+        if (userDetails == null) {
+            return ResponseEntity.status(401).body(Map.of("error", "로그인이 필요합니다."));
+        }
+
+        try {
+            String username = userDetails.getUsername();
+            
+            // 1. User 테이블에서 사용자 찾기
+            Optional<User> userOpt = userService.findUserEntityByUsername(username);
+            if (userOpt.isPresent()) {
+                User user = userOpt.get();
+                List<CommentDto> comments = commentService.getCommentsByUserId(user.getId());
+                
+                Map<String, Object> response = new HashMap<>();
+                response.put("success", true);
+                response.put("data", comments);
+                response.put("count", comments.size());
+                return ResponseEntity.ok(response);
+            }
+            
+            // 2. Admin 테이블에서 관리자 찾기
+            Optional<Admin> adminOpt = adminService.findAdminEntityByUsername(username);
+            if (adminOpt.isPresent()) {
+                Admin admin = adminOpt.get();
+                List<CommentDto> comments = commentService.getCommentsByUserId(admin.getId());
+                
+                Map<String, Object> response = new HashMap<>();
+                response.put("success", true);
+                response.put("data", comments);
+                response.put("count", comments.size());
+                return ResponseEntity.ok(response);
+            }
+            
+            // 3. 둘 다 없으면 사용자를 찾을 수 없음
+            return ResponseEntity.status(404).body(Map.of("error", "사용자를 찾을 수 없습니다."));
+            
+        } catch (Exception e) {
+            System.err.println("Error in getUserComments: " + e.getMessage());
+            e.printStackTrace();
+            return ResponseEntity.status(500).body(Map.of("error", "댓글 조회 중 오류가 발생했습니다: " + e.getMessage()));
         }
     }
 }

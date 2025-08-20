@@ -232,118 +232,154 @@ public class EmailService {
                 <title>비밀번호 재설정</title>
                 <style>
                     body {
-                        font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+                        font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
                         line-height: 1.6;
-                        color: #333;
+                        color: #333333;
                         max-width: 600px;
                         margin: 0 auto;
                         padding: 20px;
-                        background-color: #f8f9fa;
+                        background-color: #f5f5f5;
                     }
                     .email-container {
                         background-color: #ffffff;
-                        border-radius: 10px;
-                        box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+                        border: 1px solid #e0e0e0;
+                        border-radius: 4px;
                         overflow: hidden;
                     }
                     .header {
-                        background: linear-gradient(135deg, #dc3545 0%, #c82333 100%);
-                        color: white;
-                        padding: 30px 20px;
+                        background-color: #333333;
+                        color: #ffffff;
+                        padding: 24px 20px;
                         text-align: center;
+                        border-bottom: 1px solid #e0e0e0;
                     }
                     .header h1 {
                         margin: 0;
-                        font-size: 24px;
-                        font-weight: 300;
+                        font-size: 20px;
+                        font-weight: 500;
+                        letter-spacing: 0.5px;
                     }
                     .content {
-                        padding: 30px 20px;
+                        padding: 32px 24px;
                     }
                     .greeting {
-                        font-size: 18px;
-                        color: #2c3e50;
-                        margin-bottom: 20px;
+                        font-size: 16px;
+                        color: #333333;
+                        margin-bottom: 24px;
+                        font-weight: 500;
+                    }
+                    .message {
+                        color: #555555;
+                        margin-bottom: 24px;
                     }
                     .warning-box {
-                        background-color: #fff3cd;
-                        border: 1px solid #ffeaa7;
-                        border-radius: 8px;
-                        padding: 20px;
-                        margin: 20px 0;
-                        border-left: 4px solid #f39c12;
+                        background-color: #f8f8f8;
+                        border: 1px solid #d0d0d0;
+                        border-radius: 4px;
+                        padding: 16px;
+                        margin: 24px 0;
+                        border-left: 3px solid #666666;
+                    }
+                    .warning-box strong {
+                        color: #333333;
                     }
                     .reset-button {
                         display: inline-block;
-                        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-                        color: white;
-                        padding: 15px 30px;
+                        background-color: #333333;
+                        color: #ffffff;
+                        padding: 12px 24px;
                         text-decoration: none;
-                        border-radius: 8px;
-                        font-weight: 600;
-                        margin: 20px 0;
+                        border-radius: 4px;
+                        font-weight: 500;
+                        margin: 24px 0;
                         text-align: center;
+                        border: none;
+                        font-size: 14px;
                     }
                     .reset-button:hover {
-                        background: linear-gradient(135deg, #5a6fd8 0%, #6a4190 100%);
+                        background-color: #555555;
+                    }
+                    .security-info {
+                        background-color: #f8f8f8;
+                        border: 1px solid #d0d0d0;
+                        border-radius: 4px;
+                        padding: 16px;
+                        margin: 24px 0;
+                        border-left: 3px solid #666666;
+                    }
+                    .security-info strong {
+                        color: #333333;
+                    }
+                    .security-info ul {
+                        margin: 8px 0;
+                        padding-left: 20px;
+                    }
+                    .security-info li {
+                        color: #555555;
+                        margin-bottom: 4px;
+                    }
+                    .link-text {
+                        word-break: break-all;
+                        color: #666666;
+                        font-size: 12px;
+                        background-color: #f8f8f8;
+                        padding: 12px;
+                        border-radius: 4px;
+                        border: 1px solid #e0e0e0;
+                        margin-top: 16px;
                     }
                     .footer {
-                        background-color: #f8f9fa;
-                        padding: 20px;
+                        background-color: #f8f8f8;
+                        padding: 20px 24px;
                         text-align: center;
-                        border-top: 1px solid #e9ecef;
+                        border-top: 1px solid #e0e0e0;
                     }
                     .auto-notice {
                         font-size: 12px;
-                        color: #6c757d;
-                        margin-top: 15px;
-                        padding-top: 15px;
-                        border-top: 1px solid #e9ecef;
-                    }
-                    .security-info {
-                        background-color: #e3f2fd;
-                        border-radius: 6px;
-                        padding: 15px;
-                        margin: 20px 0;
-                        border-left: 4px solid #2196f3;
+                        color: #888888;
+                        line-height: 1.4;
                     }
                 </style>
             </head>
             <body>
                 <div class="email-container">
                     <div class="header">
-                        <h1>🔐 비밀번호 재설정</h1>
+                        <h1>비밀번호 재설정</h1>
                     </div>
                     
                     <div class="content">
                         <div class="greeting">
-                            안녕하세요! 👋
+                            안녕하세요,
                         </div>
                         
-                        <p>Hyuk Blog에서 비밀번호 재설정 요청을 받았습니다.</p>
+                        <div class="message">
+                            Hyuk Blog에서 비밀번호 재설정 요청을 받았습니다.
+                        </div>
                         
                         <div class="warning-box">
-                            <strong>⚠️ 주의사항</strong><br>
+                            <strong>주의사항</strong><br>
                             본인이 요청하지 않은 경우 이 이메일을 무시하시면 됩니다.
                         </div>
                         
-                        <p>아래 버튼을 클릭하여 새로운 비밀번호를 설정하세요:</p>
-                        
                         <div style="text-align: center;">
                             <a href="%s" class="reset-button">
-                                🔑 비밀번호 재설정하기
+                                비밀번호 재설정하기
                             </a>
                         </div>
                         
                         <div class="security-info">
-                            <strong>🔒 보안 안내</strong><br>
-                            • 이 링크는 24시간 동안만 유효합니다<br>
-                            • 한 번 사용하면 더 이상 사용할 수 없습니다<br>
-                            • 안전한 환경에서 비밀번호를 변경하세요
+                            <strong>보안 안내</strong>
+                            <ul>
+                                <li>이 링크는 24시간 동안만 유효합니다</li>
+                                <li>한 번 사용하면 더 이상 사용할 수 없습니다</li>
+                                <li>안전한 환경에서 비밀번호를 변경하세요</li>
+                            </ul>
                         </div>
                         
-                        <p>버튼이 작동하지 않는 경우, 아래 링크를 복사하여 브라우저에 붙여넣으세요:</p>
-                        <p style="word-break: break-all; color: #667eea; font-size: 14px;">%s</p>
+                        <p style="color: #555555; font-size: 14px; margin-bottom: 8px;">
+                            버튼이 작동하지 않는 경우, 아래 링크를 복사하여 브라우저에 붙여넣으세요:
+                        </p>
+                        <div class="link-text">%s</div>
                     </div>
                     
                     <div class="footer">
