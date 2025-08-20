@@ -55,6 +55,32 @@ public class DataLoader implements CommandLineRunner {
             updateExistingUserPasswords();
         }
 
+        // 테스트용 사용자 추가 (비밀번호 재설정 테스트용) - 개발 환경에서만
+        if (userRepository.findByUsername("testuser").isEmpty()) {
+            // 개발 환경에서만 테스트 사용자 생성
+            String env = System.getenv("SPRING_PROFILES_ACTIVE");
+            if ("dev".equals(env) || env == null) { // 개발 환경 또는 프로파일 미설정 시
+                User testUser = new User();
+                testUser.setUsername("testuser");
+                
+                // 환경변수에서 테스트 비밀번호 가져오기 (보안 강화)
+                String testPassword = System.getenv("TEST_USER_PASSWORD");
+                if (testPassword == null || testPassword.trim().isEmpty()) {
+                    testPassword = "test123"; // 기본값 (개발 환경에서만)
+                    log.warn("TEST_USER_PASSWORD 환경변수가 설정되지 않아 기본값을 사용합니다. 운영 환경에서는 반드시 환경변수를 설정하세요.");
+                }
+                
+                testUser.setPassword(passwordEncoder.encode(testPassword));
+                testUser.setNickname("테스트 사용자");
+                testUser.setEmail("ehc28260@gmail.com"); // 실제 이메일 주소
+                testUser.setActive(true);
+                userRepository.save(testUser);
+                log.info("테스트 사용자 생성 완료: testuser (개발 환경)");
+            } else {
+                log.info("운영 환경이므로 테스트 사용자 생성을 건너뜁니다.");
+            }
+        }
+
         ObjectMapper mapper = new ObjectMapper();
         mapper.registerModule(new com.fasterxml.jackson.datatype.jsr310.JavaTimeModule());
 
@@ -152,12 +178,18 @@ public class DataLoader implements CommandLineRunner {
         String adminEmail = System.getenv("ADMIN_EMAIL");
         String adminName = System.getenv("ADMIN_NAME");
         
-        // 환경 변수가 설정되지 않은 경우 기본값 사용
+        // 환경 변수가 설정되지 않은 경우 기본값 사용 (개발 환경에서만)
         if (adminUsername == null) {
             adminUsername = "admin";
         }
         if (adminPassword == null) {
-            adminPassword = "admin123";
+            // 운영 환경에서는 환경변수 필수
+            String env = System.getenv("SPRING_PROFILES_ACTIVE");
+            if ("prod".equals(env)) {
+                throw new RuntimeException("운영 환경에서는 ADMIN_PASSWORD 환경변수를 반드시 설정해야 합니다.");
+            }
+            adminPassword = "admin123"; // 개발 환경에서만 기본값 사용
+            log.warn("ADMIN_PASSWORD 환경변수가 설정되지 않아 기본값을 사용합니다. 운영 환경에서는 반드시 환경변수를 설정하세요.");
         }
         if (adminEmail == null) {
             adminEmail = "admin@example.com";
@@ -179,7 +211,7 @@ public class DataLoader implements CommandLineRunner {
         System.out.println("관리자 계정이 생성되었습니다.");
         System.out.println("아이디: " + adminUsername);
         System.out.println("이름: " + adminName);
-        System.out.println("비밀번호: " + adminPassword);
+        System.out.println("비밀번호: [보안상 숨김]");
         System.out.println("환경 변수를 설정하여 다른 정보를 사용할 수 있습니다.");
     }
 
@@ -196,12 +228,18 @@ public class DataLoader implements CommandLineRunner {
         String jpAdminEmail = System.getenv("JP_ADMIN_EMAIL");
         String jpAdminName = System.getenv("JP_ADMIN_NAME");
         
-        // 환경 변수가 설정되지 않은 경우 기본값 사용
+        // 환경 변수가 설정되지 않은 경우 기본값 사용 (개발 환경에서만)
         if (jpAdminUsername == null) {
             jpAdminUsername = "admin_jp";
         }
         if (jpAdminPassword == null) {
-            jpAdminPassword = "admin123";
+            // 운영 환경에서는 환경변수 필수
+            String env = System.getenv("SPRING_PROFILES_ACTIVE");
+            if ("prod".equals(env)) {
+                throw new RuntimeException("운영 환경에서는 JP_ADMIN_PASSWORD 환경변수를 반드시 설정해야 합니다.");
+            }
+            jpAdminPassword = "admin123"; // 개발 환경에서만 기본값 사용
+            log.warn("JP_ADMIN_PASSWORD 환경변수가 설정되지 않아 기본값을 사용합니다. 운영 환경에서는 반드시 환경변수를 설정하세요.");
         }
         if (jpAdminEmail == null) {
             jpAdminEmail = "admin_jp@example.com";
@@ -223,7 +261,7 @@ public class DataLoader implements CommandLineRunner {
         System.out.println("일본어 관리자 계정이 생성되었습니다.");
         System.out.println("아이디: " + jpAdminUsername);
         System.out.println("이름: " + jpAdminName);
-        System.out.println("비밀번호: " + jpAdminPassword);
+        System.out.println("비밀번호: [보안상 숨김]");
     }
 
     private void updateExistingAdminPasswords() {

@@ -113,7 +113,7 @@
                               <div class="w-full min-h-[400px] border border-[#e9ecef] rounded-lg overflow-hidden shadow-[0_2px_4px_rgba(0,0,0,0.05)]">
                  <Editor
                    v-if="activeLanguage && editorConfig"
-                   api-key="7j72pkqjn9kjcnqaqxytrvwbyl6ct9i3gralz744bf9jy2fu"
+                   :api-key="tinymceApiKey"
                    :key="`editor-${activeLanguage}-${isEdit}`"
                    v-model="currentContent"
                    :init="editorConfig"
@@ -288,6 +288,14 @@ export default {
           this.formData.contentJa = value || '';
         }
       }
+    },
+    tinymceApiKey() {
+      // 환경변수에서 API 키 가져오기 (보안 강화)
+      const apiKey = process.env.VUE_APP_TINYMCE_API_KEY;
+      if (!apiKey) {
+        console.warn('⚠️ TinyMCE API 키가 설정되지 않았습니다. VUE_APP_TINYMCE_API_KEY 환경변수를 설정하세요.');
+      }
+      return apiKey || '';
     }
   },
            
@@ -620,10 +628,16 @@ export default {
           console.log('에디터 정리 중 오류:', error);
         }
       },
-                                                                                               onEditorInit() {
-          // 에디터 초기화 완료 시 호출
-          console.log('PostFormView - onEditorInit called');
-        },
+                                                                                                   onEditorInit() {
+      // 에디터 초기화 완료 시 호출
+      console.log('PostFormView - onEditorInit called');
+      
+      // API 키 검증
+      if (!this.tinymceApiKey) {
+        console.error('❌ TinyMCE API 키가 설정되지 않아 에디터가 제대로 작동하지 않을 수 있습니다.');
+        alert('TinyMCE API 키가 설정되지 않았습니다. 관리자에게 문의하세요.');
+      }
+    },
       onEditorBlur() {
         // 에디터에서 포커스가 벗어날 때 호출
       },

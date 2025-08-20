@@ -55,6 +55,16 @@
           >
             {{ $t('login.capsLock') }}
           </div>
+          
+          <!-- 비밀번호 재설정 링크 -->
+          <div class="text-right mt-2">
+            <router-link 
+              to="/password-reset" 
+              class="text-[#888888] no-underline text-[0.85rem] transition-colors duration-300 ease-in-out hover:text-white hover:underline"
+            >
+              비밀번호를 잊으셨나요?
+            </router-link>
+          </div>
         </div>
         
         <button type="submit" class="w-full p-[14px] bg-gradient-to-br from-[#666666] to-[#444444] text-white border-none rounded-xl text-[0.95rem] font-semibold cursor-pointer transition-all duration-300 ease-[cubic-bezier(0.4,0,0.2,1)] font-['Montserrat',sans-serif] shadow-[0_4px_12px_rgba(0,0,0,0.3)] hover:-translate-y-[2px] hover:shadow-[0_6px_20px_rgba(0,0,0,0.4)] hover:bg-gradient-to-br hover:from-[#777777] hover:to-[#555555] active:translate-y-0 disabled:opacity-60 disabled:cursor-not-allowed disabled:transform-none" :disabled="loading">

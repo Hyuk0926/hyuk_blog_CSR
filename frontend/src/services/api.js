@@ -103,6 +103,42 @@ class ApiService {
     return this.request(endpoint, options);
   }
 
+  /**
+   * GET 요청
+   */
+  async get(endpoint, options = {}) {
+    return this.request(endpoint, { ...options, method: 'GET' });
+  }
+
+  /**
+   * POST 요청
+   */
+  async post(endpoint, data, options = {}) {
+    return this.request(endpoint, {
+      ...options,
+      method: 'POST',
+      body: JSON.stringify(data),
+    });
+  }
+
+  /**
+   * PUT 요청
+   */
+  async put(endpoint, data, options = {}) {
+    return this.request(endpoint, {
+      ...options,
+      method: 'PUT',
+      body: JSON.stringify(data),
+    });
+  }
+
+  /**
+   * DELETE 요청
+   */
+  async delete(endpoint, options = {}) {
+    return this.request(endpoint, { ...options, method: 'DELETE' });
+  }
+
   // ==================== Post 관련 API ====================
 
   /**

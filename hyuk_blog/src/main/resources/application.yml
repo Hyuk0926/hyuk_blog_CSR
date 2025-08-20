@@ -46,8 +46,8 @@ spring:
   mail:
     host: smtp.gmail.com
     port: 587
-    username: ${MAIL_USERNAME:your-email@gmail.com}
-    password: ${MAIL_PASSWORD:your-app-password}
+    username: ${MAIL_USERNAME:ehc28260@gmail.com}
+    password: ${MAIL_PASSWORD:ENC(FMv5NLvaq6TzQEZDHbL07ck2YzB1oIoYsSspqMtgsRQ=)}
     properties:
       mail:
         smtp:
@@ -56,6 +56,11 @@ spring:
             enable: true
           timeout: 5000
           connectiontimeout: 5000
+
+# 애플리케이션 설정
+app:
+  frontend:
+    url: ${FRONTEND_URL:http://localhost:3000}
 
 # JWT 설정
 jwt:

@@ -56,21 +56,31 @@ public class SimpleEncryptor {
         System.out.println("=== 비밀번호 암호화 예제 ===");
         System.out.println("실제 사용 시에는 환경변수나 별도 설정 파일에서 비밀번호를 가져와야 합니다.");
         
-        // 예시 비밀번호 (실제로는 사용하지 않음)
-        String examplePassword = "your_password_here";
-        String encryptedPassword = encrypt(examplePassword);
-        System.out.println("Example Password: " + examplePassword);
+        // 환경변수에서 Gmail 앱 비밀번호 가져오기 (보안 강화)
+        String actualPassword = System.getenv("GMAIL_APP_PASSWORD");
+        if (actualPassword == null || actualPassword.trim().isEmpty()) {
+            System.out.println("⚠️  경고: GMAIL_APP_PASSWORD 환경변수가 설정되지 않았습니다.");
+            System.out.println("환경변수 설정 예시:");
+            System.out.println("Windows: set GMAIL_APP_PASSWORD=your_app_password");
+            System.out.println("Linux/Mac: export GMAIL_APP_PASSWORD=your_app_password");
+            System.out.println("\n보안을 위해 실제 비밀번호는 코드에 하드코딩하지 마세요!");
+            return;
+        }
+        
+        String encryptedPassword = encrypt(actualPassword);
+        System.out.println("Actual Password: [보안상 숨김]");
         System.out.println("Encrypted Password: " + encryptedPassword);
-        System.out.println("application-prod.yml에서 사용할 값: ENC(" + encryptedPassword + ")");
+        System.out.println("application.yml에서 사용할 값: ENC(" + encryptedPassword + ")");
         
         // 복호화 테스트
         String decryptedPassword = decrypt(encryptedPassword);
         System.out.println("\n=== 복호화 테스트 ===");
-        System.out.println("Decrypted Password: " + decryptedPassword);
+        System.out.println("Decryption successful: " + (actualPassword.equals(decryptedPassword) ? "✅" : "❌"));
         
-        System.out.println("\n=== 사용법 ===");
-        System.out.println("1. 실제 비밀번호를 환경변수로 설정");
+        System.out.println("\n=== 보안 사용법 ===");
+        System.out.println("1. GMAIL_APP_PASSWORD 환경변수 설정");
         System.out.println("2. 이 클래스의 main 메서드를 실행하여 암호화된 값 생성");
-        System.out.println("3. application-prod.yml에 ENC(암호화된값) 형태로 저장");
+        System.out.println("3. application.yml에 ENC(암호화된값) 형태로 저장");
+        System.out.println("4. 환경변수 삭제 (보안 강화)");
     }
 } 

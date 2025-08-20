@@ -45,6 +45,16 @@ const routes = [
     component: () => import('../views/UserRegisterView.vue')
   },
   {
+    path: '/password-reset',
+    name: 'password-reset-request',
+    component: () => import('../views/PasswordResetRequestView.vue')
+  },
+  {
+    path: '/reset-password',
+    name: 'password-reset-confirm',
+    component: () => import('../views/PasswordResetConfirmView.vue')
+  },
+  {
     path: '/admin/login',
     name: 'admin-login',
     component: () => import('../views/admin/LoginView.vue')

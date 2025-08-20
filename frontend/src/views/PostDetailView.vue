@@ -45,15 +45,15 @@
         </div>
       </div>
     
-    <div class="my-8 mx-auto max-w-2xl text-lg text-gray-700 bg-gray-50 rounded-lg p-6 font-normal leading-relaxed border-l-4 border-gray-200 dark:bg-gray-800 dark:text-gray-300 dark:border-gray-700" v-if="currentSummary">
+    <div class="my-8 mx-auto max-w-4xl text-lg text-gray-700 bg-gray-50 rounded-lg p-6 font-normal leading-relaxed border-l-4 border-gray-200 dark:bg-gray-800 dark:text-gray-300 dark:border-gray-700" v-if="currentSummary">
       <p class="m-0 text-lg text-inherit font-normal">{{ currentSummary }}</p>
     </div>
     
-    <div class="my-8 mx-auto max-w-2xl text-center" v-if="post.imageUrl">
-      <img :src="post.imageUrl" :alt="post.title" class="max-w-2xl w-full h-auto block mx-auto rounded-xl object-contain shadow-lg">
+    <div class="my-8 mx-auto max-w-4xl text-center" v-if="post.imageUrl">
+      <img :src="post.imageUrl" :alt="post.title" class="max-w-4xl w-full h-auto block mx-auto rounded-xl object-contain shadow-lg">
     </div>
     
-         <div class="max-w-5xl mx-auto my-10 bg-white rounded-xl shadow-sm p-8 transition-all duration-500 dark:bg-gray-800 dark:shadow-none dark:border dark:border-gray-700" id="post-content">
+         <div class="max-w-6xl mx-auto my-10 bg-white rounded-xl shadow-sm p-8 transition-all duration-500 dark:bg-gray-800 dark:shadow-none dark:border dark:border-gray-700" id="post-content">
        <div v-html="currentContent" class="prose prose-base max-w-none dark:prose-invert prose-headings:text-gray-900 prose-headings:dark:text-white prose-p:text-gray-700 prose-p:dark:text-gray-300 prose-strong:text-gray-900 prose-strong:dark:text-white prose-code:text-gray-900 prose-code:dark:text-gray-300 prose-pre:bg-gray-900 prose-pre:dark:bg-gray-900 prose-pre:text-gray-100 prose-pre:dark:text-gray-100"></div>
      </div>
     

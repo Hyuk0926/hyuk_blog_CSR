@@ -44,6 +44,12 @@ public class SecurityConfig {
                 .sessionCreationPolicy(SessionCreationPolicy.STATELESS)
             )
             .authorizeHttpRequests(authorize -> authorize
+                // --- 정적 리소스 허용 ---
+                .requestMatchers("/css/**", "/js/**", "/img/**", "/svg/**", "/favicon.ico").permitAll()
+                
+                // --- 프론트엔드 페이지 허용 ---
+                .requestMatchers("/", "/home", "/user/**", "/password-reset", "/reset-password").permitAll()
+                
                 // --- GET 요청은 대부분 허용 ---
                 .requestMatchers(HttpMethod.GET, "/api/posts/**").permitAll()
                 .requestMatchers(HttpMethod.GET, "/api/resume").permitAll()
@@ -56,8 +62,14 @@ public class SecurityConfig {
                 // --- 문의하기 API 허용 ---
                 .requestMatchers(HttpMethod.POST, "/api/contact").permitAll()
 
-                // --- 그 외 모든 요청은 인증 필요 ---
-                .anyRequest().authenticated()
+                // --- 비밀번호 재설정 API 허용 ---
+                .requestMatchers("/api/password-reset/**").permitAll()
+
+                // --- 관리자 페이지는 인증 필요 ---
+                .requestMatchers("/admin/**").authenticated()
+                
+                // --- 그 외 모든 요청은 허용 (SPA이므로) ---
+                .anyRequest().permitAll()
             )
             .userDetailsService(customUserDetailsService)
             .formLogin(AbstractHttpConfigurer::disable)
