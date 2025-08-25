@@ -34,6 +34,9 @@ public class Admin {
     @Column(length = 200)
     private String email;
     
+    @Column(length = 500)
+    private String profileImage;
+    
     @Column(nullable = false)
     private boolean active = true;
     

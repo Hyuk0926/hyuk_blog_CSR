@@ -19,11 +19,14 @@ class ApiService {
     console.log('API Request baseURL:', this.baseURL);
     
     const defaultOptions = {
-      headers: {
-        'Content-Type': 'application/json',
-      },
+      headers: {},
       credentials: 'same-origin', // 프록시 사용 시 same-origin으로 변경
     };
+
+    // FormData가 아닌 경우에만 Content-Type 헤더 설정
+    if (!(options.body instanceof FormData)) {
+      defaultOptions.headers['Content-Type'] = 'application/json';
+    }
 
     // JWT 토큰이 있으면 Authorization 헤더에 추가
     const token = localStorage.getItem('jwtToken');
@@ -114,11 +117,23 @@ class ApiService {
    * POST 요청
    */
   async post(endpoint, data, options = {}) {
-    return this.request(endpoint, {
+    const requestOptions = {
       ...options,
       method: 'POST',
-      body: JSON.stringify(data),
-    });
+    };
+
+    // FormData인 경우 JSON.stringify를 적용하지 않음
+    if (data instanceof FormData) {
+      requestOptions.body = data;
+      // FormData인 경우 Content-Type 헤더를 제거 (브라우저가 자동으로 설정)
+      if (requestOptions.headers) {
+        delete requestOptions.headers['Content-Type'];
+      }
+    } else {
+      requestOptions.body = JSON.stringify(data);
+    }
+
+    return this.request(endpoint, requestOptions);
   }
 
   /**
@@ -318,6 +333,12 @@ class ApiService {
    * 댓글 작성
    */
   async addComment(postId, postType, commentData) {
+    console.log("=== ADD COMMENT DEBUG ===");
+    console.log("PostId:", postId);
+    console.log("PostType:", postType);
+    console.log("CommentData:", commentData);
+    console.log("Request URL:", `/api/posts/${postId}/comments?postType=${postType}`);
+    
     return this.request(`/api/posts/${postId}/comments?postType=${postType}`, {
       method: 'POST',
       body: JSON.stringify(commentData),

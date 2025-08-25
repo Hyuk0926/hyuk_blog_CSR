@@ -29,6 +29,21 @@ public class User implements UserDetails {
     @Column(length = 200)
     private String email;
     
+    @Column(length = 500)
+    private String profileImage;
+    
+    @Column(length = 1000)
+    private String bio; // 자기소개
+    
+    @Column(length = 500)
+    private String backgroundImage; // 배경화면 이미지 URL
+    
+    @Column(length = 50)
+    private String backgroundColor; // 배경색 (예: #f0f0f0)
+    
+    @Column(length = 50)
+    private String backgroundStyle; // 배경 스타일 (gradient, solid, image 등)
+    
     @Column(nullable = false)
     private boolean active = true;
     

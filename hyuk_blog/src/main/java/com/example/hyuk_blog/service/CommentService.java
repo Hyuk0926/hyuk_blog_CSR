@@ -262,7 +262,21 @@ public class CommentService {
                 logger.warn("Comment is null, skipping conversion");
                 return null;
             }
-            return CommentDto.fromEntity(comment);
+            
+            CommentDto dto = CommentDto.fromEntity(comment);
+            
+            // Admin 사용자의 프로필 이미지 처리
+            if (comment.getUser() == null && dto.getUserId() != null) {
+                // User가 null이지만 userId가 있는 경우 Admin 사용자일 가능성이 있음
+                // Admin 테이블에서 확인
+                Optional<Admin> adminOpt = adminRepository.findById(dto.getUserId());
+                if (adminOpt.isPresent()) {
+                    Admin admin = adminOpt.get();
+                    dto.setProfileImage(admin.getProfileImage());
+                }
+            }
+            
+            return dto;
         } catch (Exception e) {
             logger.error("Error converting comment to DTO: {}", comment != null ? comment.getId() : "null", e);
             return null; // null을 반환하여 스트림에서 필터링되도록 함

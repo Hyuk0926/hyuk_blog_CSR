@@ -14,6 +14,7 @@ import org.springframework.web.bind.annotation.*;
 
 import java.util.HashMap;
 import java.util.Map;
+import com.example.hyuk_blog.dto.UserDto;
 
 @Slf4j
 @RestController
@@ -53,16 +54,11 @@ public class AuthApiController {
     @PostMapping("/register")
     public ResponseEntity<?> register(@RequestBody UserRegistrationDto registrationDto) {
         try {
-            boolean success = userService.registerUser(registrationDto);
-            if (success) {
-                Map<String, String> response = new HashMap<>();
-                response.put("message", "회원가입이 성공적으로 완료되었습니다.");
-                return ResponseEntity.status(HttpStatus.CREATED).body(response);
-            } else {
-                Map<String, String> error = new HashMap<>();
-                error.put("error", "회원가입에 실패했습니다.");
-                return ResponseEntity.badRequest().body(error);
-            }
+            UserDto registeredUser = userService.register(registrationDto);
+            Map<String, Object> response = new HashMap<>();
+            response.put("message", "회원가입이 성공적으로 완료되었습니다.");
+            response.put("user", registeredUser);
+            return ResponseEntity.status(HttpStatus.CREATED).body(response);
         } catch (IllegalArgumentException e) {
             Map<String, String> error = new HashMap<>();
             error.put("error", e.getMessage());

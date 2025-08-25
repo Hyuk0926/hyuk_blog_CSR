@@ -47,7 +47,7 @@ public class CommentApiController {
     @GetMapping("/posts/{postId}/comments")
     public ResponseEntity<?> getComments(
             @PathVariable Long postId,
-            @RequestParam("postType") String postTypeStr) {
+            @RequestParam(value = "postType", required = true) String postTypeStr) {
 
 
         
@@ -88,11 +88,16 @@ public class CommentApiController {
     @PostMapping("/posts/{postId}/comments")
     public ResponseEntity<?> createComment(
             @PathVariable Long postId,
-            @RequestParam(defaultValue = "KR") String postTypeStr,
+            @RequestParam(value = "postType", required = true) String postTypeStr,
             @RequestBody CommentDto commentDto,
             @AuthenticationPrincipal UserDetails userDetails) {
         
-
+        // 디버깅 로그 추가
+        System.out.println("=== CREATE COMMENT DEBUG ===");
+        System.out.println("PostId: " + postId);
+        System.out.println("PostTypeStr: " + postTypeStr);
+        System.out.println("Comment content: " + (commentDto != null ? commentDto.getContent() : "null"));
+        System.out.println("UserDetails: " + (userDetails != null ? userDetails.getUsername() : "null"));
         
         if (userDetails == null) {
             return ResponseEntity.status(401).body(Map.of("error", "로그인이 필요합니다."));

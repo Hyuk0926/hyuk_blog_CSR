@@ -21,6 +21,13 @@ export function useAuth() {
           if (!userData.nickname) {
             userData.nickname = userData.username
           }
+          
+          // 배경화면 관련 정보를 로컬 스토리지에 저장
+          if (userData.bio) localStorage.setItem('userBio', userData.bio)
+          if (userData.backgroundStyle) localStorage.setItem('userBackgroundStyle', userData.backgroundStyle)
+          if (userData.backgroundColor) localStorage.setItem('userBackgroundColor', userData.backgroundColor)
+          if (userData.backgroundImage) localStorage.setItem('userBackgroundImage', userData.backgroundImage)
+          
           user.value = userData
           isAuthenticated.value = true
           return userData
@@ -48,12 +55,22 @@ export function useAuth() {
         const role = localStorage.getItem('userRole')
         const adminName = localStorage.getItem('adminName')
         const userNickname = localStorage.getItem('userNickname')
+        const profileImage = localStorage.getItem('profileImage')
+        const userBio = localStorage.getItem('userBio')
+        const userBackgroundStyle = localStorage.getItem('userBackgroundStyle')
+        const userBackgroundColor = localStorage.getItem('userBackgroundColor')
+        const userBackgroundImage = localStorage.getItem('userBackgroundImage')
         if (username) {
           user.value = {
             username: username,
             nickname: role === 'ROLE_ADMIN' ? (adminName || username) : (userNickname || username), // 관리자는 adminName, 일반 사용자는 userNickname 사용
             name: role === 'ROLE_ADMIN' ? (adminName || username) : undefined, // 관리자 name 필드 추가
-            role: role || 'USER'
+            role: role || 'USER',
+            profileImage: profileImage || null,
+            bio: userBio || null,
+            backgroundStyle: userBackgroundStyle || null,
+            backgroundColor: userBackgroundColor || null,
+            backgroundImage: userBackgroundImage || null
           }
           isAuthenticated.value = true
           return user.value
@@ -85,8 +102,16 @@ export function useAuth() {
         localStorage.setItem('userNickname', response.username) // 기본값으로 username 사용
       }
       
-      // 사용자 정보 업데이트
-      await fetchUserInfo()
+                // 사용자 정보 업데이트
+          const userData = await fetchUserInfo()
+          
+          // 배경화면 관련 정보를 로컬 스토리지에 저장
+          if (userData) {
+            if (userData.bio) localStorage.setItem('userBio', userData.bio)
+            if (userData.backgroundStyle) localStorage.setItem('userBackgroundStyle', userData.backgroundStyle)
+            if (userData.backgroundColor) localStorage.setItem('userBackgroundColor', userData.backgroundColor)
+            if (userData.backgroundImage) localStorage.setItem('userBackgroundImage', userData.backgroundImage)
+          }
       
       return response
     } catch (error) {
@@ -117,12 +142,22 @@ export function useAuth() {
         const role = localStorage.getItem('userRole')
         const adminName = localStorage.getItem('adminName')
         const userNickname = localStorage.getItem('userNickname')
+        const profileImage = localStorage.getItem('profileImage')
+        const userBio = localStorage.getItem('userBio')
+        const userBackgroundStyle = localStorage.getItem('userBackgroundStyle')
+        const userBackgroundColor = localStorage.getItem('userBackgroundColor')
+        const userBackgroundImage = localStorage.getItem('userBackgroundImage')
         if (username) {
           user.value = {
             username: username,
             nickname: role === 'ROLE_ADMIN' ? (adminName || username) : (userNickname || username), // 관리자는 adminName, 일반 사용자는 userNickname 사용
             name: role === 'ROLE_ADMIN' ? (adminName || username) : undefined, // 관리자 name 필드 추가
-            role: role || 'USER'
+            role: role || 'USER',
+            profileImage: profileImage || null,
+            bio: userBio || null,
+            backgroundStyle: userBackgroundStyle || null,
+            backgroundColor: userBackgroundColor || null,
+            backgroundImage: userBackgroundImage || null
           }
           isAuthenticated.value = true
         }

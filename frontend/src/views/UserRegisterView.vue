@@ -1,24 +1,40 @@
 <template>
-  <div class="min-h-screen flex items-center justify-center p-5 font-['Noto_Sans_KR',sans-serif] bg-gradient-to-br from-[#1a1a1a] via-[#2d2d2d] via-[#404040] via-[#2d2d2d] to-[#1a1a1a]">
-    <div class="bg-[rgba(45,45,45,0.95)] backdrop-blur-[10px] rounded-2xl shadow-[0_8px_32px_rgba(0,0,0,0.3)] p-10 w-full max-w-[500px] border border-[rgba(255,255,255,0.2)]">
+  <div class="min-h-screen flex items-center justify-center p-5 font-['Noto_Sans_KR',sans-serif]">
+    <!-- 왼쪽 프로필 영역 -->
+    <div class="bg-white/90 backdrop-blur-[10px] rounded-2xl shadow-[0_8px_32px_rgba(0,0,0,0.1)] p-10 w-full max-w-[400px] border border-gray-200 mr-8 flex flex-col items-center text-center">
+      <!-- 운영자 안내 문구 -->
+      <p class="text-sm text-gray-500 mb-4 font-medium">Blog Owner</p>
+      <!-- 프로필 사진 -->
+      <img src="/img/profile_plana.jpg" alt="Profile" 
+           class="w-32 h-32 rounded-full shadow-md mb-4 object-cover">
+
+      <!-- 이름 -->
+      <h2 class="text-2xl font-bold text-gray-800 mb-1">Shka</h2>
+      
+      <!-- 간단 소개 -->
+      <p class="text-gray-600 mb-4">Web Developer</p>
+    </div>
+
+    <!-- 회원가입 폼 -->
+    <div class="bg-white/95 backdrop-blur-[10px] rounded-2xl shadow-[0_8px_32px_rgba(0,0,0,0.1)] p-10 w-full max-w-[500px] border border-gray-200">
       <div class="text-center mb-8">
-        <h1 class="text-[1.75rem] text-white mb-2 font-bold font-['Montserrat',sans-serif]">{{ $t('register.title') }}</h1>
-        <p class="text-[#b0b0b0] text-[0.95rem] font-medium">{{ $t('register.subtitle') }}</p>
+        <h1 class="text-[1.75rem] text-gray-800 mb-2 font-bold font-['Montserrat',sans-serif]">{{ $t('register.title') }}</h1>
+        <p class="text-gray-600 text-[0.95rem] font-medium">{{ $t('register.subtitle') }}</p>
       </div>
       
-      <div v-if="error" class="bg-[rgba(197,48,48,0.2)] text-[#ff6b6b] p-4 rounded-xl mb-5 text-center font-medium border border-[rgba(197,48,48,0.3)]">
+      <div v-if="error" class="bg-red-50 text-red-600 p-4 rounded-xl mb-5 text-center font-medium border border-red-200">
         {{ error }}
       </div>
       
       <form @submit.prevent="handleRegister" id="registerForm">
         <div class="mb-5">
-          <label for="username" class="block mb-2 font-semibold text-[#e0e0e0] text-[0.9rem]">{{ $t('register.username') }} <span class="text-[#ff6b6b]">{{ $t('register.required') }}</span></label>
+          <label for="username" class="block mb-2 font-semibold text-gray-700 text-[0.9rem]">{{ $t('register.username') }} <span class="text-red-500">{{ $t('register.required') }}</span></label>
           <div class="relative flex items-center">
                          <input 
                type="text" 
                id="username" 
                v-model="formData.username" 
-               class="flex-1 p-[14px] px-4 border-2 border-[#555555] rounded-xl rounded-r-none text-[0.95rem] transition-all duration-300 ease-in-out box-border bg-[rgba(60,60,60,0.8)] font-inherit text-white focus:outline-none focus:border-[#888888] focus:shadow-[0_0_0_3px_rgba(136,136,136,0.2)] focus:-translate-y-[1px] focus:bg-[rgba(70,70,70,0.9)" 
+               class="flex-1 p-[14px] px-4 border-2 border-gray-300 rounded-xl rounded-r-none text-[0.95rem] transition-all duration-300 ease-in-out box-border bg-white font-inherit text-gray-800 focus:outline-none focus:border-blue-500 focus:shadow-[0_0_0_3px_rgba(59,130,246,0.1)] focus:-translate-y-[1px] focus:bg-white" 
                required 
                pattern="[a-zA-Z0-9_]{4,20}" 
                :title="$t('register.validation.username.format')"
@@ -27,7 +43,7 @@
              >
             <button 
               type="button" 
-              class="p-[14px] px-4 bg-gradient-to-br from-[#666666] to-[#444444] text-white border-2 border-[#555555] border-l-0 rounded-xl rounded-l-none text-[0.9rem] font-semibold cursor-pointer transition-all duration-300 ease-in-out whitespace-nowrap min-w-[80px] hover:bg-gradient-to-br hover:from-[#777777] hover:to-[#555555] hover:-translate-y-[1px] disabled:bg-gradient-to-br disabled:from-[#555555] disabled:to-[#333333] disabled:cursor-not-allowed disabled:opacity-60" 
+              class="p-[14px] px-4 bg-blue-500 text-white border-2 border-gray-300 border-l-0 rounded-xl rounded-l-none text-[0.9rem] font-semibold cursor-pointer transition-all duration-300 ease-in-out whitespace-nowrap min-w-[80px] hover:bg-blue-600 hover:-translate-y-[1px] disabled:bg-gray-400 disabled:cursor-not-allowed disabled:opacity-60" 
               id="username-check-btn" 
               @click="checkUsernameDuplicate"
               :disabled="!formData.username || usernameChecked"
@@ -35,19 +51,19 @@
               {{ usernameChecked ? $t('register.checkComplete') : $t('register.duplicateCheck') }}
             </button>
           </div>
-          <div id="username-validation" class="text-[0.875rem] mt-2 font-medium" :class="usernameValidation.type === 'error' ? 'text-[#ff6b6b]' : usernameValidation.type === 'success' ? 'text-[#68d391]' : ''">
+          <div id="username-validation" class="text-[0.875rem] mt-2 font-medium" :class="usernameValidation.type === 'error' ? 'text-red-500' : usernameValidation.type === 'success' ? 'text-green-600' : ''">
             {{ usernameValidation.message }}
           </div>
         </div>
         
         <div class="mb-5">
-          <label for="password" class="block mb-2 font-semibold text-[#e0e0e0] text-[0.9rem]">{{ $t('register.password') }} <span class="text-[#ff6b6b]">{{ $t('register.required') }}</span></label>
+          <label for="password" class="block mb-2 font-semibold text-gray-700 text-[0.9rem]">{{ $t('register.password') }} <span class="text-red-500">{{ $t('register.required') }}</span></label>
           <div class="relative">
                          <input 
                :type="showPassword ? 'text' : 'password'" 
                id="password" 
                v-model="formData.password" 
-               class="w-full p-[14px] px-4 pr-10 border-2 border-[#555555] rounded-xl text-[0.95rem] transition-all duration-300 ease-in-out box-border bg-[rgba(60,60,60,0.8)] font-inherit text-white focus:outline-none focus:border-[#888888] focus:shadow-[0_0_0_3px_rgba(136,136,136,0.2)] focus:-translate-y-[1px] focus:bg-[rgba(70,70,70,0.9)" 
+               class="w-full p-[14px] px-4 pr-10 border-2 border-gray-300 rounded-xl text-[0.95rem] transition-all duration-300 ease-in-out box-border bg-white font-inherit text-gray-800 focus:outline-none focus:border-blue-500 focus:shadow-[0_0_0_3px_rgba(59,130,246,0.1)] focus:-translate-y-[1px] focus:bg-white" 
                required 
                minlength="6" 
                :title="$t('register.validation.password.minLength')"
@@ -57,31 +73,31 @@
             <span 
               @click="showPassword = !showPassword" 
               :title="$t('login.passwordToggle')" 
-              class="absolute right-3 top-1/2 -translate-y-1/2 cursor-pointer text-[1.3rem] text-[#888] hover:text-white hover:scale-110 transition-all duration-200 ease-in-out"
+              class="absolute right-3 top-1/2 -translate-y-1/2 cursor-pointer text-[1.3rem] text-gray-500 hover:text-gray-700 hover:scale-110 transition-all duration-200 ease-in-out"
             >
               {{ showPassword ? '👁️' : '𝄐' }}
             </span>
                          <div 
-               class="absolute -top-[25px] right-0 bg-[rgba(255,193,7,0.9)] text-[#856404] p-1 px-2 rounded text-[0.8rem] font-medium hidden z-10" 
+               class="absolute -top-[25px] right-0 bg-yellow-100 text-yellow-800 p-1 px-2 rounded text-[0.8rem] font-medium hidden z-10" 
                id="password-capslock" 
                :class="{ 'block': capsLockOn }"
              >
                {{ $t('login.capsLock') }}
              </div>
           </div>
-          <div id="password-validation" class="text-[0.875rem] mt-2 font-medium" :class="passwordValidation.type === 'error' ? 'text-[#ff6b6b]' : passwordValidation.type === 'success' ? 'text-[#68d391]' : ''">
+          <div id="password-validation" class="text-[0.875rem] mt-2 font-medium" :class="passwordValidation.type === 'error' ? 'text-red-500' : passwordValidation.type === 'success' ? 'text-green-600' : ''">
             {{ passwordValidation.message }}
           </div>
         </div>
         
         <div class="mb-5">
-          <label for="confirmPassword" class="block mb-2 font-semibold text-[#e0e0e0] text-[0.9rem]">{{ $t('register.confirmPassword') }} <span class="text-[#ff6b6b]">{{ $t('register.required') }}</span></label>
+          <label for="confirmPassword" class="block mb-2 font-semibold text-gray-700 text-[0.9rem]">{{ $t('register.confirmPassword') }} <span class="text-red-500">{{ $t('register.required') }}</span></label>
           <div class="relative">
                          <input 
                :type="showConfirmPassword ? 'text' : 'password'" 
                id="confirmPassword" 
                v-model="formData.confirmPassword" 
-               class="w-full p-[14px] px-4 pr-10 border-2 border-[#555555] rounded-xl text-[0.95rem] transition-all duration-300 ease-in-out box-border bg-[rgba(60,60,60,0.8)] font-inherit text-white focus:outline-none focus:border-[#888888] focus:shadow-[0_0_0_3px_rgba(136,136,136,0.2)] focus:-translate-y-[1px] focus:bg-[rgba(70,70,70,0.9)" 
+               class="w-full p-[14px] px-4 pr-10 border-2 border-gray-300 rounded-xl text-[0.95rem] transition-all duration-300 ease-in-out box-border bg-white font-inherit text-gray-800 focus:outline-none focus:border-blue-500 focus:shadow-[0_0_0_3px_rgba(59,130,246,0.1)] focus:-translate-y-[1px] focus:bg-white" 
                required
                :placeholder="$t('register.validation.confirmPassword.required')"
                @blur="validateConfirmPassword"
@@ -89,31 +105,31 @@
             <span 
               @click="showConfirmPassword = !showConfirmPassword" 
               :title="$t('login.passwordToggle')" 
-              class="absolute right-3 top-1/2 -translate-y-1/2 cursor-pointer text-[1.3rem] text-[#888] hover:text-white hover:scale-110 transition-all duration-200 ease-in-out"
+              class="absolute right-3 top-1/2 -translate-y-1/2 cursor-pointer text-[1.3rem] text-gray-500 hover:text-gray-700 hover:scale-110 transition-all duration-200 ease-in-out"
             >
               {{ showConfirmPassword ? '👁️' : '𝄐' }}
             </span>
                          <div 
-               class="absolute -top-[25px] right-0 bg-[rgba(255,193,7,0.9)] text-[#856404] p-1 px-2 rounded text-[0.8rem] font-medium hidden z-10" 
+               class="absolute -top-[25px] right-0 bg-yellow-100 text-yellow-800 p-1 px-2 rounded text-[0.8rem] font-medium hidden z-10" 
                id="confirmPassword-capslock" 
                :class="{ 'block': capsLockOn }"
              >
                {{ $t('login.capsLock') }}
              </div>
           </div>
-          <div id="confirmPassword-validation" class="text-[0.875rem] mt-2 font-medium" :class="confirmPasswordValidation.type === 'error' ? 'text-[#ff6b6b]' : confirmPasswordValidation.type === 'success' ? 'text-[#68d391]' : ''">
+          <div id="confirmPassword-validation" class="text-[0.875rem] mt-2 font-medium" :class="confirmPasswordValidation.type === 'error' ? 'text-red-500' : confirmPasswordValidation.type === 'success' ? 'text-green-600' : ''">
             {{ confirmPasswordValidation.message }}
           </div>
         </div>
         
         <div class="mb-5">
-          <label for="nickname" class="block mb-2 font-semibold text-[#e0e0e0] text-[0.9rem]">{{ $t('register.nickname') }} <span class="text-[#ff6b6b]">{{ $t('register.required') }}</span></label>
+          <label for="nickname" class="block mb-2 font-semibold text-gray-700 text-[0.9rem]">{{ $t('register.nickname') }} <span class="text-red-500">{{ $t('register.required') }}</span></label>
           <div class="relative flex items-center">
                          <input 
                type="text" 
                id="nickname" 
                v-model="formData.nickname" 
-               class="flex-1 p-[14px] px-4 border-2 border-[#555555] rounded-xl rounded-r-none text-[0.95rem] transition-all duration-300 ease-in-out box-border bg-[rgba(60,60,60,0.8)] font-inherit text-white focus:outline-none focus:border-[#888888] focus:shadow-[0_0_0_3px_rgba(136,136,136,0.2)] focus:-translate-y-[1px] focus:bg-[rgba(70,70,70,0.9)" 
+               class="flex-1 p-[14px] px-4 border-2 border-gray-300 rounded-xl rounded-r-none text-[0.95rem] transition-all duration-300 ease-in-out box-border bg-white font-inherit text-gray-800 focus:outline-none focus:border-blue-500 focus:shadow-[0_0_0_3px_rgba(59,130,246,0.1)] focus:-translate-y-[1px] focus:bg-white" 
                required 
                minlength="2" 
                maxlength="20" 
@@ -123,7 +139,7 @@
              >
             <button 
               type="button" 
-              class="p-[14px] px-4 bg-gradient-to-br from-[#666666] to-[#444444] text-white border-2 border-[#555555] border-l-0 rounded-xl rounded-l-none text-[0.9rem] font-semibold cursor-pointer transition-all duration-300 ease-in-out whitespace-nowrap min-w-[80px] hover:bg-gradient-to-br hover:from-[#777777] hover:to-[#555555] hover:-translate-y-[1px] disabled:bg-gradient-to-br disabled:from-[#555555] disabled:to-[#333333] disabled:cursor-not-allowed disabled:opacity-60" 
+              class="p-[14px] px-4 bg-blue-500 text-white border-2 border-gray-300 border-l-0 rounded-xl rounded-l-none text-[0.9rem] font-semibold cursor-pointer transition-all duration-300 ease-in-out whitespace-nowrap min-w-[80px] hover:bg-blue-600 hover:-translate-y-[1px] disabled:bg-gray-400 disabled:cursor-not-allowed disabled:opacity-60" 
               id="nickname-check-btn" 
               @click="checkNicknameDuplicate"
               :disabled="!formData.nickname || nicknameChecked"
@@ -131,26 +147,26 @@
               {{ nicknameChecked ? $t('register.checkComplete') : $t('register.duplicateCheck') }}
             </button>
           </div>
-          <div id="nickname-validation" class="text-[0.875rem] mt-2 font-medium" :class="nicknameValidation.type === 'error' ? 'text-[#ff6b6b]' : nicknameValidation.type === 'success' ? 'text-[#68d391]' : ''">
+          <div id="nickname-validation" class="text-[0.875rem] mt-2 font-medium" :class="nicknameValidation.type === 'error' ? 'text-red-500' : nicknameValidation.type === 'success' ? 'text-green-600' : ''">
             {{ nicknameValidation.message }}
           </div>
         </div>
         
         <div class="mb-5">
-          <label for="email" class="block mb-2 font-semibold text-[#e0e0e0] text-[0.9rem]">{{ $t('register.email') }}</label>
+          <label for="email" class="block mb-2 font-semibold text-gray-700 text-[0.9rem]">{{ $t('register.email') }}</label>
           <div class="relative flex items-center">
                          <input 
                type="email" 
                id="email" 
                v-model="formData.email" 
-               class="flex-1 p-[14px] px-4 border-2 border-[#555555] rounded-xl rounded-r-none text-[0.95rem] transition-all duration-300 ease-in-out box-border bg-[rgba(60,60,60,0.8)] font-inherit text-white focus:outline-none focus:border-[#888888] focus:shadow-[0_0_0_3px_rgba(136,136,136,0.2)] focus:-translate-y-[1px] focus:bg-[rgba(70,70,70,0.9)" 
+               class="flex-1 p-[14px] px-4 border-2 border-gray-300 rounded-xl rounded-r-none text-[0.95rem] transition-all duration-300 ease-in-out box-border bg-white font-inherit text-gray-800 focus:outline-none focus:border-blue-500 focus:shadow-[0_0_0_3px_rgba(59,130,246,0.1)] focus:-translate-y-[1px] focus:bg-white" 
                :title="$t('register.validation.email.format')"
                placeholder="example@email.com"
                @blur="validateEmail"
              >
             <button 
               type="button" 
-              class="p-[14px] px-4 bg-gradient-to-br from-[#666666] to-[#444444] text-white border-2 border-[#555555] border-l-0 rounded-xl rounded-l-none text-[0.9rem] font-semibold cursor-pointer transition-all duration-300 ease-in-out whitespace-nowrap min-w-[80px] hover:bg-gradient-to-br hover:from-[#777777] hover:to-[#555555] hover:-translate-y-[1px] disabled:bg-gradient-to-br disabled:from-[#555555] disabled:to-[#333333] disabled:cursor-not-allowed disabled:opacity-60" 
+              class="p-[14px] px-4 bg-blue-500 text-white border-2 border-gray-300 border-l-0 rounded-xl rounded-l-none text-[0.9rem] font-semibold cursor-pointer transition-all duration-300 ease-in-out whitespace-nowrap min-w-[80px] hover:bg-blue-600 hover:-translate-y-[1px] disabled:bg-gray-400 disabled:cursor-not-allowed disabled:opacity-60" 
               id="email-check-btn" 
               @click="checkEmailDuplicate"
               :disabled="!formData.email || emailChecked"
@@ -158,14 +174,14 @@
               {{ emailChecked ? $t('register.checkComplete') : $t('register.duplicateCheck') }}
             </button>
           </div>
-          <div id="email-validation" class="text-[0.875rem] mt-2 font-medium" :class="emailValidation.type === 'error' ? 'text-[#ff6b6b]' : emailValidation.type === 'success' ? 'text-[#68d391]' : ''">
+          <div id="email-validation" class="text-[0.875rem] mt-2 font-medium" :class="emailValidation.type === 'error' ? 'text-red-500' : emailValidation.type === 'success' ? 'text-green-600' : ''">
             {{ emailValidation.message }}
           </div>
         </div>
         
         <button 
           type="submit" 
-          class="w-full p-[14px] bg-gradient-to-br from-[#666666] to-[#444444] text-white border-none rounded-xl text-[0.95rem] font-semibold cursor-pointer transition-all duration-300 ease-[cubic-bezier(0.4,0,0.2,1)] font-['Montserrat',sans-serif] shadow-[0_4px_12px_rgba(0,0,0,0.3)] hover:-translate-y-[2px] hover:shadow-[0_6px_20px_rgba(0,0,0,0.4)] hover:bg-gradient-to-br hover:from-[#777777] hover:to-[#555555] active:translate-y-0 disabled:bg-gradient-to-br disabled:from-[#555555] disabled:to-[#333333] disabled:cursor-not-allowed disabled:transform-none disabled:opacity-60" 
+          class="w-full p-[14px] bg-blue-500 text-white border-none rounded-xl text-[0.95rem] font-semibold cursor-pointer transition-all duration-300 ease-[cubic-bezier(0.4,0,0.2,1)] font-['Montserrat',sans-serif] shadow-[0_4px_12px_rgba(59,130,246,0.3)] hover:-translate-y-[2px] hover:shadow-[0_6px_20px_rgba(59,130,246,0.4)] hover:bg-blue-600 active:translate-y-0 disabled:bg-gray-400 disabled:cursor-not-allowed disabled:transform-none disabled:opacity-60" 
           id="submitBtn" 
           :disabled="!isFormValid || loading"
         >
@@ -173,12 +189,12 @@
         </button>
       </form>
       
-      <div class="text-center mt-6 pt-5 border-t border-[rgba(255,255,255,0.1)]">
-        <p class="text-[#cccccc]">{{ $t('register.hasAccount') }} <router-link to="/user/login" class="text-[#cccccc] no-underline font-semibold transition-colors duration-300 ease-in-out hover:text-white hover:underline">{{ $t('register.login') }}</router-link></p>
+      <div class="text-center mt-6 pt-5 border-t border-gray-200">
+        <p class="text-gray-600">{{ $t('register.hasAccount') }} <router-link to="/user/login" class="text-blue-600 no-underline font-semibold transition-colors duration-300 ease-in-out hover:text-blue-800 hover:underline">{{ $t('register.login') }}</router-link></p>
       </div>
       
       <div class="text-center mt-4">
-        <router-link to="/" class="text-[#aaaaaa] no-underline text-[0.9rem] transition-colors duration-300 ease-in-out hover:text-[#cccccc] hover:underline">{{ $t('login.backToHome') }}</router-link>
+        <router-link to="/" class="text-gray-500 no-underline text-[0.9rem] transition-colors duration-300 ease-in-out hover:text-gray-700 hover:underline">{{ $t('login.backToHome') }}</router-link>
       </div>
     </div>
   </div>
@@ -230,6 +246,28 @@ export default {
   },
   mounted() {
     this.setupCapsLockDetection();
+    this.setBackgroundImage();
+    // 다크모드 변경 감지
+    this.observer = new MutationObserver(() => {
+      this.setBackgroundImage();
+    });
+    this.observer.observe(document.body, {
+      attributes: true,
+      attributeFilter: ['class']
+    });
+  },
+  beforeUnmount() {
+    this.clearBackgroundImage();
+    if (this.observer) {
+      this.observer.disconnect();
+    }
+  },
+  beforeRouteLeave(to, from, next) {
+    this.clearBackgroundImage();
+    if (this.observer) {
+      this.observer.disconnect();
+    }
+    next();
   },
   methods: {
     async handleRegister() {
@@ -412,6 +450,36 @@ export default {
           });
         }
       });
+    },
+
+    setBackgroundImage() {
+      const isDarkMode = document.body.classList.contains('dark-mode');
+      const lightBg = '/img/light_mode_bg.jpg';
+      const darkBg = '/img/dark_mode_bg.jpg';
+      
+      // !important를 사용하여 main.css의 스타일을 덮어쓰기
+      document.body.style.setProperty('background-image', `url(${isDarkMode ? darkBg : lightBg})`, 'important');
+      document.body.style.setProperty('background-size', 'cover', 'important');
+      document.body.style.setProperty('background-position', 'center', 'important');
+      document.body.style.setProperty('background-repeat', 'no-repeat', 'important');
+      document.body.style.setProperty('background-attachment', 'fixed', 'important');
+      document.body.style.setProperty('margin', '0', 'important');
+      document.body.style.setProperty('padding', '0', 'important');
+      document.body.style.setProperty('min-height', '100vh', 'important');
+      document.body.style.setProperty('transition', 'background-image 0.5s ease', 'important');
+    },
+    
+    clearBackgroundImage() {
+      // !important를 사용하여 스타일 제거
+      document.body.style.removeProperty('background-image');
+      document.body.style.removeProperty('background-size');
+      document.body.style.removeProperty('background-position');
+      document.body.style.removeProperty('background-repeat');
+      document.body.style.removeProperty('background-attachment');
+      document.body.style.removeProperty('margin');
+      document.body.style.removeProperty('padding');
+      document.body.style.removeProperty('min-height');
+      document.body.style.removeProperty('transition');
     }
   }
 }

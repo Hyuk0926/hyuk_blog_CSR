@@ -110,21 +110,21 @@
               </div>
               
               <div class="flex-1 p-4 px-8 bg-white">
-                              <div class="w-full min-h-[400px] border border-[#e9ecef] rounded-lg overflow-hidden shadow-[0_2px_4px_rgba(0,0,0,0.05)]">
-                 <Editor
-                   v-if="activeLanguage && editorConfig"
-                   :api-key="tinymceApiKey"
-                   :key="`editor-${activeLanguage}-${isEdit}`"
-                   v-model="currentContent"
-                   :init="editorConfig"
-                   :placeholder="activeLanguage === 'ko' ? '한국어 내용을 입력하세요...' : '日本語の内容を入力してください...'"
-                   class="w-full h-full"
-                   @init="onEditorInit"
-                   @blur="onEditorBlur"
-                   @input="onEditorInput"
-                 />
+                <div class="w-full min-h-[400px] border border-gray-200 rounded-xl overflow-hidden shadow-sm bg-white">
+                  <Editor
+                    v-if="activeLanguage && editorConfig"
+                    :api-key="tinymceApiKey"
+                    :key="`editor-${activeLanguage}-${isEdit}`"
+                    v-model="currentContent"
+                    :init="editorConfig"
+                    :placeholder="activeLanguage === 'ko' ? '한국어 내용을 입력하세요...' : '日本語の内容を入力してください...'"
+                    class="w-full h-full min-h-[400px]"
+                    @init="onEditorInit"
+                    @blur="onEditorBlur"
+                    @input="onEditorInput"
+                  />
                 </div>
-            </div>
+              </div>
           </div>
 
           
@@ -221,8 +221,8 @@ export default {
           published: false
         },
                                                                                                                                                                                                                                editorConfig: {
-           height: 350,
-           language: 'ko_KR',
+           height: 400,
+           language: 'ko-KR',
                                       plugins: [
              'advlist', 'autolink', 'lists', 'link', 'image', 'charmap', 'preview',
              'anchor', 'searchreplace', 'visualblocks', 'code', 'fullscreen',
@@ -235,12 +235,106 @@ export default {
           ].join(' | '),
                    content_style: `
              body { 
-               font-family: 'Noto Sans KR', 'Noto Sans JP', 'Malgun Gothic', 'Hiragino Kaku Gothic ProN', sans-serif; 
-               font-size: 14px; 
-               line-height: 1.6; 
-               color: #2c3e50; 
+               font-family: 'Inter', 'Noto Sans KR', 'Noto Sans JP', 'Malgun Gothic', 'Hiragino Kaku Gothic ProN', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; 
+               font-size: 16px; 
+               line-height: 1.7; 
+               color: #374151; 
                margin: 0;
+               padding: 24px 32px;
+               background-color: #ffffff;
+             }
+             h1, h2, h3, h4, h5, h6 {
+               color: #111827;
+               font-weight: 600;
+               margin-top: 24px;
+               margin-bottom: 16px;
+             }
+             h1 { font-size: 2rem; }
+             h2 { font-size: 1.75rem; }
+             h3 { font-size: 1.5rem; }
+             h4 { font-size: 1.25rem; }
+             h5 { font-size: 1.125rem; }
+             h6 { font-size: 1rem; }
+             p {
+               margin-bottom: 16px;
+               color: #374151;
+             }
+             ul, ol {
+               margin-bottom: 16px;
+               padding-left: 24px;
+             }
+             li {
+               margin-bottom: 8px;
+               color: #374151;
+             }
+             blockquote {
+               border-left: 4px solid #3b82f6;
+               padding-left: 20px;
+               margin: 24px 0;
+               font-style: italic;
+               color: #6b7280;
+               background-color: #f9fafb;
                padding: 16px 20px;
+               border-radius: 0 8px 8px 0;
+             }
+             code {
+               background-color: #f3f4f6;
+               padding: 2px 6px;
+               border-radius: 4px;
+               font-family: 'Monaco', 'Menlo', 'Ubuntu Mono', monospace;
+               font-size: 0.875em;
+               color: #dc2626;
+             }
+             pre {
+               background-color: #1f2937;
+               color: #f9fafb;
+               padding: 16px;
+               border-radius: 8px;
+               overflow-x: auto;
+               margin: 24px 0;
+             }
+             pre code {
+               background-color: transparent;
+               color: inherit;
+               padding: 0;
+             }
+             a {
+               color: #3b82f6;
+               text-decoration: underline;
+               text-decoration-color: #dbeafe;
+               text-underline-offset: 2px;
+             }
+             a:hover {
+               color: #2563eb;
+               text-decoration-color: #3b82f6;
+             }
+             img {
+               max-width: 100%;
+               height: auto;
+               border-radius: 8px;
+               margin: 16px 0;
+             }
+             table {
+               border-collapse: collapse;
+               width: 100%;
+               margin: 24px 0;
+               border-radius: 8px;
+               overflow: hidden;
+               box-shadow: 0 1px 3px 0 rgba(0, 0, 0, 0.1);
+             }
+             th, td {
+               border: 1px solid #e5e7eb;
+               padding: 12px 16px;
+               text-align: left;
+             }
+             th {
+               background-color: #f9fafb;
+               font-weight: 600;
+               color: #374151;
+             }
+             td {
+               background-color: #ffffff;
+               color: #374151;
              }
            `,
          menubar: false,
@@ -347,14 +441,14 @@ export default {
          // 언어에 따른 에디터 설정 업데이트
          const newConfig = {
            ...this.editorConfig,
-           language: this.activeLanguage === 'ja' ? 'ja' : 'ko_KR',
+           language: this.activeLanguage === 'ja' ? 'ja' : 'ko-KR',
            placeholder: this.activeLanguage === 'ja' ? 
              '内容を入力してください...' : '내용을 입력하세요...'
          };
         
          // 에디터 설정 업데이트
          this.editorConfig = {
-           height: 350,
+           height: 400,
            language: newConfig.language,
            plugins: [
              'advlist', 'autolink', 'lists', 'link', 'image', 'charmap', 'preview',
@@ -368,12 +462,106 @@ export default {
            ].join(' | '),
            content_style: `
              body { 
-               font-family: 'Noto Sans KR', 'Noto Sans JP', 'Malgun Gothic', 'Hiragino Kaku Gothic ProN', sans-serif; 
-               font-size: 14px; 
-               line-height: 1.6; 
-               color: #2c3e50; 
+               font-family: 'Inter', 'Noto Sans KR', 'Noto Sans JP', 'Malgun Gothic', 'Hiragino Kaku Gothic ProN', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; 
+               font-size: 16px; 
+               line-height: 1.7; 
+               color: #374151; 
                margin: 0;
+               padding: 24px 32px;
+               background-color: #ffffff;
+             }
+             h1, h2, h3, h4, h5, h6 {
+               color: #111827;
+               font-weight: 600;
+               margin-top: 24px;
+               margin-bottom: 16px;
+             }
+             h1 { font-size: 2rem; }
+             h2 { font-size: 1.75rem; }
+             h3 { font-size: 1.5rem; }
+             h4 { font-size: 1.25rem; }
+             h5 { font-size: 1.125rem; }
+             h6 { font-size: 1rem; }
+             p {
+               margin-bottom: 16px;
+               color: #374151;
+             }
+             ul, ol {
+               margin-bottom: 16px;
+               padding-left: 24px;
+             }
+             li {
+               margin-bottom: 8px;
+               color: #374151;
+             }
+             blockquote {
+               border-left: 4px solid #3b82f6;
+               padding-left: 20px;
+               margin: 24px 0;
+               font-style: italic;
+               color: #6b7280;
+               background-color: #f9fafb;
                padding: 16px 20px;
+               border-radius: 0 8px 8px 0;
+             }
+             code {
+               background-color: #f3f4f6;
+               padding: 2px 6px;
+               border-radius: 4px;
+               font-family: 'Monaco', 'Menlo', 'Ubuntu Mono', monospace;
+               font-size: 0.875em;
+               color: #dc2626;
+             }
+             pre {
+               background-color: #1f2937;
+               color: #f9fafb;
+               padding: 16px;
+               border-radius: 8px;
+               overflow-x: auto;
+               margin: 24px 0;
+             }
+             pre code {
+               background-color: transparent;
+               color: inherit;
+               padding: 0;
+             }
+             a {
+               color: #3b82f6;
+               text-decoration: underline;
+               text-decoration-color: #dbeafe;
+               text-underline-offset: 2px;
+             }
+             a:hover {
+               color: #2563eb;
+               text-decoration-color: #3b82f6;
+             }
+             img {
+               max-width: 100%;
+               height: auto;
+               border-radius: 8px;
+               margin: 16px 0;
+             }
+             table {
+               border-collapse: collapse;
+               width: 100%;
+               margin: 24px 0;
+               border-radius: 8px;
+               overflow: hidden;
+               box-shadow: 0 1px 3px 0 rgba(0, 0, 0, 0.1);
+             }
+             th, td {
+               border: 1px solid #e5e7eb;
+               padding: 12px 16px;
+               text-align: left;
+             }
+             th {
+               background-color: #f9fafb;
+               font-weight: 600;
+               color: #374151;
+             }
+             td {
+               background-color: #ffffff;
+               color: #374151;
              }
            `,
            placeholder: newConfig.placeholder,
@@ -669,170 +857,98 @@ export default {
 </script>
 
 <style scoped>
-/* TinyMCE 에디터 스타일 커스터마이징 */
-.tox-tinymce {
-  border: none !important;
-  border-radius: 8px !important;
-  z-index: 1 !important;
+/* TinyMCE 에디터 기본 스타일 커스터마이징 */
+:deep(.tox-tinymce) {
+  @apply border-0 rounded-xl shadow-sm;
 }
 
-.tox .tox-toolbar {
-  background: #ffffff !important;
-  border-bottom: 1px solid #e9ecef !important;
-  padding: 8px 12px !important;
+:deep(.tox .tox-toolbar) {
+  @apply bg-white border-b border-gray-200 p-3;
 }
 
-.tox .tox-toolbar__group {
-  border-right: 1px solid #e9ecef !important;
-  padding-right: 8px !important;
-  margin-right: 8px !important;
+:deep(.tox .tox-toolbar__group) {
+  @apply border-r border-gray-200 pr-3 mr-3;
 }
 
-.tox .tox-toolbar__group:last-child {
-  border-right: none !important;
-  margin-right: 0 !important;
+:deep(.tox .tox-toolbar__group:last-child) {
+  @apply border-r-0 mr-0;
 }
 
-.tox .tox-tbtn {
-  border-radius: 4px !important;
-  transition: all 0.2s ease !important;
+:deep(.tox .tox-tbtn) {
+  @apply rounded-md transition-all duration-200;
 }
 
-.tox .tox-tbtn:hover {
-  background: #f8f9fa !important;
-  transform: translateY(-1px) !important;
+:deep(.tox .tox-tbtn:hover) {
+  @apply bg-gray-50 -translate-y-0.5;
 }
 
-.tox .tox-tbtn--enabled {
-  background: #e9ecef !important;
-  color: #495057 !important;
+:deep(.tox .tox-tbtn--enabled) {
+  @apply bg-gray-100 text-gray-700;
 }
 
-.tox .tox-edit-area {
-  background: #ffffff !important;
-  border-top: 1px solid #e9ecef !important;
+:deep(.tox .tox-edit-area) {
+  @apply bg-white border-t border-gray-200;
 }
 
-.tox .tox-edit-area__iframe {
-  background: #ffffff !important;
-  min-height: 300px !important;
+:deep(.tox .tox-edit-area__iframe) {
+  @apply bg-white min-h-[400px];
 }
 
-.tox .tox-edit-focus {
-  border-color: #007bff !important;
-  box-shadow: 0 0 0 3px rgba(0, 123, 255, 0.1) !important;
+:deep(.tox .tox-edit-focus) {
+  @apply border-blue-500 shadow-[0_0_0_3px_rgba(59,130,246,0.1)];
 }
 
-
-
-.content-input .tox-toolbar {
-  background: #ffffff !important;
-  border-bottom: 1px solid #e9ecef !important;
-  padding: 8px 12px !important;
+/* 에디터 내부 콘텐츠 영역 */
+:deep(.mce-content-body) {
+  @apply p-6 font-sans text-base leading-relaxed text-gray-700;
 }
 
-.content-input .tox-toolbar__group {
-  border-right: 1px solid #e9ecef !important;
-  padding-right: 8px !important;
-  margin-right: 8px !important;
-}
-
-.content-input .tox-toolbar__group:last-child {
-  border-right: none !important;
-  margin-right: 0 !important;
-}
-
-.content-input .tox-tbtn {
-  border-radius: 4px !important;
-  transition: all 0.2s ease !important;
-}
-
-.content-input .tox-tbtn:hover {
-  background: #f8f9fa !important;
-  transform: translateY(-1px) !important;
-}
-
-.content-input .tox-tbtn--enabled {
-  background: #e9ecef !important;
-  color: #495057 !important;
-}
-
-.content-input .tox-edit-area {
-  background: #ffffff !important;
-  border-top: 1px solid #e9ecef !important;
-}
-
-.content-input .tox-edit-area__iframe {
-  background: #ffffff !important;
-  min-height: 350px !important;
-}
-
-.content-input .tox-edit-focus {
-  border-color: #007bff !important;
-  box-shadow: 0 0 0 3px rgba(0, 123, 255, 0.1) !important;
-}
-
-/* 에디터 내부 콘텐츠 스타일 */
-.content-input .mce-content-body {
-  padding: 16px 20px !important;
-  font-family: 'Noto Sans KR', 'Noto Sans JP', 'Malgun Gothic', 'Hiragino Kaku Gothic ProN', sans-serif !important;
-  font-size: 14px !important;
-  line-height: 1.6 !important;
-  color: #2c3e50 !important;
-}
-
-.content-input .mce-content-body:focus {
-  outline: none !important;
+:deep(.mce-content-body:focus) {
+  @apply outline-none;
 }
 
 /* 반응형 디자인 */
 @media (max-width: 1024px) {
   .form-content {
-    flex-direction: column;
-    gap: 16px;
+    @apply flex-col gap-4;
   }
   
   .form-sidebar {
-    width: 100%;
+    @apply w-full;
   }
 }
 
 @media (max-width: 768px) {
   .form-header {
-    padding: 12px 16px;
+    @apply p-3 px-4;
   }
   
   .header-left {
-    flex-direction: column;
-    align-items: flex-start;
-    gap: 8px;
+    @apply flex-col items-start gap-2;
   }
   
   .form-title {
-    font-size: 1.25rem;
+    @apply text-xl;
   }
   
   .form-content {
-    padding: 16px;
+    @apply p-4;
   }
   
   .title-input {
-    font-size: 1.5rem;
+    @apply text-xl;
   }
   
   .meta-row {
-    flex-direction: column;
-    align-items: flex-start;
-    gap: 12px;
+    @apply flex-col items-start gap-3;
   }
   
   .form-footer {
-    padding: 12px 16px;
+    @apply p-3 px-4;
   }
   
   .footer-left, .footer-right {
-    flex-direction: column;
-    gap: 8px;
+    @apply flex-col gap-2;
   }
 }
 </style> 

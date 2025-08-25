@@ -62,5 +62,9 @@ public class WebMvcConfig implements WebMvcConfigurer {
                 .addResourceLocations("classpath:/static/img/");
         registry.addResourceHandler("/svg/**")
                 .addResourceLocations("classpath:/static/svg/");
+        
+        // 업로드된 이미지 서빙
+        registry.addResourceHandler("/uploads/**")
+                .addResourceLocations("file:uploads/");
     }
 } 

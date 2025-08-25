@@ -42,7 +42,7 @@ public class LikeApiController {
     @PostMapping("/posts/{postId}/like")
     public ResponseEntity<?> toggleLike(
             @PathVariable Long postId,
-            @RequestParam(defaultValue = "KR") String postTypeStr,
+            @RequestParam(value = "postType", defaultValue = "KR") String postTypeStr,
             @AuthenticationPrincipal UserDetails userDetails) {
         
         System.out.println("=== LIKE TOGGLE METHOD ENTERED ===");
@@ -108,7 +108,7 @@ public class LikeApiController {
     @GetMapping("/posts/{postId}/like")
     public ResponseEntity<?> getLikeStatus(
             @PathVariable Long postId,
-            @RequestParam("postType") String postTypeStr) {
+            @RequestParam(value = "postType", required = true) String postTypeStr) {
         
         System.out.println("=== GET LIKE STATUS METHOD ENTERED ===");
         System.out.println("PostId: " + postId);

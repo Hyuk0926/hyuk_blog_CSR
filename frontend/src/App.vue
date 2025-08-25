@@ -4,7 +4,7 @@
     <main class="main-content">
       <router-view/>
     </main>
-    <AppFooter v-if="!isHomePage && !isAuthPage" />
+    <AppFooter v-if="!isHomePage && !isAuthPage && !isMyPage" />
   </div>
 </template>
 
@@ -48,6 +48,10 @@ export default {
       // 로그인, 회원가입, 관리자 관련 페이지에서는 헤더/푸터 숨김
       const authPaths = ['/user/login', '/user/register', '/admin/login', '/admin/dashboard', '/admin/posts/new', '/admin/posts/edit', '/admin/resume', '/admin/inquiries'];
       return authPaths.some(path => this.$route.path.startsWith(path));
+    },
+    isMyPage() {
+      // 마이페이지에서는 푸터만 숨김
+      return this.$route.path.startsWith('/user/mypage');
     }
   }
 }

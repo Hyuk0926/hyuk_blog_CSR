@@ -141,35 +141,116 @@ public class UserService {
     public boolean existsByEmail(String email) {
         return userRepository.existsByEmail(email);
     }
-    
-    // 회원가입 (boolean 반환)
+
+    /**
+     * 프로필 이미지 업데이트
+     */
     @Transactional
-    public boolean registerUser(UserRegistrationDto registrationDto) {
-        try {
-            // 중복 검사
-            if (userRepository.existsByUsername(registrationDto.getUsername())) {
-                throw new IllegalArgumentException("이미 존재하는 사용자명입니다.");
-            }
-            if (userRepository.existsByNickname(registrationDto.getNickname())) {
-                throw new IllegalArgumentException("이미 존재하는 닉네임입니다.");
-            }
-            if (registrationDto.getEmail() != null && !registrationDto.getEmail().isEmpty() 
-                && userRepository.existsByEmail(registrationDto.getEmail())) {
-                throw new IllegalArgumentException("이미 존재하는 이메일입니다.");
-            }
-            
-            User user = new User();
-            user.setUsername(registrationDto.getUsername());
-            user.setPassword(passwordEncoder.encode(registrationDto.getPassword())); // BCrypt로 비밀번호 인코딩
-            user.setNickname(registrationDto.getNickname());
-            user.setEmail(registrationDto.getEmail());
-            user.setActive(true);
-            
-            userRepository.save(user);
-            return true;
-        } catch (Exception e) {
-            throw new IllegalArgumentException("회원가입 중 오류가 발생했습니다: " + e.getMessage());
+    public void updateProfileImage(String username, String imageUrl) {
+        User user = userRepository.findByUsername(username)
+                .orElseThrow(() -> new RuntimeException("사용자를 찾을 수 없습니다."));
+        
+        user.setProfileImage(imageUrl);
+        userRepository.save(user);
+    }
+
+    /**
+     * 프로필 정보 업데이트
+     */
+    @Transactional
+    public UserDto updateProfile(String username, String nickname, String email, String bio) {
+        User user = userRepository.findByUsername(username)
+                .orElseThrow(() -> new RuntimeException("사용자를 찾을 수 없습니다."));
+        
+        // 닉네임 중복 검사 (자신의 닉네임은 제외)
+        if (nickname != null && !nickname.equals(user.getNickname()) && 
+            userRepository.existsByNickname(nickname)) {
+            throw new RuntimeException("이미 존재하는 닉네임입니다.");
         }
+        
+        // 이메일 중복 검사 (자신의 이메일은 제외)
+        if (email != null && !email.equals(user.getEmail()) && 
+            userRepository.existsByEmail(email)) {
+            throw new RuntimeException("이미 존재하는 이메일입니다.");
+        }
+        
+        if (nickname != null) {
+            user.setNickname(nickname);
+        }
+        if (email != null) {
+            user.setEmail(email);
+        }
+        if (bio != null) {
+            user.setBio(bio);
+        }
+        
+        User savedUser = userRepository.save(user);
+        return UserDto.fromEntity(savedUser);
+    }
+
+    /**
+     * 배경화면 설정 업데이트
+     */
+    @Transactional
+    public UserDto updateBackground(String username, String backgroundStyle, String backgroundColor, String backgroundImage) {
+        User user = userRepository.findByUsername(username)
+                .orElseThrow(() -> new RuntimeException("사용자를 찾을 수 없습니다."));
+        
+        if (backgroundStyle != null) {
+            user.setBackgroundStyle(backgroundStyle);
+        }
+        if (backgroundColor != null) {
+            user.setBackgroundColor(backgroundColor);
+        }
+        if (backgroundImage != null) {
+            user.setBackgroundImage(backgroundImage);
+        }
+        
+        User savedUser = userRepository.save(user);
+        return UserDto.fromEntity(savedUser);
+    }
+
+    /**
+     * 비밀번호 변경
+     */
+    @Transactional
+    public void changePassword(String username, String currentPassword, String newPassword) {
+        User user = userRepository.findByUsername(username)
+                .orElseThrow(() -> new RuntimeException("사용자를 찾을 수 없습니다."));
+        
+        // 현재 비밀번호 검증
+        boolean currentPasswordValid = false;
+        
+        // BCrypt로 검증 시도
+        if (passwordEncoder.matches(currentPassword, user.getPassword())) {
+            currentPasswordValid = true;
+        } else {
+            // BCrypt 실패 시 SHA-256으로 검증 시도
+            String sha256Hash = hashPassword(currentPassword);
+            if (user.getPassword().equals(sha256Hash)) {
+                currentPasswordValid = true;
+            }
+        }
+        
+        if (!currentPasswordValid) {
+            throw new RuntimeException("현재 비밀번호가 일치하지 않습니다.");
+        }
+        
+        // 새 비밀번호로 업데이트 (BCrypt 사용)
+        user.updatePassword(passwordEncoder.encode(newPassword));
+        userRepository.save(user);
+    }
+
+    /**
+     * 계정 삭제
+     */
+    @Transactional
+    public void deleteAccount(String username) {
+        User user = userRepository.findByUsername(username)
+                .orElseThrow(() -> new RuntimeException("사용자를 찾을 수 없습니다."));
+        
+        user.setActive(false);
+        userRepository.save(user);
     }
     
     // 사용자명 사용 가능 여부 확인

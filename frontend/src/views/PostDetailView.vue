@@ -84,8 +84,23 @@
         <div v-for="comment in comments" :key="comment.id" class="group bg-white rounded-lg p-5 border border-gray-200 w-full box-border transition-all duration-200 hover:bg-gray-50 dark:bg-gray-800 dark:border-gray-700 dark:hover:bg-gray-700">
           <div class="flex justify-between items-start mb-4">
             <div class="flex flex-col gap-1.5">
-              <div class="font-semibold text-gray-900 text-sm dark:text-white">{{ comment.nickname }}</div>
-              <div class="text-xs text-gray-500 font-normal dark:text-gray-400">
+              <div class="flex items-center gap-2">
+                <!-- 프로필 이미지 -->
+                <div class="w-6 h-6 bg-gradient-to-br from-blue-500 to-purple-600 rounded-full flex items-center justify-center overflow-hidden flex-shrink-0">
+                  <img 
+                    v-if="comment.profileImage" 
+                    :src="getImageUrl(comment.profileImage)" 
+                    :alt="comment.nickname"
+                    class="w-full h-full object-cover"
+                  />
+                  <span v-else class="text-white text-xs font-bold">
+                    {{ getInitial(comment.nickname) }}
+                  </span>
+                </div>
+                <!-- 닉네임 -->
+                <div class="font-semibold text-gray-900 text-sm dark:text-white">{{ comment.nickname }}</div>
+              </div>
+              <div class="text-xs text-gray-500 font-normal dark:text-gray-400 ml-8">
                 {{ formatDate(comment.createdAt) }}
                 <span v-if="comment.isEdited" class="text-gray-500 text-xs italic ml-2 dark:text-gray-400">(수정됨)</span>
               </div>
@@ -129,14 +144,28 @@
       <!-- 댓글 작성 폼 -->
       <div class="bg-white rounded-lg p-6 border border-gray-200 mb-8 w-full box-border dark:bg-gray-800 dark:border-gray-700" v-if="isAuthenticated">
         <div class="flex gap-4 items-start">
-          <textarea 
-            id="comment-content" 
-            placeholder="댓글을 입력하세요..." 
-            class="flex-1 p-3 border border-gray-200 rounded-md text-sm min-h-20 resize-y font-sans transition-all duration-200 bg-white leading-relaxed focus:outline-none focus:border-blue-600 dark:bg-gray-900 dark:border-gray-700 dark:text-gray-300 dark:focus:border-blue-400"
-            v-model="newComment"
-            @keydown="handleCommentKeydown"
-          ></textarea>
-          <button id="comment-submit" class="px-5 py-3 bg-blue-600 text-white border-none rounded-md font-medium text-sm cursor-pointer transition-all duration-200 whitespace-nowrap hover:bg-blue-700" @click="submitComment">댓글 작성</button>
+          <!-- 현재 사용자 프로필 이미지 -->
+          <div class="w-8 h-8 bg-gradient-to-br from-blue-500 to-purple-600 rounded-full flex items-center justify-center overflow-hidden flex-shrink-0">
+            <img 
+              v-if="user?.profileImage" 
+              :src="getImageUrl(user.profileImage)" 
+              :alt="user.nickname || user.username"
+              class="w-full h-full object-cover"
+            />
+            <span v-else class="text-white text-sm font-bold">
+              {{ getInitial(user?.nickname || user?.username) }}
+            </span>
+          </div>
+          <div class="flex-1 flex gap-4 items-start">
+            <textarea 
+              id="comment-content" 
+              placeholder="댓글을 입력하세요..." 
+              class="flex-1 p-3 border border-gray-200 rounded-md text-sm min-h-20 resize-y font-sans transition-all duration-200 bg-white leading-relaxed focus:outline-none focus:border-blue-600 dark:bg-gray-900 dark:border-gray-700 dark:text-gray-300 dark:focus:border-blue-400"
+              v-model="newComment"
+              @keydown="handleCommentKeydown"
+            ></textarea>
+            <button id="comment-submit" class="px-5 py-3 bg-blue-600 text-white border-none rounded-md font-medium text-sm cursor-pointer transition-all duration-200 whitespace-nowrap hover:bg-blue-700" @click="submitComment">댓글 작성</button>
+          </div>
         </div>
       </div>
       
@@ -244,17 +273,24 @@ const loadPost = async () => {
   console.log("Current route params:", route.params);
   console.log("Current route query:", route.query);
   
+  // URL 쿼리 파라미터의 언어 설정을 우선 사용, 없으면 현재 locale 사용
+  const lang = route.query.lang || locale.value;
+  console.log("Using language:", lang);
+  
   try {
-    // URL 쿼리 파라미터의 언어 설정을 우선 사용, 없으면 현재 locale 사용
-    const lang = route.query.lang || locale.value;
-    console.log("Using language:", lang);
     
     const response = await apiService.getPost(postId, lang);
     console.log("API response:", response);
 
     if (response.success) {
       post.value = response.data;
+      
+      // postType을 명시적으로 설정
+      const postType = apiService.getPostTypeFromLang(lang);
+      post.value.postType = postType;
+      
       console.log("Post data loaded:", post.value);
+      console.log("Post type set to:", postType);
       
       // 언어별 데이터 확인
       console.log("Post title (ko):", post.value.titleKo);
@@ -264,6 +300,7 @@ const loadPost = async () => {
     } else {
       console.error("API response not successful:", response);
       error.value = response.message || '게시글을 찾을 수 없습니다.';
+      const postType = apiService.getPostTypeFromLang(lang);
       post.value = {
         id: postId,
         title: '게시글을 찾을 수 없습니다',
@@ -271,6 +308,7 @@ const loadPost = async () => {
         content: '<p>요청하신 게시글을 찾을 수 없습니다.</p>',
         imageUrl: '',
         createdAt: new Date(),
+        postType: postType,
         // likeCount: 0
       };
     }
@@ -282,6 +320,7 @@ const loadPost = async () => {
       name: error.name
     });
     error.value = '게시글을 불러오는데 실패했습니다: ' + error.message;
+    const postType = apiService.getPostTypeFromLang(lang);
     post.value = {
       id: postId,
       title: '게시글을 찾을 수 없습니다',
@@ -289,6 +328,7 @@ const loadPost = async () => {
       content: '<p>요청하신 게시글을 찾을 수 없습니다.</p>',
       imageUrl: '',
       createdAt: new Date(),
+      postType: postType,
       likeCount: 0
     };
   } finally {
@@ -302,11 +342,18 @@ const loadLikeStatus = async () => {
     console.log("=== LOAD LIKE STATUS DEBUG ===");
     console.log("Loading like status for post ID:", post.value.id);
     
-    // URL 쿼리 파라미터의 언어 설정을 우선 사용, 없으면 현재 locale 사용
-    const lang = route.query.lang || locale.value;
-    const postType = post.value.postType || apiService.getPostTypeFromLang(lang);
+    // postType 결정: post.value.postType이 있으면 사용, 없으면 언어 기반으로 결정
+    let postType;
+    if (post.value.postType) {
+      postType = post.value.postType;
+      console.log("Using postType from post data:", postType);
+    } else {
+      const lang = route.query.lang || locale.value;
+      postType = apiService.getPostTypeFromLang(lang);
+      console.log("Using postType from language:", lang, "->", postType);
+    }
     
-    console.log("Using postType:", postType);
+    console.log("Final postType for like status:", postType);
     console.log("User authenticated:", isAuthenticated.value);
     
     const response = await apiService.getLikeStatus(post.value.id, postType);
@@ -339,11 +386,18 @@ const loadComments = async () => {
     console.log("=== LOAD COMMENTS DEBUG ===");
     console.log("Loading comments for post ID:", post.value.id);
     
-    // URL 쿼리 파라미터의 언어 설정을 우선 사용, 없으면 현재 locale 사용
-    const lang = route.query.lang || locale.value;
-    const postType = post.value.postType || apiService.getPostTypeFromLang(lang);
+    // postType 결정: post.value.postType이 있으면 사용, 없으면 언어 기반으로 결정
+    let postType;
+    if (post.value.postType) {
+      postType = post.value.postType;
+      console.log("Using postType from post data:", postType);
+    } else {
+      const lang = route.query.lang || locale.value;
+      postType = apiService.getPostTypeFromLang(lang);
+      console.log("Using postType from language:", lang, "->", postType);
+    }
     
-    console.log("Using postType:", postType);
+    console.log("Final postType for comments:", postType);
     console.log("User authenticated:", isAuthenticated.value);
     
     const response = await apiService.getComments(post.value.id, postType);
@@ -382,6 +436,19 @@ const formatDate = (date) => {
   if (!date) return '';
   const d = new Date(date);
   return `${d.getFullYear()}년 ${String(d.getMonth() + 1).padStart(2, '0')}월 ${String(d.getDate()).padStart(2, '0')}일`;
+};
+
+// 프로필 이미지 URL 생성
+const getImageUrl = (imagePath) => {
+  if (!imagePath) return '';
+  // 프록시 설정을 사용하므로 상대 경로 그대로 반환
+  return imagePath;
+};
+
+// 닉네임의 첫 글자 추출
+const getInitial = (nickname) => {
+  if (!nickname) return '?';
+  return nickname.charAt(0).toUpperCase();
 };
 
 const handleLikeToggle = async () => {
@@ -457,11 +524,18 @@ const submitComment = async () => {
   });
   
   try {
-    // URL 쿼리 파라미터의 언어 설정을 우선 사용, 없으면 현재 locale 사용
-    const lang = route.query.lang || locale.value;
-    const postType = post.value.postType || apiService.getPostTypeFromLang(lang);
+    // postType 결정: post.value.postType이 있으면 사용, 없으면 언어 기반으로 결정
+    let postType;
+    if (post.value.postType) {
+      postType = post.value.postType;
+      console.log("Using postType from post data:", postType);
+    } else {
+      const lang = route.query.lang || locale.value;
+      postType = apiService.getPostTypeFromLang(lang);
+      console.log("Using postType from language:", lang, "->", postType);
+    }
     
-    console.log("Using postType:", postType);
+    console.log("Final postType for comment submission:", postType);
     
     const commentData = {
       content: newComment.value

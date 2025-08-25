@@ -11,6 +11,11 @@ public class UserDto {
     private String password;
     private String nickname;
     private String email;
+    private String profileImage;
+    private String bio; // 자기소개
+    private String backgroundImage; // 배경화면 이미지 URL
+    private String backgroundColor; // 배경색
+    private String backgroundStyle; // 배경 스타일
     private boolean active;
     private LocalDateTime createdAt;
     private LocalDateTime updatedAt;
@@ -23,6 +28,11 @@ public class UserDto {
         dto.setPassword(user.getPassword());
         dto.setNickname(user.getNickname());
         dto.setEmail(user.getEmail());
+        dto.setProfileImage(user.getProfileImage());
+        dto.setBio(user.getBio());
+        dto.setBackgroundImage(user.getBackgroundImage());
+        dto.setBackgroundColor(user.getBackgroundColor());
+        dto.setBackgroundStyle(user.getBackgroundStyle());
         dto.setActive(user.isActive());
         dto.setCreatedAt(user.getCreatedAt());
         dto.setUpdatedAt(user.getUpdatedAt());
@@ -37,6 +47,11 @@ public class UserDto {
         user.setPassword(this.password);
         user.setNickname(this.nickname);
         user.setEmail(this.email);
+        user.setProfileImage(this.profileImage);
+        user.setBio(this.bio);
+        user.setBackgroundImage(this.backgroundImage);
+        user.setBackgroundColor(this.backgroundColor);
+        user.setBackgroundStyle(this.backgroundStyle);
         user.setActive(this.active);
         return user;
     }

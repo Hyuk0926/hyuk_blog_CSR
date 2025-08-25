@@ -14,6 +14,7 @@ public class CommentDto {
     private String nickname;
     private String content;
     private Long userId;
+    private String profileImage; // 프로필 이미지 필드 추가
     private LocalDateTime createdAt;
     private LocalDateTime updatedAt;
     private boolean isEdited;
@@ -32,6 +33,15 @@ public class CommentDto {
         dto.setNickname(comment.getNickname());
         dto.setContent(comment.getContent());
         dto.setUserId(comment.getUser() != null ? comment.getUser().getId() : null);
+        
+        // 프로필 이미지 설정
+        if (comment.getUser() != null) {
+            dto.setProfileImage(comment.getUser().getProfileImage());
+        } else {
+            // Admin 사용자의 경우 User가 null이므로, CommentService에서 처리
+            dto.setProfileImage(null);
+        }
+        
         dto.setCreatedAt(comment.getCreatedAt());
         dto.setUpdatedAt(comment.getUpdatedAt());
         

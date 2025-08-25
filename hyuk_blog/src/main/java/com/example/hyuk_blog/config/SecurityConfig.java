@@ -47,6 +47,9 @@ public class SecurityConfig {
                 // --- 정적 리소스 허용 ---
                 .requestMatchers("/css/**", "/js/**", "/img/**", "/svg/**", "/favicon.ico").permitAll()
                 
+                // --- 업로드된 이미지 허용 ---
+                .requestMatchers("/uploads/**").permitAll()
+                
                 // --- 프론트엔드 페이지 허용 ---
                 .requestMatchers("/", "/home", "/user/**", "/password-reset", "/reset-password").permitAll()
                 
