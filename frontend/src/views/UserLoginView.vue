@@ -26,7 +26,8 @@
         {{ error }}
       </div>
       
-      <div v-if="message" class="bg-green-50 text-green-600 p-4 rounded-xl mb-5 text-center font-medium border border-green-200">
+      <!-- 우측 하단 성공 메시지 -->
+      <div v-if="message" class="fixed bottom-4 right-4 bg-green-500 text-white px-4 py-2 rounded-lg shadow-lg z-50 animate-fade-in">
         {{ message }}
       </div>
       
@@ -42,6 +43,15 @@
             class="w-full p-[14px] px-4 border-2 border-gray-300 rounded-xl text-[0.95rem] transition-all duration-300 ease-in-out box-border bg-white font-inherit text-gray-800 focus:outline-none focus:border-blue-500 focus:shadow-[0_0_0_3px_rgba(59,130,246,0.1)] focus:-translate-y-[1px] focus:bg-white" 
             required
           >
+          <!-- 아이디 찾기 링크 -->
+          <div class="text-right mt-2">
+            <router-link 
+              to="/username-search" 
+              class="text-gray-600 no-underline text-[0.85rem] transition-colors duration-300 ease-in-out hover:text-blue-600 hover:underline"
+            >
+              아이디를 잊으셨나요?
+            </router-link>
+          </div>
         </div>
         
         <div class="mb-5">
@@ -243,6 +253,22 @@ export default {
 </script>
 
 <style scoped>
+/* 성공 메시지 애니메이션 */
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+    transform: translateY(20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.animate-fade-in {
+  animation: fadeIn 0.3s ease-out;
+}
+
 /* 다크모드 지원 - Tailwind CSS로 대체되었으므로 최소한의 스타일만 유지 */
 .login-page.dark-mode {
   background: #1a202c;

@@ -90,6 +90,12 @@ public class UserService {
         return userRepository.findByUsername(username);
     }
     
+    // 이메일로 사용자 조회 (DTO 반환)
+    public Optional<UserDto> findByEmail(String email) {
+        return userRepository.findByEmail(email)
+                .map(UserDto::fromEntity);
+    }
+    
     // 회원가입 (DTO 사용)
     @Transactional
     public UserDto register(com.example.hyuk_blog.dto.UserRegistrationDto registrationDto) {

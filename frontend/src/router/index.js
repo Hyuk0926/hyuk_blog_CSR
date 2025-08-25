@@ -50,6 +50,11 @@ const routes = [
     component: () => import('../views/UserMyPageView.vue')
   },
   {
+    path: '/username-search',
+    name: 'username-search',
+    component: () => import('../views/UsernameSearchView.vue')
+  },
+  {
     path: '/password-reset',
     name: 'password-reset-request',
     component: () => import('../views/PasswordResetRequestView.vue')

@@ -14,6 +14,7 @@ import org.springframework.web.bind.annotation.*;
 
 import java.util.HashMap;
 import java.util.Map;
+import java.util.Optional;
 import com.example.hyuk_blog.dto.UserDto;
 
 @Slf4j
@@ -171,6 +172,50 @@ public class AuthApiController {
             log.error("Email check error: {}", e.getMessage());
             Map<String, String> error = new HashMap<>();
             error.put("error", "이메일 확인 중 오류가 발생했습니다.");
+            return ResponseEntity.internalServerError().body(error);
+        }
+    }
+    
+    /**
+     * 아이디 검색 API
+     * POST /api/auth/search-username
+     */
+    @PostMapping("/search-username")
+    public ResponseEntity<?> searchUsername(@RequestBody Map<String, String> request) {
+        try {
+            String email = request.get("email");
+            
+            if (email == null || email.trim().isEmpty()) {
+                Map<String, String> error = new HashMap<>();
+                error.put("error", "이메일 주소가 필요합니다.");
+                return ResponseEntity.badRequest().body(error);
+            }
+            
+            // 이메일로 사용자 검색
+            Optional<UserDto> userOpt = userService.findByEmail(email);
+            
+                         if (userOpt.isEmpty()) {
+                 Map<String, Object> response = new HashMap<>();
+                 response.put("success", false);
+                 response.put("message", "해당 이메일로 등록된 사용자를 찾을 수 없습니다.");
+                 return ResponseEntity.ok(response);
+             }
+            
+            UserDto user = userOpt.get();
+            
+                         // 아이디를 직접 반환
+             log.info("Username search requested for email: {}. Username: {}", email, user.getUsername());
+             
+             Map<String, Object> response = new HashMap<>();
+             response.put("success", true);
+             response.put("username", user.getUsername());
+             response.put("message", "아이디를 찾았습니다.");
+            
+            return ResponseEntity.ok(response);
+        } catch (Exception e) {
+            log.error("Username search error: {}", e.getMessage());
+            Map<String, String> error = new HashMap<>();
+            error.put("error", "아이디 검색 중 오류가 발생했습니다.");
             return ResponseEntity.internalServerError().body(error);
         }
     }

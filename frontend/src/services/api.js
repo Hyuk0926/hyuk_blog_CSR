@@ -537,6 +537,16 @@ class ApiService {
     return this.request(`/api/user/check-email?email=${encodeURIComponent(email)}`);
   }
 
+  /**
+   * 아이디 검색
+   */
+  async searchUsername(email) {
+    return this.request('/api/auth/search-username', {
+      method: 'POST',
+      body: JSON.stringify({ email }),
+    });
+  }
+
   // ==================== 문의 관련 API ====================
 
   /**
